@@ -1,0 +1,28 @@
+# 优化问题与凸优化视角
+
+## 优化概览
+
+优化是在一个可行解的集合中，寻找使目标函数最优的元素。
+
+- **约束**决定可行解集合；
+- **目标函数**说明什么叫“最好”；
+- **优化算法**负责在可行集合中寻找最优元素。
+
+写成一般形式：
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & f_0(x) \\
+\operatorname{subject\ to}\quad & f_i(x)\le 0,
+\quad i=1,\ldots,m,\\
+& h_j(x)=0,
+\quad j=1,\ldots,p.
+\end{aligned}
+$$
+
+其中，$x$ 是优化变量，$f_0$ 是目标函数，$f_i$ 和 $h_j$ 是约束函数。
+
+::: {.callout-note title="后续补全"}
+本章将在 P0 阶段结合 Lecture 1 与 Lecture 6，补入优化问题的抽象方式、可行性、最优值是否取得，以及凸优化相对一般非线性优化的特殊性。
+:::
+

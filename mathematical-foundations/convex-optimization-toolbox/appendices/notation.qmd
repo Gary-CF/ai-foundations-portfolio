@@ -1,0 +1,17 @@
+# 记号表 {.appendix}
+
+| 记号 | 含义 |
+|---|---|
+| $\operatorname{dom}f$ | 函数 $f$ 的定义域 |
+| $\operatorname{relint}C$ | 集合 $C$ 的相对内部 |
+| $\operatorname{conv}C$ | 集合 $C$ 的凸包 |
+| $\langle x,y\rangle=x^\top y$ | Euclidean 内积 |
+| $\nabla f(x)$ | 标量函数的梯度，按列向量记 |
+| $\nabla^2f(x)$ | 函数的 Hessian 矩阵 |
+| $A\succeq0$ | 对称矩阵 $A$ 半正定 |
+| $x\succeq_K y$ | $x-y\in K$ 所定义的广义不等式 |
+| $p^\star,d^\star$ | 原问题与对偶问题的最优值 |
+| $\lambda,\nu$ | 不等式与等式约束的 Lagrange 乘子 |
+
+全书约定：向量使用小写字母，矩阵使用大写字母，梯度使用列向量；最优点写作 $x^\star$，最优值写作 $p^\star$。
+

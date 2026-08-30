@@ -1,0 +1,52 @@
+# 凸优化问题的构造与等价变换
+
+## 标准凸优化问题
+
+标准形式为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & f_0(x) \\
+\operatorname{subject\ to}\quad
+& f_i(x)\le 0,
+\quad i=1,\ldots,m,\\
+& h_j(x)=0,
+\quad j=1,\ldots,p,
+\end{aligned}
+$$
+
+其中：
+
+- $f_0,f_1,\ldots,f_m$ 为凸函数；
+- $h_1,\ldots,h_p$ 为仿射函数。
+
+凸优化问题的关键性质是：任意局部最优点都是全局最优点。
+
+## 可行集
+
+记
+
+$$
+X
+=
+\{x\mid f_i(x)\le 0, i=1,\ldots,m;
+\ h_j(x)=0, j=1,\ldots,p\}.
+$$
+
+在标准凸优化问题中，$X$ 是凸集。
+
+## 可微情形下的一阶最优性条件
+
+设 $f_0$ 可微且为凸函数，$X$ 为凸集。对 $x^\star\in X$，有
+
+$$
+x^\star\text{ 最优}
+\quad\Longleftrightarrow\quad
+\nabla f_0(x^\star)^\top(y-x^\star)\ge 0,
+\qquad \forall y\in X.
+$$
+
+::: {.callout-note title="后续补全"}
+等价问题、变量替换、消去等式约束、上境图形式和拟凸问题的二分求解，将在 P0 阶段依据 Lecture 6 补入。
+:::
+

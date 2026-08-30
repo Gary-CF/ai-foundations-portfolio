@@ -1,0 +1,56 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "凸优化工具箱"
+  subtitle: "面向人工智能与机器学习的理论、几何与算法"
+  author: "Gary Chen"
+  date: last-modified
+  chapters:
+    - index.qmd
+    - part: "基础语言与几何"
+      chapters:
+        - chapters/01-optimization-overview.qmd
+        - chapters/02-convex-sets.qmd
+        - chapters/03-convex-functions.qmd
+    - part: "问题、对偶与最优性"
+      chapters:
+        - chapters/04-convex-problems.qmd
+        - chapters/05-duality-kkt.qmd
+    - part: "算法工具箱"
+      chapters:
+        - chapters/06-smooth-convex-optimization.qmd
+        - chapters/07-gradient-methods.qmd
+        - chapters/08-constrained-composite-methods.qmd
+    - part: "模型与应用"
+      chapters:
+        - chapters/09-models-applications.qmd
+    - part: "附录"
+      chapters:
+        - appendices/mathematical-toolbox.qmd
+        - appendices/conic-optimization.qmd
+        - appendices/advanced-algorithms.qmd
+        - appendices/notation.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+  pdf:
+    documentclass: scrreprt
+    pdf-engine: xelatex
+    toc: true
+    keep-tex: true
+
+number-sections: true
+crossref:
+  chapters: true
+
+execute:
+  freeze: auto
+
+lang: zh
+

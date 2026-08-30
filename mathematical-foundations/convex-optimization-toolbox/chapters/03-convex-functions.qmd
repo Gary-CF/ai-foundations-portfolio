@@ -1,0 +1,658 @@
+# 凸函数、判定方法与保凸运算
+
+凸集描述“允许在哪里取点”，凸函数则描述“目标函数具有怎样的形状”。凸性的核心价值是把局部信息升级为全局信息：对一般函数，某一点附近下降不代表全局趋势；对凸函数，切平面、梯度和 Hessian 都能给出全局结论。
+
+本章集中回答三个问题：
+
+1. 怎样准确地定义凸函数？
+2. 怎样判断一个函数是否凸？
+3. 怎样由已知凸函数构造新的凸函数？
+
+## 凸函数的定义
+
+### 基本定义
+
+设
+
+$$
+f:\mathbb R^n\to\mathbb R\cup\{+\infty\}.
+$$
+
+记有效定义域为
+
+$$
+\operatorname{dom}f
+=
+\{x\in\mathbb R^n\mid f(x)<+\infty\}.
+$$
+
+如果 $\operatorname{dom}f$ 是凸集，并且对任意 $x,y\in\operatorname{dom}f$ 与 $\theta\in[0,1]$，都有
+
+$$
+f\bigl(\theta x+(1-\theta)y\bigr)
+\le
+\theta f(x)+(1-\theta)f(y),
+$$ {#eq-convex-definition}
+
+则称 $f$ 为凸函数。
+
+式 @eq-convex-definition 的几何含义是：函数图像上任意两点之间的弦，都位于函数图像的上方。
+
+::: {.callout-note title="为什么定义域也必须是凸集？"}
+只有当 $x$ 与 $y$ 之间的整条线段都在定义域内时，比较“线段中点的函数值”和“端点函数值的加权平均”才有意义。定义域的凸性不是附带条件，而是凸函数定义的一部分。
+:::
+
+### 严格凸函数
+
+如果对任意不同的 $x,y\in\operatorname{dom}f$ 和 $\theta\in(0,1)$，都有
+
+$$
+f\bigl(\theta x+(1-\theta)y\bigr)
+<
+\theta f(x)+(1-\theta)f(y),
+$$
+
+则称 $f$ 为严格凸函数。
+
+严格凸性排除了函数图像上的非平凡线段，因此一旦最优解存在，它至多只有一个。不过，严格凸性并不保证最优解一定存在。
+
+### 扩展值表示
+
+扩展值表示把约束直接编码进函数。设 $f$ 只在集合 $C$ 上定义，可以将其扩展为
+
+$$
+\widetilde f(x)=
+\begin{cases}
+f(x), & x\in C,\\
++\infty, & x\notin C.
+\end{cases}
+$$
+
+于是
+
+$$
+\min_{x\in C}f(x)
+\quad\Longleftrightarrow\quad
+\min_{x\in\mathbb R^n}\widetilde f(x).
+$$
+
+特别地，集合 $C$ 的指示函数定义为
+
+$$
+I_C(x)=
+\begin{cases}
+0, & x\in C,\\
++\infty, & x\notin C.
+\end{cases}
+$$
+
+$I_C$ 为凸函数，当且仅当 $C$ 为凸集。这个表示把“凸集”和“凸函数”统一在同一套语言中，后续近端方法也会反复使用它。
+
+## 三类常用判定方法
+
+凸函数的定义是零阶条件，只比较函数值。如果函数可微或二阶可微，还可以使用梯度和 Hessian 判定凸性。
+
+### 零阶判定：限制在任意直线上
+
+对任意 $x\in\operatorname{dom}f$ 和方向 $v\in\mathbb R^n$，定义一元函数
+
+$$
+g(t)=f(x+tv),
+$$
+
+其定义域为
+
+$$
+\operatorname{dom}g
+=
+\{t\in\mathbb R\mid x+tv\in\operatorname{dom}f\}.
+$$
+
+则
+
+$$
+f\text{ 为凸函数}
+\quad\Longleftrightarrow\quad
+g\text{ 在每条与 }\operatorname{dom}f\text{ 相交的直线上均为凸函数}.
+$$
+
+这个结论把高维凸性化为一维凸性。它本身未必是最方便的计算判据，却是许多证明的基础：沿着任意方向研究 $f$，本质上只需研究一个一元函数。
+
+### 一阶判定：切平面是全局下界
+
+设 $f$ 在开凸集 $\operatorname{dom}f$ 上可微，则
+
+$$
+f\text{ 为凸函数}
+\quad\Longleftrightarrow\quad
+f(y)\ge f(x)+\nabla f(x)^\top(y-x),
+\qquad
+\forall x,y\in\operatorname{dom}f.
+$$ {#eq-first-order-convex}
+
+右侧是 $f$ 在 $x$ 处的一阶 Taylor 近似。式 @eq-first-order-convex 表明：对凸函数，一阶近似不仅在 $x$ 附近有效，而且是整个定义域上的全局下界。
+
+::: {.callout-tip title="几何视角：局部信息为何能够控制全局？"}
+$\nabla f(x)$ 决定函数图像在 $(x,f(x))$ 处的切平面。凸函数的图像始终位于这个切平面上方，因此梯度提供的不是局部猜测，而是全局有效的线性下界。这也是梯度法、对偶理论和 KKT 条件能够成立的共同几何基础。
+:::
+
+#### 必要性
+
+假设 $f$ 为凸函数。固定 $x,y\in\operatorname{dom}f$，对 $t\in(0,1]$ 有
+
+$$
+f\bigl(x+t(y-x)\bigr)
+\le
+(1-t)f(x)+tf(y).
+$$
+
+移项并除以 $t$：
+
+$$
+\frac{f\bigl(x+t(y-x)\bigr)-f(x)}{t}
+\le
+f(y)-f(x).
+$$
+
+令 $t\downarrow0$，左侧趋于方向导数 $\nabla f(x)^\top(y-x)$，于是
+
+$$
+f(y)\ge f(x)+\nabla f(x)^\top(y-x).
+$$
+
+关键步骤是从弦斜率取极限得到切线斜率。
+
+#### 充分性
+
+反过来，假设式 @eq-first-order-convex 对所有 $x,y$ 都成立。令
+
+$$
+z=\theta x+(1-\theta)y,
+\qquad \theta\in[0,1].
+$$
+
+分别在 $z$ 处对 $x$ 和 $y$ 使用一阶下界：
+
+$$
+f(x)\ge f(z)+\nabla f(z)^\top(x-z),
+$$
+
+$$
+f(y)\ge f(z)+\nabla f(z)^\top(y-z).
+$$
+
+第一式乘以 $\theta$，第二式乘以 $1-\theta$ 后相加。由于
+
+$$
+\theta(x-z)+(1-\theta)(y-z)=0,
+$$
+
+梯度项正好消失，从而得到
+
+$$
+\theta f(x)+(1-\theta)f(y)\ge f(z).
+$$
+
+这正是凸函数的定义。
+
+### 二阶判定：Hessian 半正定
+
+设 $f$ 在开凸集 $\operatorname{dom}f$ 上二阶可微，则
+
+$$
+f\text{ 为凸函数}
+\quad\Longleftrightarrow\quad
+\nabla^2f(x)\succeq0,
+\qquad
+\forall x\in\operatorname{dom}f.
+$$ {#eq-second-order-convex}
+
+这里 $\nabla^2f(x)\succeq0$ 表示
+
+$$
+v^\top\nabla^2f(x)v\ge0,
+\qquad \forall v\in\mathbb R^n.
+$$
+
+沿直线 $x+tv$ 定义 $g(t)=f(x+tv)$，则
+
+$$
+g''(t)
+=
+v^\top\nabla^2f(x+tv)v.
+$$
+
+因此，高维 Hessian 半正定恰好等价于函数沿每个方向的二阶导数非负，再结合直线限制判定即可得到式 @eq-second-order-convex。
+
+#### 例：凸二次函数
+
+考虑
+
+$$
+f(x)=\frac12x^\top Px+q^\top x+r,
+$$
+
+其中 $P=P^\top$。由于
+
+$$
+\nabla^2f(x)=P,
+$$
+
+所以
+
+$$
+f\text{ 为凸函数}
+\quad\Longleftrightarrow\quad
+P\succeq0.
+$$
+
+如果 $P\succ0$，则 $f$ 严格凸。但反方向不成立：严格凸函数的 Hessian 不必处处正定。例如 $f(x)=x^4$ 严格凸，而 $f''(0)=0$。
+
+## 上境图、下水平集与 Jensen 不等式
+
+### 上境图：把函数变成集合
+
+函数 $f$ 的上境图定义为
+
+$$
+\operatorname{epi}f
+=
+\{(x,t)\mid x\in\operatorname{dom}f,\ f(x)\le t\}.
+$$
+
+上境图是函数图像上方的全部点。凸函数可以用上境图完全刻画：
+
+$$
+f\text{ 为凸函数}
+\quad\Longleftrightarrow\quad
+\operatorname{epi}f\text{ 为凸集}.
+$$ {#eq-epigraph-convex}
+
+这个视角把“函数凸性”转化为“集合凸性”。许多保凸运算都可以通过集合的交、投影和线性映射来证明。
+
+对于可微凸函数，式 @eq-first-order-convex 给出的切平面也正是上境图在 $(x,f(x))$ 处的支撑超平面。
+
+### 下水平集与拟凸性
+
+对 $\alpha\in\mathbb R$，定义 $\alpha$-下水平集
+
+$$
+S_\alpha
+=
+\{x\in\operatorname{dom}f\mid f(x)\le\alpha\}.
+$$
+
+如果 $f$ 为凸函数，则每个 $S_\alpha$ 都是凸集。证明只需取 $x,y\in S_\alpha$：
+
+$$
+f\bigl(\theta x+(1-\theta)y\bigr)
+\le
+\theta f(x)+(1-\theta)f(y)
+\le\alpha.
+$$
+
+但反方向一般不成立。所有下水平集均凸，只能推出 $f$ 是拟凸函数。
+
+拟凸函数等价地满足
+
+$$
+f\bigl(\theta x+(1-\theta)y\bigr)
+\le
+\max\{f(x),f(y)\}.
+$$
+
+例如 $f(x)=x^3$ 在 $\mathbb R$ 上单调递增，因此每个下水平集都是区间，故它拟凸；但 $f''(x)=6x$ 会改变符号，所以它不是凸函数。
+
+::: {.callout-warning title="凸函数与拟凸函数的关键差别"}
+凸函数控制函数值如何随凸组合变化；拟凸函数只控制下水平集的形状。拟凸性足以排除“坏形状”的可行水平集，却不足以保证切平面是全局下界，也不能直接继承凸优化的全部一阶理论。
+:::
+
+### Jensen 不等式
+
+凸函数定义可以推广到有限个点。若 $x_i\in\operatorname{dom}f$，$\theta_i\ge0$ 且 $\sum_{i=1}^k\theta_i=1$，则
+
+$$
+f\left(\sum_{i=1}^k\theta_i x_i\right)
+\le
+\sum_{i=1}^k\theta_i f(x_i).
+$$ {#eq-jensen-finite}
+
+在相应期望存在时，它进一步写成
+
+$$
+f\bigl(\mathbb E[X]\bigr)
+\le
+\mathbb E[f(X)].
+$$ {#eq-jensen-expectation}
+
+Jensen 不等式说明：先平均再代入凸函数，不会大于先代入再平均。它是概率论、统计学习和风险分析中连接“均值”与“非线性损失”的基本工具。
+
+## 常用凸函数原子
+
+实际判断复杂函数时，通常不从定义重新证明，而是先识别一组已知原子，再使用保凸运算组合它们。
+
+| 函数 | 定义域 | 性质 |
+|---|---|---|
+| $a^\top x+b$ | $\mathbb R^n$ | 仿射，既凸又凹 |
+| $x^p$ | $\mathbb R_+$ | $p\ge1$ 时凸 |
+| $e^x$ | $\mathbb R$ | 严格凸且单调递增 |
+| $-\log x$ | $\mathbb R_{++}$ | 严格凸且单调递减 |
+| $x\log x$ | $\mathbb R_{++}$ | 严格凸 |
+| $\lVert x\rVert$ | $\mathbb R^n$ | 任意范数均凸 |
+| $\max_i x_i$ | $\mathbb R^n$ | 凸 |
+| $\log\sum_i e^{x_i}$ | $\mathbb R^n$ | 凸，即 log-sum-exp |
+| $x^2/t$ | $t>0$ | 关于 $(x,t)$ 联合凸 |
+
+其中，范数的凸性直接来自三角不等式和正齐次性：
+
+$$
+\begin{aligned}
+\lVert\theta x+(1-\theta)y\rVert
+&\le
+\lVert\theta x\rVert+\lVert(1-\theta)y\rVert\\
+&=
+\theta\lVert x\rVert+(1-\theta)\lVert y\rVert.
+\end{aligned}
+$$
+
+## 保持凸性的运算
+
+### 非负加权和
+
+若 $f_1,\ldots,f_k$ 均为凸函数，$w_i\ge0$，则
+
+$$
+f(x)=\sum_{i=1}^k w_i f_i(x)
+$$
+
+仍为凸函数。
+
+权重非负是必要条件之一；负权重会把凸函数变成凹函数。例如 $x^2$ 凸，但 $-x^2$ 凹。
+
+常见的经验风险
+
+$$
+\frac1n\sum_{i=1}^n\ell_i(x)
+$$
+
+就是这一规则的直接应用：只要每个样本损失 $\ell_i$ 关于参数 $x$ 凸，平均损失仍然凸。
+
+### 与仿射映射复合
+
+若 $f$ 为凸函数，则
+
+$$
+g(x)=f(Ax+b)
+$$
+
+也是凸函数，因为
+
+$$
+A\bigl(\theta x+(1-\theta)y\bigr)+b
+=
+\theta(Ax+b)+(1-\theta)(Ay+b).
+$$
+
+因此，仿射预复合不会破坏凸组合结构。
+
+例如，任意范数损失
+
+$$
+\lVert Ax-b\rVert
+$$
+
+关于 $x$ 都是凸函数。
+
+### 逐点最大值与上确界
+
+若 $f_1,\ldots,f_k$ 均为凸函数，则
+
+$$
+f(x)=\max_{1\le i\le k}f_i(x)
+$$
+
+仍为凸函数。更一般地，若对每个 $\alpha\in\mathcal A$，$f_\alpha$ 都是凸函数，则
+
+$$
+f(x)=\sup_{\alpha\in\mathcal A}f_\alpha(x)
+$$
+
+也是凸函数，只要该上确界没有处处取 $+\infty$。
+
+从上境图看，
+
+$$
+\operatorname{epi}f
+=
+\bigcap_{\alpha\in\mathcal A}\operatorname{epi}f_\alpha.
+$$
+
+由于凸集的交仍为凸集，结论立即成立。
+
+分段线性凸函数
+
+$$
+f(x)=\max_{1\le i\le k}(a_i^\top x+b_i)
+$$
+
+就是仿射函数逐点最大值的典型例子。
+
+### 一般复合：必须检查单调性
+
+考虑
+
+$$
+f(x)=h(g(x)).
+$$
+
+仅知道 $h$ 和 $g$ 都凸，不能推出 $h\circ g$ 凸。常用的充分条件为：
+
+| 外层函数 $h$ | 内层函数 $g$ | $h\circ g$ |
+|---|---|---|
+| 凸且单调不减 | 凸 | 凸 |
+| 凸且单调不增 | 凹 | 凸 |
+| 凹且单调不减 | 凹 | 凹 |
+| 凹且单调不增 | 凸 | 凹 |
+
+这些单调性只需在 $g(\operatorname{dom}g)$ 上成立。
+
+典型例子包括：
+
+- 若 $g$ 凸，则 $e^{g(x)}$ 凸；
+- 若 $g$ 凹且 $g(x)>0$，则 $-\log g(x)$ 凸；
+- 若 $g$ 凸且 $g(x)\ge0$，则 $g(x)^2$ 凸。
+
+最后一条中的非负条件不能省略，因为 $u\mapsto u^2$ 并非在整个实数轴上单调。
+
+对于向量复合
+
+$$
+f(x)=h\bigl(g_1(x),\ldots,g_k(x)\bigr),
+$$
+
+一个常用规则是：若 $h$ 为凸函数，并且关于每个分量都单调不减，而每个 $g_i$ 都凸，则 $f$ 凸。例如，若 $g_i$ 均凸，则
+
+$$
+\log\sum_{i=1}^k e^{g_i(x)}
+$$
+
+仍为凸函数。
+
+### 部分极小化
+
+设 $f(x,y)$ 关于 $(x,y)$ 联合凸，$C$ 为凸集，定义
+
+$$
+g(x)=\inf_{y\in C}f(x,y).
+$$
+
+如果 $g(x)>-\infty$，则 $g$ 为凸函数。
+
+这个结论可以直接由近似极小点证明。取 $x_1,x_2$，对任意 $\varepsilon>0$，选择 $y_1,y_2\in C$ 使得
+
+$$
+f(x_i,y_i)\le g(x_i)+\varepsilon,
+\qquad i=1,2.
+$$
+
+令
+
+$$
+x_\theta=\theta x_1+(1-\theta)x_2,
+\qquad
+y_\theta=\theta y_1+(1-\theta)y_2.
+$$
+
+由于 $C$ 为凸集，$y_\theta\in C$；再由 $f$ 的联合凸性，
+
+$$
+\begin{aligned}
+g(x_\theta)
+&\le f(x_\theta,y_\theta)\\
+&\le \theta f(x_1,y_1)+(1-\theta)f(x_2,y_2)\\
+&\le \theta g(x_1)+(1-\theta)g(x_2)+\varepsilon.
+\end{aligned}
+$$
+
+令 $\varepsilon\downarrow0$ 即得凸性。这里使用近似极小点，是因为下确界未必能够取到。
+
+例如，对非空凸集 $C$，距离函数
+
+$$
+\operatorname{dist}(x,C)
+=
+\inf_{y\in C}\lVert x-y\rVert
+$$
+
+是凸函数。
+
+这里必须要求 $f$ 关于 $(x,y)$ **联合凸**；分别对 $x$ 和 $y$ 凸通常不够。
+
+### 透视变换
+
+函数 $f$ 的透视函数定义为
+
+$$
+g(x,t)=t f\left(\frac{x}{t}\right),
+\qquad t>0.
+$$
+
+如果 $f$ 为凸函数，则 $g$ 关于 $(x,t)$ 联合凸。
+
+证明这一结论的关键是重新构造凸组合。取 $t_1,t_2>0$，令
+
+$$
+t_\theta=\theta t_1+(1-\theta)t_2,
+$$
+
+并定义
+
+$$
+\alpha=\frac{\theta t_1}{t_\theta},
+\qquad
+\beta=\frac{(1-\theta)t_2}{t_\theta}.
+$$
+
+于是 $\alpha,\beta\ge0$、$\alpha+\beta=1$，且
+
+$$
+\frac{\theta x_1+(1-\theta)x_2}{t_\theta}
+=
+\alpha\frac{x_1}{t_1}+\beta\frac{x_2}{t_2}.
+$$
+
+由 $f$ 的凸性，
+
+$$
+\begin{aligned}
+g\bigl(\theta x_1+(1-\theta)x_2,t_\theta\bigr)
+&\le
+t_\theta\left[
+\alpha f\left(\frac{x_1}{t_1}\right)
++\beta f\left(\frac{x_2}{t_2}\right)
+\right]\\
+&=
+\theta g(x_1,t_1)+(1-\theta)g(x_2,t_2).
+\end{aligned}
+$$
+
+以 $f(x)=x^2$ 为例，其透视函数为
+
+$$
+g(x,t)=\frac{x^2}{t},
+\qquad t>0,
+$$
+
+即常用的 quadratic-over-linear 函数。
+
+透视变换在分式问题、统计模型和锥规划中经常出现。它的价值不在于记住某个孤立公式，而在于看到 $t f(x/t)$ 时能够立即识别其凸性来源。
+
+## 普通凸、严格凸与强凸
+
+强凸性将在算法章节系统讨论。这里先明确三者的边界。
+
+若存在 $m>0$，使得对所有 $x,y$ 都有
+
+$$
+f(y)
+\ge
+f(x)+\nabla f(x)^\top(y-x)
++\frac m2\lVert y-x\rVert_2^2,
+$$ {#eq-strong-convex}
+
+则称 $f$ 为 $m$-强凸函数。
+
+| 性质 | 图像含义 | 对最优解的影响 |
+|---|---|---|
+| 凸 | 弦在图像上方 | 局部最优即全局最优 |
+| 严格凸 | 非平凡弦严格位于图像上方 | 最优解若存在则唯一 |
+| 强凸 | 切平面与图像之间至少有二次间隙 | 最优解唯一，并可导出定量误差界 |
+
+三者满足
+
+$$
+\text{强凸}\Longrightarrow\text{严格凸}\Longrightarrow\text{凸},
+$$
+
+反方向一般不成立。例如 $e^x$ 严格凸，但在整个 $\mathbb R$ 上不是强凸函数，因为其二阶导数 $e^x$ 没有统一的正下界。
+
+若 $f$ 二阶可微，则
+
+$$
+\nabla^2f(x)\succeq mI,
+\qquad \forall x,
+$$
+
+是 $m$-强凸的二阶判据。强凸性如何与光滑性、条件数和收敛速度相连，留到第 6 章讨论。
+
+## 凸性判断的实用流程
+
+面对一个新函数，可以按以下顺序判断：
+
+1. **先写定义域。** 定义域不凸时，函数不可能是凸函数。
+2. **识别原子函数。** 检查它是否由范数、指数、负对数、二次函数、最大值等已知原子构成。
+3. **识别保凸运算。** 检查非负加权和、仿射复合、逐点上确界、满足单调性的复合、部分极小化或透视变换。
+4. **必要时降到一维。** 沿任意直线研究 $g(t)=f(x+tv)$。
+5. **可微时用一阶条件。** 它同时给出凸性和几何解释。
+6. **二阶可微时检查 Hessian。** 尽量利用矩阵结构，而不是机械展开所有主子式。
+
+## 典型误区
+
+1. **“两个凸函数复合仍然凸。”** 错。复合时必须检查外层函数的单调性和内层函数的凹凸性。
+2. **“凸函数的逐点最小值仍然凸。”** 一般错误；逐点最大值保凸，逐点最小值不保凸。
+3. **“所有下水平集凸，所以函数凸。”** 只能推出拟凸。
+4. **“严格凸等价于 Hessian 处处正定。”** Hessian 正定是严格凸的充分条件，但不是必要条件。
+5. **“分别关于每个变量凸，就联合凸。”** 一般错误。部分极小化等结论需要联合凸性。
+6. **忽略定义域。** $-\log x$、$x^2/t$ 等函数的凸性都与定义域密不可分。
+
+## 本章小结
+
+凸函数的核心不是“曲线向上弯”这一直觉，而是一组可以相互转换的结构：
+
+- 定义式控制弦；
+- 一阶条件控制支撑切平面；
+- 二阶条件控制各方向曲率；
+- 上境图把函数凸性转化为集合凸性；
+- 保凸运算提供模块化的函数构造方法。
+
+判断复杂目标函数时，优先采用“原子函数 + 保凸运算”的结构化证明；只有结构无法直接识别时，再回到梯度或 Hessian 计算。这种顺序既更简洁，也更接近实际建模和后续算法分析的使用方式。

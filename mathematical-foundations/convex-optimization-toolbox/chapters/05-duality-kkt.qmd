@@ -1,0 +1,184 @@
+# 共轭函数、Lagrange 对偶与 KKT
+
+## Lagrangian
+
+对问题
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & f_0(x) \\
+\operatorname{subject\ to}\quad
+& f_i(x)\le 0,
+\quad i=1,\ldots,m,\\
+& h_j(x)=0,
+\quad j=1,\ldots,p,
+\end{aligned}
+$$
+
+定义 Lagrangian
+
+$$
+L(x,\lambda,\nu)
+=
+f_0(x)
++\sum_{i=1}^m\lambda_i f_i(x)
++\sum_{j=1}^p\nu_j h_j(x),
+$$
+
+其中 $\lambda\succeq 0$，$\nu\in\mathbb R^p$。
+
+## 原问题与对偶问题
+
+对固定的 $x$，定义
+
+$$
+\Theta_P(x)
+=
+\sup_{\lambda\succeq0,\,\nu}L(x,\lambda,\nu).
+$$
+
+原问题可以写成
+
+$$
+p^\star
+=
+\inf_x\Theta_P(x)
+=
+\inf_x\sup_{\lambda\succeq0,\,\nu}L(x,\lambda,\nu).
+$$
+
+对固定的 $(\lambda,\nu)$，定义对偶函数
+
+$$
+\Theta_D(\lambda,\nu)
+=
+\inf_x L(x,\lambda,\nu).
+$$
+
+对偶问题为
+
+$$
+d^\star
+=
+\sup_{\lambda\succeq0,\,\nu}
+\Theta_D(\lambda,\nu)
+=
+\sup_{\lambda\succeq0,\,\nu}
+\inf_xL(x,\lambda,\nu).
+$$
+
+## 弱对偶
+
+对任意 $\tilde x$、$\tilde\lambda\succeq0$ 和 $\tilde\nu$，都有
+
+$$
+\Theta_D(\tilde\lambda,\tilde\nu)
+=
+\inf_xL(x,\tilde\lambda,\tilde\nu)
+\le
+L(\tilde x,\tilde\lambda,\tilde\nu)
+\le
+\sup_{\lambda\succeq0,\,\nu}L(\tilde x,\lambda,\nu)
+=
+\Theta_P(\tilde x).
+$$
+
+因此，只要原问题与对偶问题的最优值有意义，就有
+
+$$
+d^\star\le p^\star.
+$$
+
+## 对偶间隙与强对偶
+
+定义最优对偶间隙
+
+$$
+\operatorname{gap}=p^\star-d^\star.
+$$
+
+当
+
+$$
+p^\star=d^\star
+$$
+
+时，称强对偶成立。
+
+## Slater 条件
+
+考虑凸优化问题，其中等式约束写为 $Ax=b$。如果存在
+
+$$
+\tilde x\in\operatorname{relint}\mathcal D
+$$
+
+使得
+
+$$
+f_i(\tilde x)<0,
+\qquad i=1,\ldots,m,
+$$
+
+并且
+
+$$
+A\tilde x=b,
+$$
+
+则称 Slater 条件成立，$\tilde x$ 称为严格可行点。
+
+## KKT 条件
+
+对候选点 $(x^\star,\lambda^\star,\nu^\star)$，KKT 条件包括：
+
+1. **原始可行性**
+
+   $$
+   f_i(x^\star)\le0,
+   \qquad
+   h_j(x^\star)=0.
+   $$
+
+2. **对偶可行性**
+
+   $$
+   \lambda_i^\star\ge0.
+   $$
+
+3. **互补松弛**
+
+   $$
+   \lambda_i^\star f_i(x^\star)=0.
+   $$
+
+4. **驻点条件**
+
+   如果目标函数和约束函数可微，则
+
+   $$
+   \nabla_xL(x^\star,\lambda^\star,\nu^\star)=0,
+   $$
+
+   即
+
+   $$
+   \nabla f_0(x^\star)
+   +\sum_{i=1}^m\lambda_i^\star\nabla f_i(x^\star)
+   +\sum_{j=1}^p\nu_j^\star\nabla h_j(x^\star)
+   =0.
+   $$
+
+   若函数不可微，应使用次梯度形式替代梯度形式。
+
+## Slater 条件与 KKT 的逻辑关系
+
+1. 对凸优化问题，Slater 条件推出强对偶；
+2. 在适当的最优解存在性条件下，原始最优与 Slater 条件保证存在对偶乘子，使 KKT 条件成立；
+3. 对凸优化问题，任何满足 KKT 条件的点都是全局最优解，并与对应的对偶点具有零对偶间隙；
+4. 对满足 Slater 条件的可微凸优化问题，$x^\star$ 最优，当且仅当存在 $\lambda^\star,\nu^\star$，使三者共同满足 KKT 条件。
+
+::: {.callout-note title="后续补全"}
+共轭函数、Fenchel 不等式、对偶函数为何总是凹函数，以及鞍点解释将在 P0 阶段结合 Lecture 5、8、9 补入。
+:::
+
