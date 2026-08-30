@@ -1,0 +1,1461 @@
+# 集中不等式与集中定理
+
+## Markov Inequality
+
+若 $X\ge0$，则对任意 $a>0$，
+
+$$
+P(X\ge a)\le\frac{E[X]}a.
+$$
+
+## Chebyshev Inequality
+
+设随机变量 $X$ 有有限均值
+
+$$
+\mu=E[X]
+$$
+
+和有限方差
+
+$$
+\sigma^2=\operatorname{Var}(X),
+$$
+
+则对于任意 $\varepsilon>0$，
+
+$$
+P(|X-\mu|\ge\varepsilon)
+\le\frac{\sigma^2}{\varepsilon^2}.
+$$
+
+## Chernoff 方法
+
+$$
+P(X\ge a)
+\le\inf_{t>0}e^{-ta}M_X(t),
+$$
+
+其中
+
+$$
+M_X(t)=E[e^{tX}].
+$$
+
+## Hoeffding 型有界变量界
+
+若 $X_i\in[a,b]$ 且独立，则样本均值满足
+
+$$
+P(|\bar X-\mu|>\varepsilon)
+\le2\exp\!\left(-\frac{2n\varepsilon^2}{(b-a)^2}\right).
+$$
+
+## 随机变量序列的收敛方式
+
+研究大数定律、中心极限定理和估计量的渐近性质之前，必须先说明“收敛”究竟指什么。
+
+### 四种常用收敛
+
+设随机变量序列为 $X_n$，极限为 $X$。
+
+几乎必然收敛：
+
+$$
+X_n\xrightarrow{\mathrm{a.s.}}X
+\quad\Longleftrightarrow\quad
+P\!\left(\lim_{n\to\infty}X_n=X\right)=1.
+$$
+
+依概率收敛：
+
+$$
+X_n\xrightarrow{P}X
+\quad\Longleftrightarrow\quad
+\forall\varepsilon>0,\quad
+P(|X_n-X|>\varepsilon)\to0.
+$$
+
+$L^p$ 收敛：
+
+$$
+X_n\xrightarrow{L^p}X
+\quad\Longleftrightarrow\quad
+E[|X_n-X|^p]\to0.
+$$
+
+依分布收敛：
+
+$$
+X_n\xrightarrow{d}X
+\quad\Longleftrightarrow\quad
+F_{X_n}(x)\to F_X(x)
+$$
+
+对 $F_X$ 的每个连续点 $x$ 成立。
+
+### 强弱关系
+
+常用的推出关系是
+
+$$
+X_n\xrightarrow{\mathrm{a.s.}}X
+\quad\Longrightarrow\quad
+X_n\xrightarrow{P}X
+\quad\Longrightarrow\quad
+X_n\xrightarrow{d}X,
+$$
+
+以及
+
+$$
+X_n\xrightarrow{L^p}X
+\quad\Longrightarrow\quad
+X_n\xrightarrow{P}X.
+$$
+
+反方向一般不成立。一个重要例外是：若极限是常数 $c$，则
+
+$$
+X_n\xrightarrow{d}c
+\quad\Longrightarrow\quad
+X_n\xrightarrow{P}c.
+$$
+
+直觉上，依分布收敛只关心分布形状，最弱；依概率收敛要求单次偏差超过 $\varepsilon$ 的概率消失；几乎必然收敛则要求几乎每条样本路径最终都收敛。
+
+### 连续映射、Slutsky 与 Delta method
+
+若 $X_n\xrightarrow{P}X$，且 $g$ 连续，则
+
+$$
+g(X_n)\xrightarrow{P}g(X).
+$$
+
+依分布版本同样成立。Slutsky 定理说明：若
+
+$$
+X_n\xrightarrow{d}X,
+\qquad
+Y_n\xrightarrow{P}c,
+$$
+
+则
+
+$$
+X_n+Y_n\xrightarrow{d}X+c,
+\qquad
+X_nY_n\xrightarrow{d}cX,
+$$
+
+并在 $c\ne0$ 时有
+
+$$
+\frac{X_n}{Y_n}\xrightarrow{d}\frac Xc.
+$$
+
+它解释了为什么统计推断中可以把未知但一致估计的量代入渐近分布。
+
+若进一步有
+
+$$
+\sqrt n(X_n-\theta)\xrightarrow{d}N(0,\sigma^2),
+$$
+
+且 $g$ 在 $\theta$ 处可微，则一阶 Taylor 展开给出 Delta method：
+
+$$
+\sqrt n\bigl(g(X_n)-g(\theta)\bigr)
+\xrightarrow{d}
+N\!\left(0,[g'(\theta)]^2\sigma^2\right).
+$$
+
+::: {.callout-note title="工具定位"}
+大数定律通常给出依概率或几乎必然收敛，回答“是否靠近真值”；中心极限定理给出依分布收敛，回答“以什么尺度、什么形状波动”。
+:::
+
+## 大数定律（LLN）
+
+令
+
+$$
+S_n=\sum_{i=1}^nX_i.
+$$
+
+大数定律研究的是：大量随机变量取平均后，随机波动是否会被逐渐抵消。若
+
+$$
+\frac{S_n-E[S_n]}{n}
+\xrightarrow{P}0,
+$$
+
+即
+
+$$
+\frac1n\sum_{i=1}^nX_i
+-
+\frac1n\sum_{i=1}^nE[X_i]
+\xrightarrow{P}0,
+$$
+
+就称随机变量序列服从弱大数定律。
+
+### 四个经典版本
+
+**1. Markov 大数定律：一个通用方差判据**
+
+若
+
+$$
+\frac{\operatorname{Var}(S_n)}{n^2}\to0,
+$$
+
+则
+
+$$
+\frac{S_n-E[S_n]}{n}
+\xrightarrow{P}0.
+$$
+
+它不直接要求独立同分布，核心只在于累计方差相对于 $n^2$ 可以忽略。由 Chebyshev 不等式，
+
+$$
+P\!\left(
+\left|
+\frac{S_n-E[S_n]}n
+\right|\ge\varepsilon
+\right)
+\le
+\frac{\operatorname{Var}(S_n)}
+{n^2\varepsilon^2}
+\to0.
+$$
+
+因此，面对非同分布或具有一定相关性的变量时，可以优先检查这个方差条件。
+
+**2. Chebyshev 大数定律：最常用的有限方差版本**
+
+若 $X_1,X_2,\ldots$ 两两不相关，并且方差一致有界：
+
+$$
+\operatorname{Var}(X_i)\le C<\infty,
+$$
+
+则
+
+$$
+\frac1n\sum_{i=1}^n
+\bigl(X_i-E[X_i]\bigr)
+\xrightarrow{P}0.
+$$
+
+因为两两不相关，所以
+
+$$
+\operatorname{Var}(S_n)
+=
+\sum_{i=1}^n\operatorname{Var}(X_i)
+\le nC,
+$$
+
+进而
+
+$$
+\frac{\operatorname{Var}(S_n)}{n^2}
+\le\frac Cn\to0.
+$$
+
+因此 Chebyshev 大数定律可以看作 Markov 方差判据的直接推论。独立性能够推出不相关，所以独立变量也包含在这一情形中。
+
+**3. Khinchin 大数定律：有限均值已经足够**
+
+若 $X_1,X_2,\ldots$ 独立同分布，并且
+
+$$
+E[|X_1|]<\infty,
+\qquad
+E[X_1]=\mu,
+$$
+
+则
+
+$$
+\bar X_n
+=
+\frac1n\sum_{i=1}^nX_i
+\xrightarrow{P}\mu.
+$$
+
+它的重要之处在于不要求
+
+$$
+\operatorname{Var}(X_1)<\infty.
+$$
+
+因此，有限方差下的 Chebyshev 证明虽然最直观，但并不是 iid 弱大数律所能达到的最弱条件。Khinchin 定理的完整证明通常需要截断或特征函数工具，本笔记只保留结论。
+
+**4. Bernoulli 大数定律：频率趋近概率**
+
+设 $I_1,\ldots,I_n$ 是独立的 Bernoulli 随机变量：
+
+$$
+I_i\sim\operatorname{Bernoulli}(p).
+$$
+
+令
+
+$$
+N_n=\sum_{i=1}^nI_i
+$$
+
+表示前 $n$ 次试验中事件发生的次数，则
+
+$$
+\frac{N_n}{n}
+\xrightarrow{P}p.
+$$
+
+它说明当重复试验次数足够多时，事件发生的频率趋近其概率，是大数定律最直观的特殊情形。
+
+::: {.callout-note title="四个版本的关系与掌握重点"}
+可以把它们理解为：
+
+- Markov：检查累计方差是否为 $o(n^2)$；
+- Chebyshev：用不相关和方差有界保证 Markov 条件；
+- Khinchin：iid 情形下只要求有限一阶矩；
+- Bernoulli：把大数定律用于 $0$–$1$ 指示变量。
+
+实用上应当会证明有限方差下的 Chebyshev 版本，记住 Khinchin 的条件改进，并能够把 Markov 判据用于更一般的序列。Bernoulli 版本理解其频率解释即可。
+:::
+
+::: {.callout-warning title="弱大数律与强大数律"}
+上述四个版本讨论的都是依概率收敛。强大数律把结论加强为
+
+$$
+\bar X_n\xrightarrow{\mathrm{a.s.}}\mu,
+$$
+
+即除去一个概率为零的异常集合后，几乎每条无限样本路径上的平均值都收敛到 $\mu$。现阶段应掌握两种收敛的区别，强大数律的完整证明可以暂缓。
+:::
+
+### 有限方差下弱大数律的关键推导
+
+
+设 $X_1,\ldots,X_n$ 独立同分布，且
+
+$$
+E[X_i]=\mu,
+\qquad
+\operatorname{Var}(X_i)=\sigma^2<\infty.
+$$
+
+对样本均值
+
+$$
+\bar X_n=\frac1n\sum_{i=1}^nX_i,
+$$
+
+有
+
+$$
+E[\bar X_n]=\mu,
+\qquad
+\operatorname{Var}(\bar X_n)
+=\frac{\sigma^2}{n}.
+$$
+
+由 Chebyshev 不等式，对任意 $\varepsilon>0$，
+
+$$
+P(|\bar X_n-\mu|\ge\varepsilon)
+\le\frac{\sigma^2}{n\varepsilon^2}
+\to0.
+$$
+
+因此
+
+$$
+\bar X_n\xrightarrow{P}\mu.
+$$
+
+这就是有限方差条件下弱大数律最直接的证明：独立平均使方差按 $1/n$ 缩小，再由 Chebyshev 把方差控制转成概率收敛。
+
+## 中心极限定理（CLT）
+
+### 独立同分布的中心极限定理（林德贝格–勒维）
+
+若独立同分布的随机变量 $X_1,X_2,\ldots,X_n,\ldots$ 的期望为
+
+$$
+E[X_i]=\mu
+$$
+
+和方差为
+
+$$
+\operatorname{Var}(X_i)=\sigma^2,
+$$
+
+则有
+
+$$
+Y_n
+=\frac{\sum_{i=1}^{n}X_i-n\mu}{\sigma\sqrt n}
+\xrightarrow{d}N(0,1).
+$$
+
+等价于
+
+$$
+\lim_{n\to\infty}P(Y_n\le y)=\Phi(y).
+$$
+
+### 特征函数证明的主线
+
+下面展示了 CLT 证明的骨架，略去了一些技术细节。
+
+先标准化
+
+$$
+Z_i=\frac{X_i-\mu}{\sigma},
+$$
+
+则
+
+$$
+E[Z_i]=0,
+\qquad
+\operatorname{Var}(Z_i)=1,
+\qquad
+Y_n=\frac1{\sqrt n}\sum_{i=1}^nZ_i.
+$$
+
+定义特征函数
+
+$$
+\varphi_Z(t)=E[e^{itZ}].
+$$
+
+由 $E[Z]=0$、$E[Z^2]=1$，在 $t=0$ 附近有二阶展开
+
+$$
+\varphi_Z(t)
+=1-\frac{t^2}{2}+o(t^2).
+$$
+
+利用独立性，和的特征函数等于各特征函数之积：
+
+$$
+\begin{aligned}
+\varphi_{Y_n}(t)
+&=E\!\left[
+\exp\!\left(
+\frac{it}{\sqrt n}\sum_{i=1}^nZ_i
+\right)
+\right]\\
+&=\left[
+\varphi_Z\!\left(\frac t{\sqrt n}\right)
+\right]^n.
+\end{aligned}
+$$
+
+代入局部展开，
+
+$$
+\varphi_{Y_n}(t)
+=\left[
+1-\frac{t^2}{2n}
++o\!\left(\frac1n\right)
+\right]^n
+\to e^{-t^2/2}.
+$$
+
+$e^{-t^2/2}$ 正是 $N(0,1)$ 的特征函数。由特征函数连续性定理，
+
+$$
+Y_n\xrightarrow{d}N(0,1).
+$$
+
+这条证明揭示了 CLT 的核心机制：中心化消去一阶项，方差保留二阶项，独立求和把高阶细节在 $\sqrt n$ 的尺度下逐渐冲淡。
+
+当 $n$ 足够大时，近似有
+
+$$
+Y_n\sim N(0,1),
+$$
+
+即有
+
+$$
+\frac1n\sum_{i=1}^{n}X_i
+\sim N\!\left(\mu,\frac{\sigma^2}{n}\right).
+$$
+
+大数定律给出了随机变量
+
+$$
+\frac1n\sum_{i=1}^{n}X_i
+$$
+
+的趋势，而中心极限定理给出了
+
+$$
+\frac1n\sum_{i=1}^{n}X_i
+$$
+
+的近似分布。
+
+推论：棣莫弗–拉普拉斯中心极限定理。设随机变量 $X_n\sim B(n,p)$，则
+
+$$
+Y_n=\frac{X_n-np}{\sqrt{np(1-p)}}
+\xrightarrow{d}N(0,1).
+$$
+
+又对独立不同分布的随机变量序列，有李雅普诺夫中心极限定理。（了解）
+
+## 集中不等式的集中推导
+
+从 Markov、Chebyshev 到 Chernoff–MGF，再完整推出 Hoeffding。
+
+### Markov 不等式
+
+设 $Y$ 是一个非负随机变量，$Y\ge0$，则对任意 $a>0$，都有
+
+$$
+P(Y\ge a)\le\frac{E[Y]}a.
+$$
+
+证明：利用函数不等式
+
+$$
+Y\ge aI_{\{Y\ge a\}},
+$$
+
+其中
+
+$$
+I_{\{Y\ge a\}}=
+\begin{cases}
+1, & Y\ge a,\\
+0, & Y<a.
+\end{cases}
+$$
+
+当 $Y\ge a$ 时，右边等于 $a$，$Y\ge a$ 成立；当 $Y<a$ 时，右边等于 $0$，由 $Y$ 非负，$Y\ge0$ 成立。
+
+对
+
+$$
+Y\ge aI_{\{Y\ge a\}}
+$$
+
+两边取期望，有
+
+$$
+E[Y]\ge aP(Y\ge a).
+$$
+
+两边除以 $a>0$，即得
+
+$$
+P(Y\ge a)\le\frac{E[Y]}a.
+\qquad\square
+$$
+
+> **评价**
+>
+> 只利用 $Y\ge0$ 和 $E[Y]$ 的信息，给出 $P(Y\ge a)\le1/a$ 这种随阈值 $a$ 衰减的、速度为多项式级别的界。
+
+这里的 $1/a$ 是归一化情形 $E[Y]=1$；一般形式仍是 $E[Y]/a$。
+
+### Chebyshev 不等式
+
+设随机变量 $X$ 有有限均值
+
+$$
+\mu=E[X]
+$$
+
+和有限方差
+
+$$
+\sigma^2=\operatorname{Var}(X),
+$$
+
+则对于任意 $\varepsilon>0$，
+
+$$
+P(|X-\mu|\ge\varepsilon)
+\le\frac{\sigma^2}{\varepsilon^2}.
+$$
+
+证明：考虑随机变量
+
+$$
+Y=(X-\mu)^2,
+$$
+
+正数 $a$ 取 $\varepsilon^2$，使用 Markov 不等式即得。$\square$
+
+通过 Chebyshev 不等式，我们同时控制经验均值。设 $X_1,X_2,\ldots,X_n$ 独立同分布，并且
+
+$$
+E[X_i]=\mu,
+\qquad
+\operatorname{Var}(X_i)=\sigma^2.
+$$
+
+经验均值为
+
+$$
+\hat\mu_n=\frac1n\sum_{i=1}^{n}X_i,
+$$
+
+则
+
+$$
+\operatorname{Var}(\hat\mu_n)
+=\operatorname{Var}\!\left(\frac1n\sum_{i=1}^{n}X_i\right)
+=\frac1{n^2}\cdot n\sigma^2
+=\frac{\sigma^2}{n}.
+$$
+
+于是 Chebyshev 给出
+
+$$
+P(|\hat\mu_n-\mu|\ge\varepsilon)
+\le\frac{\sigma^2}{n\varepsilon^2}.
+$$
+
+进一步可以反解出置信半径。令
+
+$$
+\frac{\sigma^2}{n\varepsilon^2}\le\delta,
+$$
+
+则
+
+$$
+\varepsilon^2\ge\frac{\sigma^2}{n\delta},
+\qquad
+\varepsilon=\frac{\sigma}{\sqrt{n\delta}}.
+$$
+
+即得
+
+$$
+P\!\left(
+|\hat\mu_n-\mu|
+\le\frac{\sigma}{\sqrt{n\delta}}
+\right)\ge1-\delta.
+$$
+
+Chebyshev 的置信半径为
+
+$$
+r(n,\delta)=\frac{\sigma}{\sqrt{n\delta}}.
+$$
+
+> **评价**
+>
+> 进一步利用上了方差，但依旧只是 Markov 的非负随机变量框架内的一小步。
+
+### Chernoff 方法 / 指数矩方法
+
+利用
+
+$$
+X\ge t
+\quad\Longleftrightarrow\quad
+e^{\lambda X}\ge e^{\lambda t},
+\qquad \forall\lambda>0.
+$$
+
+转向对 $e^{\lambda X}\ge0$ 使用 Markov 不等式：
+
+$$
+P(X\ge t)
+=P(e^{\lambda X}\ge e^{\lambda t})
+\le\frac{E[e^{\lambda X}]}{e^{\lambda t}}.
+$$
+
+即
+
+$$
+P(X\ge t)
+\le e^{-\lambda t}E[e^{\lambda X}],
+\qquad \forall\lambda>0.
+$$
+
+故
+
+$$
+P(X\ge t)
+\le\inf_{\lambda>0}
+\left\{e^{-\lambda t}E[e^{\lambda X}]\right\}.
+$$
+
+MGF：矩母函数。定义随机变量 $X$ 的矩母函数为
+
+$$
+M_X(\lambda)=E[e^{\lambda X}].
+$$
+
+对数矩母函数为
+
+$$
+\psi_X(\lambda)=\log E[e^{\lambda X}].
+$$
+
+因此 Chernoff bound 可以写成
+
+$$
+P(X\ge t)
+\le\inf_{\lambda>0}
+\exp(-\lambda t+\psi_X(\lambda)).
+$$
+
+对变量中心化
+
+$$
+Z=X-E[X],
+$$
+
+则
+
+$$
+P(Z\ge t)
+\le\inf_{\lambda>0}
+\exp(-\lambda t+\psi_Z(\lambda)).
+$$
+
+对于相互独立的 $Z_1,Z_2,\ldots,Z_n$，考虑它们的和
+
+$$
+S_n=\sum_{i=1}^{n}Z_i.
+$$
+
+则
+
+$$
+E[e^{\lambda S_n}]
+=E\!\left[e^{\lambda\sum_{i=1}^{n}Z_i}\right]
+=E\!\left[\prod_{i=1}^{n}e^{\lambda Z_i}\right]
+=\prod_{i=1}^{n}E[e^{\lambda Z_i}].
+$$
+
+因此
+
+$$
+\log E\!\left[e^{\lambda\sum_{i=1}^{n}Z_i}\right]
+=\sum_{i=1}^{n}\log E[e^{\lambda Z_i}].
+$$
+
+综上，可得到集中不等式的母公式。对于独立中心化随机变量 $Z_1,\ldots,Z_n$，
+
+$$
+P\!\left(\sum_{i=1}^{n}Z_i\ge t\right)
+\le e^{-\lambda t}\prod_{i=1}^{n}E[e^{\lambda Z_i}],
+\qquad \lambda>0.
+$$
+
+写成对数矩母函数：
+
+$$
+P\!\left(\sum_{i=1}^{n}Z_i\ge t\right)
+\le\inf_{\lambda>0}
+\exp\!\left(-\lambda t+
+\sum_{i=1}^{n}\psi_i(\lambda)\right).
+$$
+
+几乎所有经典集中不等式都从这里出发，因为分析核心可以化为控制 $\psi_i(\lambda)$。
+
+### Hoeffding 引理和 Hoeffding 不等式
+
+#### Hoeffding 引理
+
+设随机变量 $X$ 满足
+
+$$
+a\le X\le b,
+$$
+
+并且
+
+$$
+\mu=E[X],
+$$
+
+则对于任意 $\lambda\in\mathbb R$，有
+
+$$
+E[e^{\lambda(X-\mu)}]
+\le\exp\!\left(\frac{\lambda^2(b-a)^2}{8}\right).
+$$
+
+证明原理可以暂且后置，先承认这个引理即可。这个引理本质上揭示了有界随机变量中心化后是 Sub-Gaussian，用于给独立有界变量之和提供高斯型尾界。
+
+作为 P0 扩写，下面补上常数 $1/8$ 的关键来源。
+
+由于指数函数是凸函数，对任意 $x\in[a,b]$，
+
+$$
+e^{\lambda x}
+\le
+\frac{b-x}{b-a}e^{\lambda a}
++\frac{x-a}{b-a}e^{\lambda b}.
+$$
+
+令
+
+$$
+p=\frac{\mu-a}{b-a},
+\qquad
+h=\lambda(b-a).
+$$
+
+对上式取期望并中心化，得到
+
+$$
+E[e^{\lambda(X-\mu)}]
+\le
+(1-p)e^{-ph}
++pe^{(1-p)h}.
+$$
+
+记右侧对数为
+
+$$
+g(h)
+=\log\!\left((1-p)e^{-ph}+pe^{(1-p)h}\right).
+$$
+
+可以验证
+
+$$
+g(0)=g'(0)=0.
+$$
+
+$g''(h)$ 等于某个参数经过指数倾斜后的 Bernoulli 变量方差，因此
+
+$$
+g''(h)\le\frac14.
+$$
+
+对这个二阶导数界积分两次，便有
+
+$$
+g(h)\le\frac{h^2}{8}.
+$$
+
+于是
+
+$$
+E[e^{\lambda(X-\mu)}]
+\le e^{h^2/8}
+=\exp\!\left(\frac{\lambda^2(b-a)^2}{8}\right).
+$$
+
+Hoeffding 引理得证。证明只使用了有界性，因此它不依赖 $X$ 的具体分布。
+
+#### Hoeffding 不等式：右尾单侧形式
+
+设 $X_1,\ldots,X_n$ 相互独立，并且
+
+$$
+a_i\le X_i\le b_i.
+$$
+
+记
+
+$$
+Z_i=X_i-E[X_i],
+$$
+
+则有
+
+$$
+P\!\left(\sum_{i=1}^{n}Z_i\ge t\right)
+\le\exp\!\left(
+-\frac{2t^2}{\sum_{i=1}^{n}(b_i-a_i)^2}
+\right),
+\qquad t>0.
+$$
+
+证明：由 Chernoff 方法知
+
+$$
+P\!\left(\sum_{i=1}^{n}Z_i\ge t\right)
+\le e^{-\lambda t}
+\prod_{i=1}^{n}E[e^{\lambda Z_i}],
+\qquad \lambda>0.
+$$
+
+对每个 $Z_i$ 使用 Hoeffding 引理：
+
+$$
+E[e^{\lambda Z_i}]
+\le\exp\!\left(\frac{\lambda^2(b_i-a_i)^2}{8}\right).
+$$
+
+因此
+
+$$
+P\!\left(\sum_{i=1}^{n}Z_i\ge t\right)
+\le\exp\!\left[
+-\lambda t
++\frac{\lambda^2}{8}\sum_{i=1}^{n}(b_i-a_i)^2
+\right].
+$$
+
+右侧指数里是开口朝上的二次函数。令导数为 $0$，取
+
+$$
+\lambda^*
+=\frac{4t}{\sum_{i=1}^{n}(b_i-a_i)^2},
+$$
+
+代入右边取到下界
+
+$$
+-\frac{2t^2}{\sum_{i=1}^{n}(b_i-a_i)^2}.
+$$
+
+因此
+
+$$
+P\!\left(\sum_{i=1}^{n}Z_i\ge t\right)
+\le\exp\!\left(
+-\frac{2t^2}{\sum_{i=1}^{n}(b_i-a_i)^2}
+\right).
+$$
+
+#### 经验均值版本
+
+假设
+
+$$
+X_i\in[0,1],
+\qquad
+E[X_i]=\mu,
+$$
+
+那么 $b_i-a_i=1$，且
+
+$$
+\sum_{i=1}^{n}(b_i-a_i)^2=n.
+$$
+
+由于
+
+$$
+\hat\mu_n-\mu
+=\frac1n\sum_{i=1}^{n}(X_i-\mu),
+$$
+
+故
+
+$$
+\hat\mu_n-\mu\ge\varepsilon
+\quad\Longleftrightarrow\quad
+\sum_{i=1}^{n}(X_i-\mu)\ge n\varepsilon.
+$$
+
+在 Hoeffding 不等式中令 $t=n\varepsilon$，得
+
+$$
+P(\hat\mu_n-\mu\ge\varepsilon)
+\le\exp(-2n\varepsilon^2).
+$$
+
+同样，对 $-X_i$ 使用 Hoeffding，有
+
+$$
+P(\mu-\hat\mu_n\ge\varepsilon)
+\le e^{-2n\varepsilon^2}.
+$$
+
+事实上，Hoeffding 不等式下经验均值估计有
+
+$$
+P(|\hat\mu_n-\mu|\ge\varepsilon)
+\le2e^{-2n\varepsilon^2}.
+$$
+
+把尾界反解成置信区间。令
+
+$$
+2e^{-2n\varepsilon^2}\le\delta,
+$$
+
+可得
+
+$$
+\varepsilon^2\ge\frac{\log(2/\delta)}{2n}.
+$$
+
+取
+
+$$
+\varepsilon
+=\sqrt{\frac{\log(2/\delta)}{2n}},
+$$
+
+即得
+
+$$
+P\!\left(
+|\hat\mu_n-\mu|
+\le\sqrt{\frac{\log(2/\delta)}{2n}}
+\right)\ge1-\delta.
+$$
+
+> **评价**
+>
+> 以上给出了指数型的集中不等式，但 Hoeffding 不等式采用的 MGF 控制只使用了一个信息：$X_i\in[a_i,b_i]$。
+
+### 理解集中不等式的“家族树”
+
+Markov：只使用 $E[Y]$。
+
+$\downarrow$
+
+Chebyshev：对 $Y=(X-E[X])^2$ 使用 Markov，只使用方差。
+
+$\downarrow$
+
+Chernoff 方法：对 $Y=e^{\lambda(X-E[X])}$ 使用 Markov。
+
+$\downarrow$
+
+Hoeffding：当 $X$ 有界时，用区间长度控制 MGF，
+
+$$
+\log E[e^{\lambda(X-E[X])}]
+\le\frac{\lambda^2(b-a)^2}{8}.
+$$
+
+另一条路径是：
+
+Bernstein：除了有界，还利用方差，得到更精细的 MGF 界。
+
+$\downarrow$
+
+Sub-Gaussian：直接假设 / 控制
+
+$$
+\log E[e^{\lambda(X-E[X])}]
+\le\frac{\sigma^2\lambda^2}{2}.
+$$
+
+$\downarrow$
+
+Sub-Exponential：只在某个有限范围内得到二次型 MGF 控制。
+
+## Hoeffding 为什么不够，以及“方差敏感”从何而来
+
+### Bernstein 不等式的标准设定
+
+设 $X_1,\ldots,X_n$ 相互独立，并且已经中心化：
+
+$$
+E[X_i]=0.
+$$
+
+同时假设它们有界：
+
+$$
+|X_i|\le b.
+$$
+
+记总方差
+
+$$
+V=\sum_{i=1}^{n}\operatorname{Var}(X_i)
+=\sum_{i=1}^{n}E[X_i^2],
+$$
+
+以及
+
+$$
+S_n=\sum_{i=1}^{n}X_i.
+$$
+
+则 Bernstein 不等式的一侧形式是
+
+$$
+P(S_n\ge t)
+\le\exp\!\left(
+-\frac{t^2}{2(V+bt/3)}
+\right),
+\qquad t>0.
+$$
+
+双侧形式是
+
+$$
+P(|S_n|\ge t)
+\le2\exp\!\left(
+-\frac{t^2}{2(V+bt/3)}
+\right),
+\qquad t>0.
+$$
+
+### Bernstein 不等式的 MGF 推导
+
+由 Chernoff 方法，
+
+$$
+E[e^{\lambda S_n}]
+=\prod_{i=1}^{n}E[e^{\lambda X_i}].
+$$
+
+为估计上界，分析如下。
+
+1. 展开指数函数。由于中心化，$E[X]=0$，
+
+   $$
+   E[e^{\lambda X}]
+   =1+\sum_{k\ge2}\frac{\lambda^kE[X^k]}{k!}.
+   $$
+
+2. 用有界性把所有高阶矩压到二阶矩上。对于 $k\ge2$，
+
+   $$
+   |X|^k=|X|^{k-2}X^2.
+   $$
+
+   由于 $|X|\le b$，所以
+
+   $$
+   |X|^{k-2}\le b^{k-2}.
+   $$
+
+   因此逐点有
+
+   $$
+   |X|^k\le b^{k-2}X^2.
+   $$
+
+   取期望，
+
+   $$
+   E[|X|^k]\le b^{k-2}E[X^2]=b^{k-2}\sigma^2.
+   $$
+
+   进一步
+
+   $$
+   E[X^k]\le|E[X^k]|
+   \le E[|X|^k]
+   \le b^{k-2}\sigma^2.
+   $$
+
+   从而
+
+   $$
+   E[e^{\lambda X}]
+   \le1+\lambda^2\sigma^2
+   \sum_{k\ge2}\frac{(\lambda b)^{k-2}}{k!}.
+   $$
+
+3. 利用不等式
+
+   $$
+   k!\ge2\cdot3^{k-2},
+   \qquad k\ge2,
+   $$
+
+   控制右侧的幂级数。由不等式
+
+   $$
+   \frac1{k!}\le\frac1{2\cdot3^{k-2}},
+   $$
+
+   知
+
+   $$
+   \sum_{k\ge2}\frac{(\lambda b)^{k-2}}{k!}
+   \le\frac12\sum_{k\ge2}\left(\frac{\lambda b}{3}\right)^{k-2}.
+   $$
+
+   当
+
+   $$
+   0<\lambda<\frac3b
+   $$
+
+   时，
+
+   $$
+   \sum_{k\ge2}\frac{(\lambda b)^{k-2}}{k!}
+   \le\frac1{2(1-\lambda b/3)}.
+   $$
+
+   因此
+
+   $$
+   E[e^{\lambda X}]
+   \le1+\frac{\lambda^2\sigma^2}{2(1-\lambda b/3)}.
+   $$
+
+4. 利用
+
+   $$
+   1+u\le e^u,
+   \qquad u\in\mathbb R,
+   $$
+
+   变成指数形式：
+
+   $$
+   E[e^{\lambda X}]
+   \le\exp\!\left(
+   \frac{\lambda^2\sigma^2}{2(1-\lambda b/3)}
+   \right),
+   \qquad 0<\lambda<\frac3b.
+   $$
+
+   等价得
+
+   $$
+   \log E[e^{\lambda X}]
+   \le\frac{\lambda^2\sigma^2}{2(1-\lambda b/3)}.
+   $$
+
+   此为 Bernstein 证明的核心 MGF 界。
+
+5. 推广到独立变量的和，不难推出
+
+   $$
+   E[e^{\lambda S_n}]
+   \le\exp\!\left(
+   \frac{\lambda^2V}{2(1-\lambda b/3)}
+   \right),
+   $$
+
+   对于 $0<\lambda<3/b$ 成立。
+
+6. 代回 Chernoff bound：
+
+   $$
+   P(S_n\ge t)
+   \le\exp\!\left(
+   -\lambda t+
+   \frac{\lambda^2V}{2(1-\lambda b/3)}
+   \right).
+   $$
+
+   在 $0<\lambda<3/b$ 范围内选取一个能够算出结果的 $\lambda$：
+
+   $$
+   \lambda=\frac{t}{V+bt/3}.
+   $$
+
+   即得
+
+   $$
+   P(S_n\ge t)
+   \le\exp\!\left(
+   -\frac{t^2}{2(V+bt/3)}
+   \right).
+   $$
+
+   最初的右尾形式得证。左尾对 $-X_i$ 使用相同结论即可，再由 Union Bound 可推出双侧形式。
+
+### Bernstein 的经验均值形式
+
+$$
+P(|\hat\mu_n-\mu|\ge\varepsilon)
+\le2\exp\!\left(
+-\frac{n\varepsilon^2}{2(\sigma^2+b\varepsilon/3)}
+\right).
+$$
+
+也可反解出相应的置信半径，常用的是
+
+$$
+\sqrt{\frac{\sigma^2\log(1/\delta)}n}
++\frac{\log(1/\delta)}n.
+$$
+
+Bernstein 具有一种“双重性格”：中等偏差时像高斯型 $e^{-ct^2}$，极端偏差时像指数型 $e^{-ct}$。
+
+## Sub-Gaussian 与 Sub-Exponential 的统一语言
+
+### Sub-Gaussian 的定义
+
+若对于任意 $\lambda\in\mathbb R$，
+
+$$
+E[e^{\lambda(X-E[X])}]
+\le\exp\!\left(\frac{\sigma^2\lambda^2}{2}\right),
+$$
+
+则称 $X$ 是一个 $\sigma^2$-Sub-Gaussian 随机变量。
+
+令
+
+$$
+Z=X-E[X].
+$$
+
+Sub-Gaussian 的 Chernoff bound 为
+
+$$
+P(Z\ge t)
+\le\exp\!\left(-\lambda t+\frac{\sigma^2\lambda^2}{2}\right).
+$$
+
+对右侧求下界（二次函数问题），即得
+
+$$
+P(X-E[X]\ge t)
+\le\exp\!\left(-\frac{t^2}{2\sigma^2}\right).
+$$
+
+双侧形式为
+
+$$
+P(|X-E[X]|\ge t)
+\le2\exp\!\left(-\frac{t^2}{2\sigma^2}\right).
+$$
+
+可反解出置信半径为
+
+$$
+\sigma\sqrt{2\log\frac2\delta}.
+$$
+
+最重要的封闭性：独立 Sub-Gaussian 变量之和
+
+$$
+\sum_{i=1}^{n}(X_i-E[X_i])
+$$
+
+是
+
+$$
+\left(\sum_{i=1}^{n}\sigma_i^2\right)
+\text{-Sub-Gaussian}.
+$$
+
+上述结论的经验均值版本：
+
+$$
+P(|\hat\mu_n-\mu|\ge\varepsilon)
+\le2\exp\!\left(-\frac{n\varepsilon^2}{2\sigma^2}\right).
+$$
+
+置信半径为
+
+$$
+\sigma\sqrt{\frac{2\log(2/\delta)}n}.
+$$
+
+### Sub-Exponential 的定义
+
+设随机变量 $X$ 已中心化，即 $E[X]=0$。若存在参数
+
+$$
+\nu^2>0,
+\qquad b>0,
+$$
+
+使得当
+
+$$
+|\lambda|<\frac1b
+$$
+
+时，
+
+$$
+E[e^{\lambda X}]
+\le\exp\!\left(\frac{\nu^2\lambda^2}{2}\right),
+$$
+
+则称 $X$ 是参数为 $(\nu^2,b)$ 的 Sub-Exponential 随机变量。
+
+从 Sub-Exponential 推尾界：
+
+$$
+P(X\ge t)
+\le\exp\!\left(-\lambda t+\frac{\nu^2\lambda^2}{2}\right),
+\qquad 0<\lambda<\frac1b.
+$$
+
+当最优点
+
+$$
+\lambda^*=\frac{t}{\nu^2}\le\frac1b
+$$
+
+时，依旧有高斯型尾部
+
+$$
+P(X\ge t)
+\le e^{-t^2/(2\nu^2)}.
+$$
+
+当
+
+$$
+t>\frac{\nu^2}{b}
+$$
+
+时，取 $\lambda\approx1/b$，有
+
+$$
+P(X\ge t)
+\le e^{-t/(2b)}.
+$$
+
+综上，
+
+$$
+P(X\ge t)
+\le\exp\!\left[
+-\frac12\min\!\left(\frac{t^2}{\nu^2},\frac tb\right)
+\right].
+$$
+
+双侧形式为
+
+$$
+P(|X|\ge t)
+\le2\exp\!\left[
+-\frac12\min\!\left(\frac{t^2}{\nu^2},\frac tb\right)
+\right].
+$$
+
+这体现了 Sub-Exponential 是重要的尾部结构：小偏差为高斯型 $e^{-ct^2}$，大偏差为指数型 $e^{-ct}$。
+
+关于闭合性，独立 Sub-Exponential 变量之和
+
+$$
+\sum_{i=1}^{n}X_i
+$$
+
+是参数为
+
+$$
+\left(\sum_{i=1}^{n}\nu_i^2,\max_i b_i\right)
+$$
+
+的 Sub-Exponential 随机变量。
+
+常用结论：
+
+$$
+X\ \text{Sub-Gaussian}
+\quad\Rightarrow\quad
+X^2-E[X^2]\ \text{Sub-Exponential}.
+$$
+
+$$
+X,Y\ \text{Sub-Gaussian}
+\quad\Rightarrow\quad
+XY\ \text{Sub-Exponential}.
+$$

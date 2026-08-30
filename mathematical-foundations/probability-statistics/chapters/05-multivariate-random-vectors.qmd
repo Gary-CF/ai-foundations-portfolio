@@ -1,0 +1,65 @@
+# 多维随机向量
+
+## Joint：联合分布
+
+连续型联合密度 $f_{X,Y}(x,y)$ 满足
+
+$$
+f_{X,Y}(x,y)\ge 0,
+$$
+
+$$
+\iint f_{X,Y}(x,y)\,dx\,dy=1.
+$$
+
+## Marginal：边缘化
+
+$$
+f_X(x)=\int_{-\infty}^{\infty}f_{X,Y}(x,y)\,dy,
+$$
+
+$$
+f_Y(y)=\int_{-\infty}^{\infty}f_{X,Y}(x,y)\,dx.
+$$
+
+直觉：把不关心的变量积分 / 求和掉。
+
+## Conditional：条件分布
+
+$$
+f_{X\mid Y}(x\mid y)=\frac{f_{X,Y}(x,y)}{f_Y(y)}.
+$$
+
+## Independence：独立性
+
+$$
+X\perp Y
+\quad\Longleftrightarrow\quad
+f_{X,Y}(x,y)=f_X(x)f_Y(y).
+$$
+
+## 和的分布与卷积
+
+独立随机变量求和 $\Rightarrow$ 相应概率密度做卷积。
+
+若 $X,Y$ 独立，$Z=X+Y$，则
+
+$$
+f_Z(z)=\int_{-\infty}^{\infty}f_X(x)f_Y(z-x)\,dx.
+$$
+
+## 多维变量变换
+
+设
+
+$$
+Y=g(X),\qquad X\in\mathbb R^d.
+$$
+
+若 $g$ 可微、可逆且 Jacobian 行列式不为 $0$，如同存在 $x=g^{-1}(y)$，则
+
+$$
+f_Y(y)=f_X\!\left(g^{-1}(y)\right)
+\left|\det J_{g^{-1}}(y)\right|.
+$$
+

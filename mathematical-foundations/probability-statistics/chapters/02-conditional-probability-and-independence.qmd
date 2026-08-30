@@ -1,0 +1,51 @@
+# 条件概率与独立性
+
+## 条件概率
+
+$$
+P(A\mid B)=\frac{P(A\cap B)}{P(B)},\qquad P(B)>0.
+$$
+
+本质上是“知道 $B$ 已发生后，把样本空间 $\Omega$ 限制到 $B$，重新归一化概率”。
+
+## 乘法公式
+
+$$
+P(A\cap B)=P(A\mid B)P(B),\qquad P(B)>0.
+$$
+
+## 全概率公式
+
+若 $A_1,\ldots,A_n$ 构成样本空间的一个划分，则
+
+$$
+P(B)=\sum_{i=1}^{n}P(A_i)P(B\mid A_i).
+$$
+
+## Bayes 公式
+
+设 $A_1,\ldots,A_n$ 构成样本空间的一个划分，则
+
+$$
+P(A_i\mid B)
+=\frac{P(A_i)P(B\mid A_i)}{\sum_{j=1}^{n}P(A_j)P(B\mid A_j)}.
+$$
+
+区分三个词：
+
+- $P(A_i)$：Prior，先验；
+- $P(B\mid A_i)$：Likelihood，似然；
+- $P(A_i\mid B)$：Posterior，后验。
+
+## 独立性
+
+$$
+A\perp B\quad\Longleftrightarrow\quad P(A\cap B)=P(A)P(B).
+$$
+
+区分：两两独立不等于相互独立。
+
+> **章节思路**
+>
+> 条件概率 $\to$ 乘法公式 $\to$ 全概率公式 $\to$ Bayes 公式 $\to$ 独立性
+

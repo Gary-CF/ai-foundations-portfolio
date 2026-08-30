@@ -1,0 +1,68 @@
+# 随机事件与概率
+
+## 核心对象
+
+概率空间的核心对象为
+
+$$
+(\Omega, \Sigma, P).
+$$
+
+- $\Omega$：样本空间；
+- $\Sigma$：允许讨论概率的事件集合；
+- $P$：给事件赋以概率的函数。
+
+## $\sigma$-代数
+
+规定在一个随机试验中，哪些“事件”是我们允许讨论概率的。
+
+$\sigma$-代数满足三个条件：
+
+1. 全集 $\Omega\in\mathcal F$；
+2. 补集封闭：若 $A\in\mathcal F$，则 $A^c\in\mathcal F$；
+3. 可数并封闭：若 $A_1,A_2,\ldots\in\mathcal F$，则 $\bigcup_{i=1}^{\infty}A_i\in\mathcal F$。
+
+$\mathcal F$ 也常写作 $\Sigma$。
+
+## 概率公理及其推出的性质
+
+概率公理：设概率空间 $(\Omega,\mathcal F,P)$，概率 $P$ 满足：
+
+1. 非负性：
+
+   $$
+   P(A)\ge 0,\qquad \forall A\in\mathcal F.
+   $$
+
+2. 规范化：
+
+   $$
+   P(\Omega)=1.
+   $$
+
+3. 可列可加性：若 $A_1,A_2,\ldots$ 两两不交，那么
+
+   $$
+   P\!\left(\bigcup_{i=1}^{\infty}A_i\right)
+   =\sum_{i=1}^{\infty}P(A_i).
+   $$
+
+推出性质：
+
+1. $P(\varnothing)=0$；
+2. $P(A^c)=1-P(A)$；
+3. $A\subseteq B\Rightarrow P(A)\le P(B)$；
+4. $P(A\cup B)=P(A)+P(B)-P(A\cap B)$；
+5. Union Bound：
+
+   $$
+   P\!\left(\bigcup_{i=1}^{\infty}A_i\right)
+   \le \sum_{i=1}^{\infty}P(A_i).
+   $$
+
+> **章节思路**
+>
+> 概率空间 $(\Omega,\mathcal F,P)$：从样本空间 $\Omega$ 讲到事件与 $\sigma$-代数 $\mathcal F$，再讲到概率测度 $P$。
+>
+> 顺带介绍了古典概率、组合计数与几何概率。
+

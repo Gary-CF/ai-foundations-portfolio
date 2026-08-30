@@ -1,0 +1,641 @@
+# 参数估计
+
+## 点估计
+
+假定总体属于参数族
+
+$$
+X\sim F_\theta,
+\qquad
+\theta\in\Theta,
+$$
+
+其中真实参数 $\theta$ 未知。我们根据随机样本构造统计量
+
+$$
+\widehat\theta
+=
+T(X_1,\ldots,X_n)
+$$
+
+来估计 $\theta$。
+
+在观察数据之前，$X_1,\ldots,X_n$ 是随机变量，因此 $\widehat\theta$ 也是随机变量；它会随着抽到的样本不同而变化。观察到具体样本值 $x_1,\ldots,x_n$ 后，
+
+$$
+T(x_1,\ldots,x_n)
+$$
+
+才是一个具体数值。
+
+::: {.callout-note title="估计量与估计值"}
+- $\widehat\theta=T(X_1,\ldots,X_n)$ 称为估计量，是具有抽样分布的随机变量；
+- $T(x_1,\ldots,x_n)$ 称为估计值，是当前这组数据给出的具体结果。
+
+研究估计量的期望、方差、偏差和一致性，都是在研究它重复抽样时的表现。
+:::
+
+参数估计至少包含三个层次：
+
+1. **怎样构造估计量**：如矩估计、最大似然估计；
+2. **怎样评价估计量**：如偏差、方差、MSE 和一致性；
+3. **怎样量化不确定性**：如标准误和置信区间。
+
+单独报告点估计 $\widehat\theta$ 并不能说明估计有多精确。相同的估计值可能来自不同样本量，其不确定性可能完全不同，因此点估计通常应与标准误或置信区间配合使用。
+
+## 矩估计
+
+矩估计的基本思想是：用样本的经验矩匹配总体的理论矩。
+
+假设参数为
+
+$$
+\theta=(\theta_1,\ldots,\theta_r),
+$$
+
+并且总体前 $r$ 个理论矩为
+
+$$
+m_k(\theta)
+=
+E_\theta[X^k],
+\qquad
+k=1,\ldots,r.
+$$
+
+对应的样本矩为
+
+$$
+\widehat m_k
+=
+\frac1n\sum_{i=1}^nX_i^k.
+$$
+
+矩估计令
+
+$$
+\widehat m_k=m_k(\theta),
+\qquad
+k=1,\ldots,r,
+$$
+
+再解这组方程得到矩估计量 $\widehat\theta_{\mathrm{MOM}}$。
+
+### 为什么矩估计通常是一致的
+
+若相应总体矩存在，由大数定律，
+
+$$
+\widehat m_k
+=
+\frac1n\sum_{i=1}^nX_i^k
+\xrightarrow{P}
+E_{\theta_0}[X^k]
+=
+m_k(\theta_0),
+$$
+
+其中 $\theta_0$ 是真实参数。
+
+若矩映射
+
+$$
+m(\theta)
+=
+\bigl(m_1(\theta),\ldots,m_r(\theta)\bigr)
+$$
+
+能够唯一确定参数，并且逆映射在 $\theta_0$ 附近连续，那么由连续映射定理，
+
+$$
+\widehat\theta_{\mathrm{MOM}}
+=
+m^{-1}(\widehat m)
+\xrightarrow{P}
+m^{-1}(m(\theta_0))
+=
+\theta_0.
+$$
+
+因此矩估计的基本逻辑是
+
+$$
+\text{样本矩收敛到总体矩}
+\quad\Longrightarrow\quad
+\text{由总体矩反推出真实参数}.
+$$
+
+这里隐含一个重要条件：不同参数必须产生不同的矩特征。若
+
+$$
+m(\theta_1)=m(\theta_2)
+$$
+
+却有 $\theta_1\ne\theta_2$，那么仅凭所选矩就无法区分这两个参数，矩方程也不能唯一识别模型。
+
+### 例：正态分布的矩估计
+
+若
+
+$$
+X_i\overset{\mathrm{iid}}{\sim}N(\mu,\sigma^2),
+$$
+
+利用
+
+$$
+E[X]=\mu,
+\qquad
+E[X^2]=\mu^2+\sigma^2,
+$$
+
+令理论矩等于样本矩：
+
+$$
+\bar X=\mu,
+$$
+
+$$
+\frac1n\sum_{i=1}^nX_i^2
+=
+\mu^2+\sigma^2.
+$$
+
+解得
+
+$$
+\widehat\mu_{\mathrm{MOM}}
+=
+\bar X,
+$$
+
+以及
+
+$$
+\begin{aligned}
+\widehat{\sigma^2}_{\mathrm{MOM}}
+&=
+\frac1n\sum_{i=1}^nX_i^2-\bar X^2\\
+&=
+\frac1n\sum_{i=1}^n(X_i-\bar X)^2.
+\end{aligned}
+$$
+
+这里分母为 $n$ 不是计算错误。矩估计要求匹配总体矩，首先追求的是构造与一致性，并不自动保证有限样本无偏。后文会看到，采用 $n-1$ 才能得到 $\sigma^2$ 的无偏估计。
+
+::: {.callout-warning title="矩估计什么时候需要谨慎"}
+矩估计计算简单、解释直接，但存在几个限制：
+
+- 所需总体矩可能不存在，例如 Cauchy 分布没有有限均值；
+- 矩方程可能无解、多解，或者解落在参数空间之外；
+- 不同矩的选择可能产生不同估计量；
+- 高阶矩容易受异常值和重尾数据影响，数值上往往不稳定；
+- 它只使用选定的矩，不一定充分利用整个分布模型的信息。
+
+当矩条件多于未知参数时，可以通过加权方式综合这些条件，这会引出广义矩估计（GMM）；现阶段了解这一联系即可。
+:::
+
+## MLE（最大似然估计）
+
+寻找最能解释观测数据的参数。
+
+观察到 $x_1,\ldots,x_n$ 后，似然函数为
+
+$$
+L(\theta)=\prod_{i=1}^{n}f(x_i;\theta).
+$$
+
+此时数据 $x_i$ 固定，$\theta$ 是变量，$L(\theta)$ 表示出了不同参数对当前数据的解释能力。
+
+MLE 定义为
+
+$$
+\hat\theta_{\mathrm{MLE}}
+=\underset{\theta}{\arg\max}\;L(\theta),
+$$
+
+也常转为最大化对数似然：
+
+$$
+\ell(\theta)=\log L(\theta)
+=\sum_{i=1}^{n}\log f(x_i;\theta).
+$$
+
+讨论 Bernoulli 和正态分布的 MLE。
+
+### Bernoulli 参数的 MLE
+
+若 $X_i\overset{\mathrm{iid}}{\sim}\operatorname{Bernoulli}(p)$，则
+
+$$
+\ell(p)
+=\sum_{i=1}^n\left[X_i\log p+(1-X_i)\log(1-p)\right].
+$$
+
+在 $0<\bar X<1$ 时令导数为零：
+
+$$
+\ell'(p)
+=\frac{\sum_iX_i}{p}-\frac{n-\sum_iX_i}{1-p}=0,
+$$
+
+得到
+
+$$
+\widehat p_{\mathrm{MLE}}=\bar X.
+$$
+
+若样本全为 $0$ 或全为 $1$，最大值落在参数空间边界，结论仍分别为 $\widehat p=0$ 或 $1$。
+
+### 正态分布参数的 MLE
+
+若 $X_i\overset{\mathrm{iid}}{\sim}N(\mu,\sigma^2)$，则忽略与参数无关的常数后，
+
+$$
+\ell(\mu,\sigma^2)
+=-\frac n2\log\sigma^2
+-\frac1{2\sigma^2}\sum_{i=1}^n(X_i-\mu)^2.
+$$
+
+分别对 $\mu$ 和 $\sigma^2$ 求极值，得到
+
+$$
+\widehat\mu_{\mathrm{MLE}}=\bar X,
+\qquad
+\widehat{\sigma^2}_{\mathrm{MLE}}
+=\frac1n\sum_{i=1}^n(X_i-\bar X)^2.
+$$
+
+注意 $\widehat{\sigma^2}_{\mathrm{MLE}}$ 的分母是 $n$。它最大化似然，但在有限样本下不是无偏估计；无偏版本 $S^2$ 的分母是 $n-1$。
+
+::: {.callout-warning title="求导等于零还不够"}
+MLE 还要检查参数空间、边界点和极值类型。混合模型等问题甚至可能存在多个局部极值，数值优化的结果不必然是全局 MLE。
+:::
+
+## 估计量评价
+
+### 无偏性
+
+偏差定义为
+
+$$
+\operatorname{Bias}(\hat\theta)=E[\hat\theta]-\theta.
+$$
+
+可解释样本方差分母采用 $n-1$ 的原因。
+
+利用恒等式
+
+$$
+\sum_{i=1}^n(X_i-\bar X)^2
+=\sum_{i=1}^n(X_i-\mu)^2-n(\bar X-\mu)^2,
+$$
+
+取期望后得到
+
+$$
+E\!\left[\sum_{i=1}^n(X_i-\bar X)^2\right]
+=n\sigma^2-n\frac{\sigma^2}{n}
+=(n-1)\sigma^2.
+$$
+
+因此
+
+$$
+E[S^2]
+=E\!\left[\frac1{n-1}\sum_{i=1}^n(X_i-\bar X)^2\right]
+=\sigma^2.
+$$
+
+这个无偏性结论只要求样本独立同分布且二阶矩存在，不要求总体正态；正态性是进一步得到卡方抽样分布时才需要的。
+
+### 有效性与 MSE
+
+若两个估计量都无偏，那么方差更小者更有效：
+
+$$
+\operatorname{Var}(\hat\theta_1)
+<\operatorname{Var}(\hat\theta_2).
+$$
+
+但若估计量有偏，只比较方差并不公平，更统一的评价是
+
+$$
+\operatorname{MSE}(\hat\theta)
+=E[(\hat\theta-\theta)^2]
+=\operatorname{Var}(\hat\theta)
++\operatorname{Bias}(\hat\theta)^2.
+$$
+
+这就是偏差—方差分解：允许引入少量偏差，可能换来更大的方差下降，从而降低总体误差。
+
+### 一致性
+
+$$
+\hat\theta_n\xrightarrow{P}\theta.
+$$
+
+表示对于任意 $\varepsilon>0$，
+
+$$
+P(|\hat\theta_n-\theta|>\varepsilon)\to0.
+$$
+
+例如 $E[X_i]=\mu$、$\operatorname{Var}(X_i)=\sigma^2<\infty$ 时，
+
+$$
+P(|\bar X-\mu|>\varepsilon)
+\le \frac{\sigma^2}{n\varepsilon^2}
+\to0,
+$$
+
+所以 $\bar X$ 是 $\mu$ 的一致估计。这也把参数估计与前一章的 Chebyshev 不等式连接起来。
+
+## Score、Fisher 信息与 Cramér–Rao 下界
+
+### Score 与 Fisher 信息
+
+一维参数的 score 定义为
+
+$$
+U(\theta)=\frac{\partial}{\partial\theta}\ell(\theta).
+$$
+
+在允许微分与积分交换等正则条件下，
+
+$$
+E_\theta[U(\theta)]=0.
+$$
+
+单个观测的 Fisher 信息为
+
+$$
+I_1(\theta)
+=E_\theta\!\left[
+\left(\frac{\partial}{\partial\theta}\log f(X;\theta)\right)^2
+\right]
+=-E_\theta\!\left[
+\frac{\partial^2}{\partial\theta^2}\log f(X;\theta)
+\right].
+$$
+
+独立样本的信息可加：$I_n(\theta)=nI_1(\theta)$。信息越大，似然在真实参数附近通常越尖，参数越容易被精确估计。
+
+### Cramér–Rao 下界的关键推导
+
+若 $T$ 是 $g(\theta)$ 的无偏估计，则在正则条件下
+
+$$
+\operatorname{Cov}_\theta(T,U)=g'(\theta).
+$$
+
+由 Cauchy–Schwarz 不等式，
+
+$$
+\operatorname{Cov}(T,U)^2
+\le \operatorname{Var}(T)\operatorname{Var}(U).
+$$
+
+又因为 $\operatorname{Var}(U)=I_n(\theta)$，所以
+
+$$
+\operatorname{Var}_\theta(T)
+\ge \frac{[g'(\theta)]^2}{I_n(\theta)}.
+$$
+
+特别地，无偏估计 $\hat\theta$ 满足
+
+$$
+\operatorname{Var}(\hat\theta)\ge\frac1{I_n(\theta)}.
+$$
+
+这是无偏估计方差能够达到的理论下界，不代表每个模型中都存在达到下界的估计量。
+
+### 例：Bernoulli 参数
+
+对单个 $X\sim\operatorname{Bernoulli}(p)$，
+
+$$
+I_1(p)=\frac1{p(1-p)},
+\qquad
+I_n(p)=\frac n{p(1-p)}.
+$$
+
+因此无偏估计的方差下界为 $p(1-p)/n$。而 $\bar X$ 的方差恰好等于这个下界，所以它在该意义下是有效的。
+
+## MLE 为什么近似正态
+
+MLE 满足 score 方程 $U_n(\widehat\theta)=0$。在真实参数 $\theta_0$ 附近作 Taylor 展开：
+
+$$
+0
+=U_n(\theta_0)
++(\widehat\theta-\theta_0)U_n'(\widetilde\theta),
+$$
+
+其中 $\widetilde\theta$ 位于 $\widehat\theta$ 与 $\theta_0$ 之间。整理得
+
+$$
+\sqrt n(\widehat\theta-\theta_0)
+=-\frac{U_n(\theta_0)/\sqrt n}{U_n'(\widetilde\theta)/n}.
+$$
+
+在可识别、参数位于内部、似然足够光滑等正则条件下，分子由中心极限定理趋于 $N(0,I_1(\theta_0))$，分母依概率趋于 $-I_1(\theta_0)$，于是
+
+$$
+\sqrt n(\widehat\theta-\theta_0)
+\xrightarrow{d}
+N\!\left(0,\frac1{I_1(\theta_0)}\right).
+$$
+
+等价地，大样本下
+
+$$
+\widehat\theta
+\approx
+N\!\left(\theta_0,\frac1{nI_1(\theta_0)}\right).
+$$
+
+这条结论连接了 MLE、Fisher 信息、CLT 与大样本置信区间。它是渐近结论；小样本、边界参数、不可识别模型或重尾模型中不能机械套用。
+
+## 区间估计
+
+### 置信区间
+
+区间估计给出精度
+
+$$
+[L(X),U(X)],
+$$
+
+定义置信区间：
+
+$$
+P_\theta(L(X)\le\theta\le U(X))=1-\alpha.
+$$
+
+含义为：若反复抽样，反复按同一规则构造区间，那么其中约 $1-\alpha$ 的区间会覆盖真实参数。
+
+::: {.callout-warning title="置信区间的频率学派含义"}
+参数 $\theta$ 在频率学派中是固定的。观察到数据后，区间已经确定，不能再说“$\theta$ 以 $1-\alpha$ 的概率位于这个已实现区间内”；$1-\alpha$ 描述的是构造区间的方法在重复抽样中的覆盖率。
+:::
+
+### 枢轴量法
+
+枢轴量是
+
+$$
+W=W(X_1,\ldots,X_n;\theta),
+$$
+
+它可以包含未知参数，但其分布不含未知参数。
+
+统一流程：构造参数枢轴量 $\to$ 截取 $1-\alpha$ 概率 $\to$ 反解参数。
+
+例如正态总体方差未知时，
+
+$$
+T=\frac{\bar X-\mu}{S/\sqrt n}\sim t_{n-1}.
+$$
+
+由
+
+$$
+P\!\left(-t_{n-1,1-\alpha/2}
+\le T\le
+t_{n-1,1-\alpha/2}\right)=1-\alpha
+$$
+
+反解 $\mu$，得到
+
+$$
+\mu\in
+\left[
+\bar X-t_{n-1,1-\alpha/2}\frac S{\sqrt n},
+\ \bar X+t_{n-1,1-\alpha/2}\frac S{\sqrt n}
+\right].
+$$
+
+### 四套核心置信区间
+
+| 问题 | 枢轴量 | 分布 |
+|---|---|---|
+| $\sigma^2$ 已知，估计 $\mu$ | $(\bar X-\mu)/(\sigma/\sqrt n)$ | $N(0,1)$ |
+| $\sigma^2$ 未知，估计 $\mu$ | $(\bar X-\mu)/(S/\sqrt n)$ | $t_{n-1}$ |
+| 估计正态总体 $\sigma^2$ | $(n-1)S^2/\sigma^2$ | $\chi_{n-1}^2$ |
+| 估计两个正态总体方差比 | $(S_1^2/S_2^2)/(\sigma_1^2/\sigma_2^2)$ | $F_{\nu_1,\nu_2}$ |
+
+## 假设检验：用反证思路衡量数据与模型的冲突
+
+设原假设为 $H_0$，备择假设为 $H_1$。先暂时假定 $H_0$ 成立，再选择一个在 $H_0$ 下分布已知的检验统计量。若观测结果在该分布下过于极端，就拒绝 $H_0$。
+
+### 四个基本量
+
+- 显著性水平 $\alpha$：允许第一类错误的最大概率；
+- 第一类错误：$H_0$ 为真却拒绝 $H_0$；
+- 第二类错误：$H_1$ 为真却没有拒绝 $H_0$；
+- 功效（power）：在某个备择参数下正确拒绝 $H_0$ 的概率。
+
+$p$ 值是在 $H_0$ 成立时，得到当前结果或更极端结果的概率。若 $p\le\alpha$，就在预先约定的规则下拒绝 $H_0$。
+
+::: {.callout-warning title="$p$ 值不是什么"}
+$p$ 值不是“$H_0$ 为真的概率”，也不是效应大小。样本很大时，实际意义很小的偏差也可能产生很小的 $p$ 值，因此应同时报告效应量和区间估计。
+:::
+
+### 例：正态总体均值的双侧 $t$ 检验
+
+考虑
+
+$$
+H_0:\mu=\mu_0,
+\qquad
+H_1:\mu\ne\mu_0.
+$$
+
+总体方差未知时使用
+
+$$
+T=\frac{\bar X-\mu_0}{S/\sqrt n}.
+$$
+
+在 $H_0$ 下，$T\sim t_{n-1}$。当
+
+$$
+|T|>t_{n-1,1-\alpha/2}
+$$
+
+时拒绝 $H_0$。这与检查 $1-\alpha$ 置信区间是否包含 $\mu_0$ 完全等价，体现了检验与置信区间的对偶关系。
+
+## 贝叶斯更新与共轭先验
+
+频率学派把参数视为固定未知量；贝叶斯方法则给参数指定先验分布，并用 Bayes 公式更新：
+
+$$
+p(\theta\mid x)
+\propto p(x\mid\theta)p(\theta).
+$$
+
+若后验与先验属于同一分布家族，就称该先验为共轭先验。
+
+### Beta–Bernoulli 的完整更新
+
+设
+
+$$
+p\sim\operatorname{Beta}(\alpha,\beta),
+\qquad
+X_i\mid p\overset{\mathrm{iid}}{\sim}\operatorname{Bernoulli}(p).
+$$
+
+记成功次数 $s=\sum_iX_i$，则
+
+$$
+p(p\mid x)
+\propto
+p^{\alpha-1}(1-p)^{\beta-1}
+p^s(1-p)^{n-s},
+$$
+
+所以
+
+$$
+p\mid x
+\sim\operatorname{Beta}(\alpha+s,\beta+n-s).
+$$
+
+先验参数可以理解为成功与失败的伪计数。后验均值为
+
+$$
+E[p\mid x]
+=\frac{\alpha+s}{\alpha+\beta+n},
+$$
+
+它在先验均值与样本比例之间进行加权。
+
+### 最小共轭关系表
+
+| 似然模型 | 共轭先验 | 后验更新所需统计量 |
+|---|---|---|
+| Bernoulli / Binomial | Beta | 成功数与失败数 |
+| Categorical / Multinomial | Dirichlet | 各类别计数 |
+| Poisson（rate 未知） | Gamma | $\sum_iX_i$ 与样本量 |
+
+共轭模型的意义不只是“算得快”：它揭示了数据通过充分统计量进入后验，也为更复杂模型中的近似推断提供基准。
+
+## 非正态总体的三条推断路线
+
+Route A：Concentration，有限样本保证。
+
+Route B：CLT，大样本近似。
+
+Route C：Bayesian update，得到参数的后验分布。
+
+| 目标 | 优先工具 | 主要代价 |
+|---|---|---|
+| 需要非渐近误差上界 | 集中不等式 | 假设与界可能较保守 |
+| 样本较大、需要近似推断 | CLT / MLE 渐近理论 | 有限样本误差未必可控 |
+| 需要融合先验并量化后验不确定性 | 贝叶斯更新 | 结论依赖先验与模型设定 |
+
+::: {.callout-note title="本章抓住什么"}
+矩估计和 MLE 回答“如何构造”；无偏性、MSE、一致性和 Fisher 信息回答“如何评价”；置信区间与假设检验回答“如何量化不确定性并作决定”；贝叶斯更新提供另一种参数不确定性语言。
+:::

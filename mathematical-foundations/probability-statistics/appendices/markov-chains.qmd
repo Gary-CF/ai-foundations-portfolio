@@ -1,0 +1,432 @@
+# Markov 链与依赖序列
+
+## 为什么需要 Markov 链
+
+独立样本假设忽略了时间依赖；鞅允许过程依赖历史，但要求条件增量没有漂移。Markov 链则采用另一种结构化依赖：
+
+$$
+\text{给定当前状态后，下一步与更早历史无关}.
+$$
+
+它是 MCMC、强化学习状态轨迹、排队系统和随机算法的基础模型。
+
+## Markov 性与转移矩阵
+
+设随机过程为 $X_0,X_1,\ldots$。若对任意状态 $x_0,\ldots,x_{t+1}$，
+
+$$
+P(X_{t+1}=x_{t+1}\mid X_0=x_0,\ldots,X_t=x_t)
+=P(X_{t+1}=x_{t+1}\mid X_t=x_t),
+$$
+
+则称 $\{X_t\}$ 为 Markov chain。
+
+对于有限状态空间 $\mathcal S=\{1,\ldots,m\}$，定义转移矩阵
+
+$$
+P_{ij}=P(X_{t+1}=j\mid X_t=i).
+$$
+
+每一行都是概率分布：
+
+$$
+P_{ij}\ge0,
+\qquad
+\sum_{j=1}^mP_{ij}=1.
+$$
+
+若 $P_{ij}$ 不随 $t$ 改变，就称为时齐 Markov 链。本章默认讨论这种情形。
+
+### 路径概率
+
+给定初始分布 $\mu_0$，一条路径的概率可以分解为
+
+$$
+P(X_0=x_0,\ldots,X_T=x_T)
+=\mu_0(x_0)
+\prod_{t=0}^{T-1}P_{x_t x_{t+1}}.
+$$
+
+这与 iid 样本的乘积分解不同：每一步只依赖前一个状态，而不是所有变量相互独立。
+
+## 分布演化与多步转移
+
+把时刻 $t$ 的状态分布写成行向量
+
+$$
+\mu_t(j)=P(X_t=j).
+$$
+
+则
+
+$$
+\mu_{t+1}=\mu_tP,
+$$
+
+因此
+
+$$
+\mu_t=\mu_0P^t.
+$$
+
+矩阵幂给出多步转移概率：
+
+$$
+(P^t)_{ij}
+=P(X_t=j\mid X_0=i).
+$$
+
+Markov 链的长期行为，本质上就是研究 $P^t$ 随 $t$ 增大如何变化。
+
+## 状态之间的连通结构
+
+### 可达与互通
+
+若存在某个 $t\ge0$ 使
+
+$$
+(P^t)_{ij}>0,
+$$
+
+就称状态 $j$ 从状态 $i$ 可达，记为 $i\to j$。
+
+若 $i\to j$ 且 $j\to i$，则称 $i,j$ 互通。互通把状态空间划分为若干 communicating classes。
+
+### Irreducible：不可约
+
+若任意两个状态都互通，则称 Markov 链不可约。不可约意味着状态空间没有被分成彼此无法到达的封闭区域。
+
+对有限不可约链，所有状态都是正常返的，并且存在唯一平稳分布。
+
+### Period：周期
+
+状态 $i$ 的周期定义为
+
+$$
+d(i)=\gcd\{t\ge1:(P^t)_{ii}>0\}.
+$$
+
+不可约链中所有状态周期相同。若周期为 $1$，就称链是非周期的。
+
+非周期性排除了“只能在某些固定奇偶时刻返回”的机械振荡。
+
+::: {.callout-warning title="不可约还不够"}
+有限不可约链具有唯一平稳分布，但若链有周期，$\mu_0P^t$ 仍可能在几个分布之间来回振荡。要保证逐时刻分布收敛到平稳分布，通常还需要非周期性。
+:::
+
+## 平稳分布
+
+概率向量 $\pi$ 若满足
+
+$$
+\pi=\pi P,
+\qquad
+\sum_i\pi_i=1,
+$$
+
+就称为 stationary distribution。
+
+如果 $X_0\sim\pi$，那么
+
+$$
+X_t\sim\pi,
+\qquad \forall t\ge0.
+$$
+
+平稳不代表相邻状态独立，只表示每个时刻的边缘分布保持不变。
+
+### 二状态例子
+
+考虑
+
+$$
+P=
+\begin{pmatrix}
+1-a & a\\
+b & 1-b
+\end{pmatrix},
+\qquad
+0<a,b<1.
+$$
+
+设 $\pi=(\pi_1,\pi_2)$。由 $\pi=\pi P$ 和 $\pi_1+\pi_2=1$，
+
+$$
+\pi_1a=\pi_2b.
+$$
+
+因此
+
+$$
+\pi_1=\frac{b}{a+b},
+\qquad
+\pi_2=\frac{a}{a+b}.
+$$
+
+这条平衡式表示：平稳状态下，从状态 $1$ 流向状态 $2$ 的平均概率质量，等于反方向流回的质量。
+
+## Detailed balance 与可逆性
+
+若对所有状态 $i,j$，
+
+$$
+\pi_iP_{ij}=\pi_jP_{ji},
+$$
+
+就称 $P$ 关于 $\pi$ 满足 detailed balance，或称该链关于 $\pi$ 可逆。
+
+把等式对 $i$ 求和：
+
+$$
+\sum_i\pi_iP_{ij}
+=\sum_i\pi_jP_{ji}
+=\pi_j,
+$$
+
+所以 detailed balance 自动推出 $\pi=\pi P$。
+
+可逆性比平稳性更强。它表示在平稳状态下观察一段轨迹，正向与反向的概率规律相同。
+
+Metropolis–Hastings 的核心设计就是构造满足 detailed balance 的转移核，从而让目标分布成为平稳分布。
+
+## 长期收敛与 mixing time
+
+对于有限状态 Markov 链：
+
+- 不可约保证平稳分布存在且唯一；
+- 不可约加非周期保证
+
+  $$
+  \mu_0P^t\to\pi
+  $$
+
+  对任意初始分布 $\mu_0$ 成立。
+
+### Total variation distance
+
+有限状态空间中，两个分布 $\mu,\nu$ 的总变差距离为
+
+$$
+\|\mu-\nu\|_{\mathrm{TV}}
+=\frac12\sum_{x\in\mathcal S}
+|\mu(x)-\nu(x)|.
+$$
+
+它也等于
+
+$$
+\sup_{A\subseteq\mathcal S}
+|\mu(A)-\nu(A)|,
+$$
+
+即两个分布对同一事件给出的概率最大能相差多少。
+
+### Mixing time
+
+定义
+
+$$
+t_{\mathrm{mix}}(\varepsilon)
+=\min\left\{
+t:
+\max_{x\in\mathcal S}
+\|P^t(x,\cdot)-\pi\|_{\mathrm{TV}}
+\le\varepsilon
+\right\}.
+$$
+
+它衡量从最不利初始状态出发，需要多少步才能接近平稳分布。
+
+::: {.callout-note title="平稳分布与混合速度是两件事"}
+知道唯一的 $\pi$ 只回答长期目标在哪里；mixing time 才回答需要多久到达。两条链可以拥有相同平稳分布，却具有完全不同的混合速度。
+:::
+
+## 两个分析 mixing 的工具
+
+### Coupling
+
+构造两个边缘上都服从同一转移核的过程 $X_t,Y_t$，使它们尽快相遇。一旦相遇，就让它们之后始终一起运动。
+
+Coupling inequality 给出
+
+$$
+\|\mathcal L(X_t)-\mathcal L(Y_t)\|_{\mathrm{TV}}
+\le P(X_t\ne Y_t).
+$$
+
+因此，只要能控制耦合时间
+
+$$
+\tau_{\mathrm{couple}}
+=\inf\{t:X_t=Y_t\},
+$$
+
+就能控制分布距离：
+
+$$
+\|\mathcal L(X_t)-\mathcal L(Y_t)\|_{\mathrm{TV}}
+\le P(\tau_{\mathrm{couple}}>t).
+$$
+
+### Spectral gap
+
+对有限可逆链，转移矩阵可以在以 $\pi$ 加权的内积下进行谱分析。记特征值为
+
+$$
+1=\lambda_1>\lambda_2\ge\cdots\ge\lambda_m\ge-1.
+$$
+
+常用的绝对谱隙为
+
+$$
+\gamma_*
+=1-\max\{|\lambda_2|,|\lambda_m|\}.
+$$
+
+谱隙越大，偏离平稳分布的方向衰减越快；mixing time 通常与 $1/\gamma_*$ 同阶，并额外依赖最小平稳概率和精度的对数项。
+
+这里最值得保留的是关系：
+
+$$
+\text{大谱隙}
+\Longrightarrow
+\text{快混合}
+\Longrightarrow
+\text{相关性更快衰减}.
+$$
+
+## Markov 链遍历定理
+
+设有限 Markov 链不可约，平稳分布为 $\pi$。对任意函数 $f:\mathcal S\to\mathbb R$ 和任意初始分布，
+
+$$
+\frac1T\sum_{t=1}^Tf(X_t)
+\xrightarrow{\mathrm{a.s.}}
+E_\pi[f(X)]
+=\sum_x\pi(x)f(x).
+$$
+
+这就是 Markov chain ergodic theorem。它把 iid 大数律推广到了具有 Markov 依赖的数据。
+
+::: {.callout-important title="周期性对两种收敛的影响不同"}
+逐时刻分布 $P^t(x,\cdot)\to\pi$ 通常需要非周期性；时间平均的遍历收敛在不可约正再生条件下仍可成立。因此“分布是否稳定”和“长期平均是否稳定”必须区分。
+:::
+
+## 依赖如何降低有效样本量
+
+假设链已经处于平稳状态，令
+
+$$
+Y_t=f(X_t),
+\qquad
+\gamma_k=\operatorname{Cov}(Y_0,Y_k).
+$$
+
+样本均值的方差为
+
+$$
+\operatorname{Var}\!\left(
+\frac1n\sum_{t=1}^nY_t
+\right)
+=\frac1{n^2}
+\left[
+n\gamma_0
++2\sum_{k=1}^{n-1}(n-k)\gamma_k
+\right].
+$$
+
+iid 情形下 $\gamma_k=0$（$k\ge1$），方差按 $\gamma_0/n$ 缩小；若自相关为正，额外的协方差项会使样本均值更不稳定。
+
+令
+
+$$
+\rho_k=\frac{\gamma_k}{\gamma_0},
+\qquad
+\tau_{\mathrm{int}}
+=1+2\sum_{k=1}^{\infty}\rho_k,
+$$
+
+则大样本下常用近似为
+
+$$
+\operatorname{Var}(\bar Y_n)
+\approx\frac{\gamma_0\tau_{\mathrm{int}}}{n}.
+$$
+
+因此可把
+
+$$
+n_{\mathrm{eff}}
+\approx\frac{n}{\tau_{\mathrm{int}}}
+$$
+
+理解为有效样本量：收集了 $n$ 个相关样本，但其信息量可能只相当于更少的独立样本。
+
+### Markov 链集中界的量级图景
+
+对混合良好的可逆链和有界函数，许多集中结果具有如下结构：
+
+$$
+P\!\left(
+\left|
+\frac1n\sum_{t=1}^nf(X_t)-E_\pi[f]
+\right|
+\ge\varepsilon
+\right)
+\lesssim
+2\exp\!\left(
+-c\,n\gamma_*\varepsilon^2
+\right),
+$$
+
+其中常数和尺度还依赖 $f$ 的范围、初始分布及所采用的谱隙定义。这里应记住的是有效指数样本量约为 $n\gamma_*$；精确使用时必须核对具体定理条件和常数。
+
+## 与 MCMC 和强化学习的连接
+
+### MCMC
+
+MCMC 先设计一个以目标分布 $\pi$ 为平稳分布的 Markov 链，再用遍历平均
+
+$$
+\frac1T\sum_{t=1}^Tf(X_t)
+$$
+
+估计 $E_\pi[f]$。正确的平稳分布保证“目标对”，mixing time 和有效样本量决定“估计快不快”。
+
+### 强化学习
+
+在固定策略 $\pi(a\mid s)$ 下，状态序列形成转移核
+
+$$
+P^\pi(s'\mid s)
+=\sum_a\pi(a\mid s)P(s'\mid s,a)
+$$
+
+对应的 Markov 链。策略的长期状态访问频率、平均奖励和数据相关性，都与这条链的平稳分布和混合性质相关。
+
+策略改变时，转移规律本身也会改变，因此在线强化学习通常同时面对：
+
+$$
+\text{Markov 依赖}
++\text{自适应决策}
++\text{可能的非平稳性}.
+$$
+
+这也是 Markov 链工具与上一章鞅工具需要结合使用的原因。
+
+## Markov 链分析清单
+
+面对一条有限状态链，依次检查：
+
+1. 写出状态空间和转移矩阵；
+2. 判断 communicating classes 与不可约性；
+3. 检查周期；
+4. 解 $\pi=\pi P$；
+5. 若可能，验证 detailed balance；
+6. 用 coupling 或 spectral gap 判断 mixing；
+7. 用遍历定理处理时间平均；
+8. 估计自相关和有效样本量。
+
+::: {.callout-note title="本章抓住什么"}
+Markov 性把任意历史依赖压缩为当前状态依赖；平稳分布描述长期目标，mixing 描述到达速度，遍历定理说明单条相关轨迹仍能估计平稳期望。
+:::

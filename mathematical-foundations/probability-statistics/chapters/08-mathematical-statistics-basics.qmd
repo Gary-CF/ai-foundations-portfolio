@@ -1,0 +1,390 @@
+# 数理统计基本概念
+
+## 视角转换
+
+从概率论中：$F$ 已知 $\Rightarrow$ 计算 $P(X\in A)$、$E[X]$、$\operatorname{Var}(X)$。
+
+变为数理统计中：$X_1,\ldots,X_n$ 已观测，$F_\theta$ 中的 $\theta$ 未知 $\Rightarrow$ 反推 $\theta$。
+
+数理统计的主线可以压缩成：
+
+$$
+\text{总体模型}
+\longrightarrow \text{随机样本}
+\longrightarrow \text{统计量及其抽样分布}
+\longrightarrow \text{推断未知参数}.
+$$
+
+## 总体、样本、样本值、统计量
+
+### 随机样本与样本值
+
+设总体为 $F_\theta$，
+
+$$
+X_1,\ldots,X_n\overset{\mathrm{iid}}{\sim}F_\theta,
+$$
+
+即独立同分布。
+
+抽样前：$X_1,\ldots,X_n$ 都是随机变量。
+
+抽样后：$X_1=x_1,\ldots,X_n=x_n$ 成为随机样本，其中 $x_1,\ldots,x_n$ 是确定的观测值（样本值）。
+
+::: {.callout-warning title="随机变量与观测值不要混用"}
+$X_i$ 表示抽样前的随机变量，$x_i$ 表示已经观测到的数值。估计量 $\hat\theta(X_1,\ldots,X_n)$ 是随机变量；把数据代入后得到的估计值 $\hat\theta(x_1,\ldots,x_n)$ 才是一个确定的数。
+:::
+
+### 统计量与抽样分布
+
+统计量是不能含未知参数的样本的任意函数：
+
+$$
+T=T(X_1,\ldots,X_n).
+$$
+
+统计量本身也是随机变量，也有自己的分布，称为抽样分布。
+
+例如
+
+$$
+\bar X=\frac1n\sum_{i=1}^nX_i,
+\qquad
+S^2=\frac1{n-1}\sum_{i=1}^n(X_i-\bar X)^2
+$$
+
+都是统计量。后面的点估计、区间估计和假设检验，本质上都依赖统计量的抽样分布。
+
+经验分布函数
+
+$$
+\widehat F_n(x)=\frac1n\sum_{i=1}^n\mathbf 1\{X_i\le x\}
+$$
+
+也可以看成用样本对总体分布 $F$ 的直接估计。
+
+## Beta、Gamma、Dirichlet：统一分布家族
+
+### Beta 分布：随机概率
+
+$$
+X\sim\operatorname{Beta}(\alpha,\beta),
+\qquad \alpha,\beta>0.
+$$
+
+密度是
+
+$$
+f(x)=\frac1{B(\alpha,\beta)}x^{\alpha-1}(1-x)^{\beta-1},
+\qquad 0<x<1.
+$$
+
+其中 Beta 函数
+
+$$
+B(\alpha,\beta)
+=\int_0^1x^{\alpha-1}(1-x)^{\beta-1}\,dx.
+$$
+
+$$
+E[X]=\frac{\alpha}{\alpha+\beta},
+$$
+
+$$
+\operatorname{Var}(X)
+=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}.
+$$
+
+参数可以拆成两个作用：$\alpha/(\alpha+\beta)$ 控制分布中心，而 $\alpha+\beta$ 控制集中程度。
+
+### Gamma 分布：正数上的时间 / 速率模型
+
+$$
+X\sim\Gamma(\alpha,\lambda).
+$$
+
+密度是
+
+$$
+f(x)=\frac{\lambda^\alpha}{\Gamma(\alpha)}
+x^{\alpha-1}e^{-\lambda x},
+\qquad x>0.
+$$
+
+$$
+E[X]=\frac{\alpha}{\lambda},
+\qquad
+\operatorname{Var}(X)=\frac{\alpha}{\lambda^2}.
+$$
+
+::: {.callout-important title="参数化约定"}
+这里的 $\lambda$ 是 rate，因此均值为 $\alpha/\lambda$。有些资料使用 scale $\theta=1/\lambda$，写成均值 $\alpha\theta$；使用公式前先确认参数化。
+:::
+
+### Dirichlet 分布：随机概率向量
+
+设
+
+$$
+(X_1,\ldots,X_k)
+\sim\operatorname{Diri}(\alpha_1,\ldots,\alpha_k),
+$$
+
+定义在单纯形
+
+$$
+X_i>0,
+\qquad
+\sum_{i=1}^{k}X_i=1.
+$$
+
+密度为
+
+$$
+f(x_1,\ldots,x_k)
+=\frac{\Gamma(\alpha_0)}{\prod_{i=1}^{k}\Gamma(\alpha_i)}
+\prod_{i=1}^{k}x_i^{\alpha_i-1},
+$$
+
+其中
+
+$$
+\alpha_0=\sum_{i=1}^{k}\alpha_i.
+$$
+
+$$
+E[X_i]=\frac{\alpha_i}{\alpha_0},
+$$
+
+$$
+\operatorname{Var}(X_i)
+=\frac{\alpha_i(\alpha_0-\alpha_i)}{\alpha_0^2(\alpha_0+1)},
+$$
+
+$$
+\operatorname{Cov}(X_i,X_j)
+=-\frac{\alpha_i\alpha_j}{\alpha_0^2(\alpha_0+1)}.
+$$
+
+### 三个分布为什么属于同一条线
+
+若 $G_1\sim\Gamma(\alpha,1)$、$G_2\sim\Gamma(\beta,1)$ 且独立，则
+
+$$
+\frac{G_1}{G_1+G_2}\sim\operatorname{Beta}(\alpha,\beta).
+$$
+
+更一般地，若 $G_i\overset{\mathrm{ind}}{\sim}\Gamma(\alpha_i,1)$，则归一化后的概率向量
+
+$$
+X_i=\frac{G_i}{\sum_{j=1}^kG_j}
+$$
+
+服从 $\operatorname{Diri}(\alpha_1,\ldots,\alpha_k)$。因此可以把 Beta 看作二维 Dirichlet；Gamma 变量提供正的“质量”，归一化后得到概率。
+
+这一关系在贝叶斯模型中很常见：Beta 对应二分类概率，Dirichlet 对应多分类概率。
+
+## $\chi^2$、$t$、$F$：来自正态分布的三个构件
+
+统一结构是：
+
+$$
+\text{平方和}
+\to \chi^2,
+\qquad
+\frac{\text{Normal}}{\sqrt{\chi^2/df}}
+\to t,
+\qquad
+\frac{\chi^2/df}{\chi^2/df}
+\to F.
+$$
+
+### 卡方分布
+
+若
+
+$$
+Z_1,\ldots,Z_\nu\overset{\mathrm{iid}}{\sim}N(0,1),
+$$
+
+则
+
+$$
+Q=\sum_{i=1}^{\nu}Z_i^2\sim\chi_\nu^2,
+$$
+
+$\nu$ 称为自由度。
+
+性质：
+
+$$
+E[Q]=\nu,
+\qquad
+\operatorname{Var}(Q)=2\nu.
+$$
+
+若两个卡方变量独立，则
+
+$$
+\chi_{\nu_1}^2+\chi_{\nu_2}^2
+\sim\chi_{\nu_1+\nu_2}^2.
+$$
+
+### Student-$t$ 分布
+
+若
+
+$$
+Z\sim N(0,1),
+\qquad
+V\sim\chi_\nu^2,
+$$
+
+且二者独立，则
+
+$$
+T=\frac{Z}{\sqrt{V/\nu}}\sim t_\nu.
+$$
+
+可记住：
+
+$$
+t_\nu\Rightarrow N(0,1),
+$$
+
+$$
+T^2\sim F_{1,\nu}.
+$$
+
+$t$ 分布比正态分布尾部更厚，反映了用随机量 $S$ 替代未知 $\sigma$ 所引入的额外不确定性；当自由度增大，这种额外不确定性逐渐消失。
+
+### $F$ 分布
+
+若
+
+$$
+U\sim\chi_m^2,
+\qquad
+V\sim\chi_n^2,
+$$
+
+且独立，则
+
+$$
+F=\frac{U/m}{V/n}\sim F_{m,n}.
+$$
+
+$F$ 分布用于比较两个独立的标准化平方和，因此自然出现在方差比、方差分析和回归整体显著性检验中。
+
+## 正态总体抽样定理
+
+设
+
+$$
+X_1,\ldots,X_n\overset{\mathrm{iid}}{\sim}N(\mu,\sigma^2),
+$$
+
+定义
+
+$$
+\bar X=\frac1n\sum_{i=1}^{n}X_i,
+\qquad
+S^2=\frac1{n-1}\sum_{i=1}^{n}(X_i-\bar X)^2.
+$$
+
+有以下结论：
+
+$$
+\bar X\sim N\!\left(\mu,\frac{\sigma^2}{n}\right),
+$$
+
+$$
+\frac{(n-1)S^2}{\sigma^2}\sim\chi_{n-1}^2,
+$$
+
+$$
+\bar X\perp S^2.
+$$
+
+推论：
+
+$$
+\frac{\bar X-\mu}{S/\sqrt n}\sim t_{n-1}.
+$$
+
+### 关键推导：平方和的正交分解
+
+先把总波动分解为“样本内部波动”和“样本均值偏离总体均值”：
+
+$$
+\sum_{i=1}^n(X_i-\mu)^2
+=\sum_{i=1}^n(X_i-\bar X)^2
++n(\bar X-\mu)^2.
+$$
+
+标准化后，左边是 $n$ 个独立标准正态变量的平方和，所以服从 $\chi_n^2$。右边第二项满足
+
+$$
+\frac{n(\bar X-\mu)^2}{\sigma^2}\sim\chi_1^2.
+$$
+
+正态样本中，这两个正交方向对应的投影相互独立，因此剩余项满足
+
+$$
+\frac{\sum_{i=1}^n(X_i-\bar X)^2}{\sigma^2}
+=\frac{(n-1)S^2}{\sigma^2}
+\sim\chi_{n-1}^2.
+$$
+
+这里丢掉的一个自由度，正是因为残差满足约束 $\sum_i(X_i-\bar X)=0$。
+
+### 为什么样本方差除以 $n-1$
+
+由上面的卡方结论和 $E[\chi_{n-1}^2]=n-1$，
+
+$$
+E[S^2]
+=\frac{\sigma^2}{n-1}
+E\!\left[\frac{(n-1)S^2}{\sigma^2}\right]
+=\sigma^2.
+$$
+
+因此 $S^2$ 是 $\sigma^2$ 的无偏估计。分母 $n-1$ 不是形式约定，而是校正了估计 $\mu$ 所消耗的一个自由度。
+
+## 充分统计量与指数族
+
+样本可能很长，但用于推断参数的信息有时可以压缩到一个低维统计量中。
+
+### 充分统计量
+
+若在给定 $T(X)$ 后，样本的条件分布不再依赖参数 $\theta$，则称 $T$ 是 $\theta$ 的充分统计量。常用的 Fisher–Neyman 因子分解准则为：若联合密度可以写成
+
+$$
+f_\theta(x_1,\ldots,x_n)
+=g_\theta\!\bigl(T(x_1,\ldots,x_n)\bigr)h(x_1,\ldots,x_n),
+$$
+
+其中 $h$ 不含 $\theta$，则 $T$ 对 $\theta$ 充分。
+
+例如 $X_i\overset{\mathrm{iid}}{\sim}\operatorname{Bernoulli}(p)$ 时，
+
+$$
+L(p)=p^{\sum_i x_i}(1-p)^{n-\sum_i x_i},
+$$
+
+所以数据对 $p$ 的信息只通过 $T=\sum_iX_i$ 进入似然；$T$ 是 $p$ 的充分统计量。
+
+### 指数族提供统一结构
+
+一参数指数族可写为
+
+$$
+f(x;\theta)=h(x)
+\exp\!\left\{\eta(\theta)T(x)-A(\theta)\right\}.
+$$
+
+独立样本的似然中，数据通常只通过 $\sum_iT(X_i)$ 出现，因此充分统计量、似然计算和共轭先验都能得到统一表达。Bernoulli、Poisson、正态、Gamma 等常用模型都属于指数族。
+
+::: {.callout-note title="本章抓住什么"}
+不要孤立背诵 Beta、Gamma、$\chi^2$、$t$、$F$。本章真正的链条是：样本经过统计量压缩，统计量有抽样分布，抽样分布再支撑下一章的估计与检验。
+:::

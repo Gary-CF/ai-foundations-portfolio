@@ -1,0 +1,519 @@
+# 鞅与自适应集中
+
+## 为什么独立样本框架还不够
+
+Hoeffding、Bernstein 等经典不等式通常从独立随机变量出发。但在在线学习、Bandit 和强化学习中，第 $t$ 轮采取的动作会依赖前 $t-1$ 轮的观测，数据因而是自适应产生的。
+
+这时真正需要的条件往往不是无条件独立，而是：
+
+$$
+E[D_t\mid\mathcal F_{t-1}]=0.
+$$
+
+它表示在已经知道全部历史后，下一步噪声仍然没有可预测的系统偏差。鞅正是描述这种“允许依赖历史，但条件均值保持稳定”的工具。
+
+## 信息流、适应过程与鞅
+
+### Filtration：逐步增长的信息
+
+一个 filtration 是递增的 $\sigma$-代数序列
+
+$$
+\mathcal F_0\subseteq\mathcal F_1
+\subseteq\mathcal F_2\subseteq\cdots.
+$$
+
+$\mathcal F_t$ 表示截至时刻 $t$ 已经知道的全部信息。若随机变量 $X_t$ 在 $\mathcal F_t$ 下可测，就称过程 $\{X_t\}$ 适应于 $\{\mathcal F_t\}$。
+
+在线决策中，动作 $A_t$ 通常由过去历史决定，因此它应当是 $\mathcal F_{t-1}$-可测的；奖励 $R_t$ 在本轮观察后才进入 $\mathcal F_t$。
+
+### Martingale、submartingale 与 supermartingale
+
+若 $\{M_t\}$ 适应于 $\{\mathcal F_t\}$、$E[|M_t|]<\infty$，并满足
+
+$$
+E[M_t\mid\mathcal F_{t-1}]=M_{t-1},
+$$
+
+则称 $\{M_t\}$ 为 martingale。
+
+若条件等号改为
+
+$$
+E[M_t\mid\mathcal F_{t-1}]\ge M_{t-1},
+$$
+
+则是 submartingale；若方向为 $\le$，则是 supermartingale。
+
+直觉上，martingale 表示“在现有信息下没有可预测漂移”；submartingale 有向上的条件漂移，supermartingale 有向下的条件漂移。
+
+### 两个基本例子
+
+若 $X_1,X_2,\ldots$ 独立，且 $E[X_t]=\mu_t$，令
+
+$$
+D_t=X_t-\mu_t,
+\qquad
+M_t=\sum_{s=1}^tD_s.
+$$
+
+取 $\mathcal F_t=\sigma(X_1,\ldots,X_t)$，则
+
+$$
+E[D_t\mid\mathcal F_{t-1}]=0,
+$$
+
+所以 $\{M_t\}$ 是 martingale。
+
+更一般地，对任意可积随机变量 $Z$，定义
+
+$$
+M_t=E[Z\mid\mathcal F_t].
+$$
+
+由塔式性质，
+
+$$
+E[M_t\mid\mathcal F_{t-1}]
+=E[E[Z\mid\mathcal F_t]\mid\mathcal F_{t-1}]
+=E[Z\mid\mathcal F_{t-1}]
+=M_{t-1}.
+$$
+
+这称为 Doob martingale：随着信息增加，对同一终点量 $Z$ 的预测不断更新，但当前预测的条件期望仍等于上一时刻的预测。
+
+## Martingale difference：在线学习中的噪声语言
+
+定义增量
+
+$$
+D_t=M_t-M_{t-1}.
+$$
+
+若
+
+$$
+E[D_t\mid\mathcal F_{t-1}]=0,
+$$
+
+则 $\{D_t\}$ 称为 martingale difference sequence。
+
+在 Bandit 中，令
+
+$$
+D_t=R_t-E[R_t\mid\mathcal F_{t-1}],
+$$
+
+即“实际奖励减去在当前历史和动作下的条件均值”。虽然动作 $A_t$ 可以根据历史自适应选择，但仍有
+
+$$
+E[D_t\mid\mathcal F_{t-1}]=0.
+$$
+
+因此独立性被替换成了更适合在线数据的条件中心化。
+
+::: {.callout-warning title="零条件均值比零均值更强"}
+$E[D_t]=0$ 只说明平均后没有偏差；$E[D_t\mid\mathcal F_{t-1}]=0$ 还要求过去信息无法预测下一步偏差。自适应集中不等式依赖的是后者。
+:::
+
+## 停止时刻与可选停止
+
+### Stopping time
+
+随机时刻 $\tau$ 若满足
+
+$$
+\{\tau\le t\}\in\mathcal F_t,
+\qquad \forall t,
+$$
+
+就称为 stopping time。它表示仅根据当前及过去信息就能判断是否已经停止，不能偷看未来。
+
+例如首次越过阈值
+
+$$
+\tau=\inf\{t\ge0:M_t\ge a\}
+$$
+
+是 stopping time。
+
+停止后的过程定义为
+
+$$
+M_{t\wedge\tau},
+\qquad
+t\wedge\tau=\min(t,\tau).
+$$
+
+若 $M_t$ 是 martingale，则在适当可积条件下，停止过程仍是 martingale。
+
+### Optional stopping theorem
+
+一个最安全的版本是：若 $\tau$ 有确定上界，即存在 $T<\infty$ 使得 $\tau\le T$，并且 $M_t$ 可积，则
+
+$$
+E[M_\tau]=E[M_0].
+$$
+
+它说明仅靠根据历史选择停止时间，不能从公平过程里凭空制造正期望收益。
+
+::: {.callout-warning title="不能忽略定理条件"}
+无界停止时间、不可积增量或缺少一致可积性时，可选停止结论可能失败。“输到翻倍、赢一次就停”的策略并不能绕开这些条件。
+:::
+
+## 指数 supermartingale：统一证明模板
+
+设 $\{D_t\}$ 是 martingale difference sequence，并且对某个函数 $\psi_t(\lambda)$ 有条件 MGF 控制
+
+$$
+E[e^{\lambda D_t}\mid\mathcal F_{t-1}]
+\le e^{\psi_t(\lambda)}.
+$$
+
+定义
+
+$$
+L_t(\lambda)
+=\exp\!\left(
+\lambda\sum_{s=1}^tD_s
+-\sum_{s=1}^t\psi_s(\lambda)
+\right).
+$$
+
+则
+
+$$
+\begin{aligned}
+E[L_t(\lambda)\mid\mathcal F_{t-1}]
+&=L_{t-1}(\lambda)
+E[e^{\lambda D_t-\psi_t(\lambda)}
+\mid\mathcal F_{t-1}]\\
+&\le L_{t-1}(\lambda).
+\end{aligned}
+$$
+
+因此 $\{L_t(\lambda)\}$ 是非负 supermartingale。固定时刻的集中不等式可以对 $L_t$ 使用 Markov 不等式；同时控制所有时刻则使用后面的 Ville 不等式。
+
+这一模板把 Ch7 的
+
+$$
+\text{Chernoff}+\text{独立 MGF 乘积}
+$$
+
+升级为
+
+$$
+\text{条件 MGF}+\text{指数 supermartingale}.
+$$
+
+## Azuma–Hoeffding 不等式
+
+设 $\{D_t\}_{t=1}^T$ 是 martingale difference sequence，并且几乎必然有
+
+$$
+|D_t|\le c_t.
+$$
+
+令
+
+$$
+M_T=\sum_{t=1}^TD_t.
+$$
+
+则对任意 $x>0$，
+
+$$
+P(M_T\ge x)
+\le
+\exp\!\left(
+-\frac{x^2}{2\sum_{t=1}^Tc_t^2}
+\right).
+$$
+
+双侧形式为
+
+$$
+P(|M_T|\ge x)
+\le
+2\exp\!\left(
+-\frac{x^2}{2\sum_{t=1}^Tc_t^2}
+\right).
+$$
+
+### 证明主线
+
+条件于 $\mathcal F_{t-1}$ 后，$D_t$ 均值为 $0$ 且落在 $[-c_t,c_t]$。条件 Hoeffding 引理给出
+
+$$
+E[e^{\lambda D_t}\mid\mathcal F_{t-1}]
+\le
+\exp\!\left(\frac{\lambda^2c_t^2}{2}\right).
+$$
+
+因此
+
+$$
+\exp\!\left(
+\lambda M_t
+-\frac{\lambda^2}{2}\sum_{s=1}^tc_s^2
+\right)
+$$
+
+是非负 supermartingale。由 Markov 不等式，
+
+$$
+P(M_T\ge x)
+\le
+\exp\!\left(
+-\lambda x
++\frac{\lambda^2}{2}\sum_{t=1}^Tc_t^2
+\right).
+$$
+
+取
+
+$$
+\lambda^*
+=\frac{x}{\sum_{t=1}^Tc_t^2}
+$$
+
+即得到 Azuma–Hoeffding。
+
+::: {.callout-note title="与 Hoeffding 的关系"}
+Hoeffding 控制独立有界变量之和；Azuma–Hoeffding 允许变量依赖历史，只要求每一步在给定历史后仍然中心化且有界。
+:::
+
+## Freedman 不等式：方差敏感的鞅界
+
+Azuma 只使用增量上界，可能忽略实际条件方差很小这一信息。定义可预测二次变差
+
+$$
+V_t
+=\sum_{s=1}^t
+E[D_s^2\mid\mathcal F_{s-1}].
+$$
+
+$V_t$ 在每一步都由过去信息确定，是自适应过程中的累计条件方差。
+
+设 $\{D_t\}$ 是 martingale difference sequence，并且
+
+$$
+D_t\le b
+$$
+
+几乎必然成立。则对任意 $x,v>0$，
+
+$$
+P(M_t\ge x,\ V_t\le v)
+\le
+\exp\!\left(
+-\frac{x^2}{2(v+bx/3)}
+\right).
+$$
+
+这就是 Freedman 不等式的常用固定时刻形式。
+
+### 证明主线
+
+条件 Bernstein MGF 界给出
+
+$$
+E[e^{\lambda D_t}\mid\mathcal F_{t-1}]
+\le
+\exp\!\left(
+\frac{\lambda^2
+E[D_t^2\mid\mathcal F_{t-1}]}
+{2(1-\lambda b/3)}
+\right),
+\qquad 0<\lambda<\frac3b.
+$$
+
+把这些条件 MGF 逐步累积，可以构造以 $M_t$ 和 $V_t$ 为核心的指数 supermartingale。再对事件
+
+$$
+\{M_t\ge x,\ V_t\le v\}
+$$
+
+应用 Markov 不等式并选择
+
+$$
+\lambda=\frac{x}{v+bx/3},
+$$
+
+即可得到上述尾界。
+
+Freedman 对鞅所起的作用，正对应 Bernstein 对独立变量所起的作用：
+
+$$
+\text{Azuma : Freedman}
+\quad\Longleftrightarrow\quad
+\text{Hoeffding : Bernstein}.
+$$
+
+## 固定时刻、固定窗口与 anytime 保证
+
+### 直接 Union Bound
+
+若对每个固定时刻 $t$ 都有
+
+$$
+P(|M_t|\ge b_t(\delta_t))\le\delta_t,
+$$
+
+选择
+
+$$
+\delta_t=\frac{6\delta}{\pi^2t^2},
+\qquad
+\sum_{t=1}^{\infty}\delta_t=\delta,
+$$
+
+则由 Union Bound，以至少 $1-\delta$ 的概率，对所有 $t\ge1$ 同时成立
+
+$$
+|M_t|<b_t(\delta_t).
+$$
+
+这种做法简单可靠，但通常多付出一个随 $t$ 增长的对数因子。
+
+### Ville 不等式
+
+若 $\{L_t\}$ 是非负 supermartingale，且 $E[L_0]\le1$，则
+
+$$
+P\!\left(
+\sup_{t\ge0}L_t\ge\frac1\delta
+\right)\le\delta.
+$$
+
+它可以看作适用于整个时间过程的 Markov 不等式。与“对每个时刻分别控制再做 Union Bound”相比，Ville 不等式直接利用同一个 supermartingale 同时控制全部时刻。
+
+### Confidence sequence
+
+若随机区间序列 $\{C_t\}$ 满足
+
+$$
+P(\forall t\ge1:\theta\in C_t)\ge1-\delta,
+$$
+
+就称其为置信序列。它允许研究者根据已经观察到的数据自适应决定何时停止，同时保持整体覆盖保证。
+
+::: {.callout-warning title="固定时刻区间不能随意反复查看"}
+普通 $1-\delta$ 置信区间只保证预先固定时刻的覆盖率。若每轮都查看并在“显著”时停止，错误率会累积；anytime-valid 的置信序列才适合这种持续监控。
+:::
+
+## 自归一化集中与椭球置信集
+
+在线线性模型中，每一步的特征向量也可能根据历史选择，因此误差不能只用固定的样本量 $t$ 归一化。
+
+设 $x_t\in\mathbb R^d$ 是 $\mathcal F_{t-1}$-可测的特征向量，噪声 $\eta_t$ 满足条件 Sub-Gaussian 假设
+
+$$
+E[e^{\lambda\eta_t}\mid\mathcal F_{t-1}]
+\le
+\exp\!\left(\frac{\lambda^2R^2}{2}\right).
+$$
+
+定义
+
+$$
+S_t=\sum_{s=1}^t\eta_sx_s,
+$$
+
+$$
+V_t=\lambda_0I+\sum_{s=1}^tx_sx_s^T,
+\qquad \lambda_0>0.
+$$
+
+则以至少 $1-\delta$ 的概率，对所有 $t\ge0$ 同时有
+
+$$
+\|S_t\|_{V_t^{-1}}
+\le
+R\sqrt{
+2\log\!\left(
+\frac{\det(V_t)^{1/2}}
+{\det(\lambda_0I)^{1/2}\delta}
+\right)
+}.
+$$
+
+这里
+
+$$
+\|z\|_{A}=\sqrt{z^TAz}.
+$$
+
+### 为什么叫自归一化
+
+归一化矩阵 $V_t$ 本身由已经选择过的特征 $x_1,\ldots,x_t$ 构成。在哪些方向收集的信息多，$V_t$ 在那些方向就大，$V_t^{-1}$ 对相应误差的惩罚就小；信息少的方向则保持较宽的不确定性。
+
+### 证明主线
+
+对任意固定向量 $u\in\mathbb R^d$，条件 Sub-Gaussian 假设使得
+
+$$
+\exp\!\left(
+u^TS_t
+-\frac{R^2}{2}
+u^T(V_t-\lambda_0I)u
+\right)
+$$
+
+构成非负 supermartingale。再对 $u$ 使用高斯混合，把所有方向同时整合起来，积分中的二次型产生 $\det(V_t)$；最后应用 Ville 不等式，就得到对所有时刻同时成立的椭球界。
+
+### 线性回归与 Linear Bandit
+
+若
+
+$$
+y_t=x_t^T\theta_*+\eta_t
+$$
+
+并使用 ridge 估计
+
+$$
+\widehat\theta_t
+=V_t^{-1}\sum_{s=1}^tx_sy_s,
+$$
+
+则
+
+$$
+\widehat\theta_t-\theta_*
+=V_t^{-1}
+\left(
+S_t-\lambda_0\theta_*
+\right).
+$$
+
+因此若 $\|\theta_*\|_2\le S$，便有高概率置信椭球
+
+$$
+\|\widehat\theta_t-\theta_*\|_{V_t}
+\le
+R\sqrt{
+2\log\!\left(
+\frac{\det(V_t)^{1/2}}
+{\det(\lambda_0I)^{1/2}\delta}
+\right)
+}
++\sqrt{\lambda_0}S.
+$$
+
+Linear UCB 与线性 Bandit 的 optimism bonus 正是从这个椭球置信集出发。
+
+## 集中工具如何选择
+
+| 数据结构 | 主要工具 | 使用的信息 |
+|---|---|---|
+| 独立、有界 | Hoeffding | 区间长度 |
+| 独立、方差敏感 | Bernstein | 方差与增量上界 |
+| 条件中心化、有界 | Azuma–Hoeffding | 鞅差与增量上界 |
+| 条件中心化、方差敏感 | Freedman | 可预测二次变差 |
+| 持续监控、随机停止 | Ville / confidence sequence | 非负 supermartingale |
+| 自适应向量特征 | 自归一化界 | 数据依赖椭球几何 |
+
+::: {.callout-note title="本章抓住什么"}
+鞅没有消除历史依赖，而是把“独立”替换成“给定历史后的公平性”。条件 MGF 产生指数 supermartingale，随后可以得到固定时刻、全时刻和自归一化三类集中保证。
+:::

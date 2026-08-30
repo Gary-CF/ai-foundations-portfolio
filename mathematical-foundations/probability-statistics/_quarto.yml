@@ -1,0 +1,40 @@
+project:
+  type: book
+
+book:
+  title: "概率论与数理统计工具箱"
+  author: "Gary Chen"
+  chapters:
+    - index.qmd
+    - chapters/00-knowledge-map.qmd
+    - chapters/01-random-events-and-probability.qmd
+    - chapters/02-conditional-probability-and-independence.qmd
+    - chapters/03-discrete-random-variables.qmd
+    - chapters/04-continuous-random-variables.qmd
+    - chapters/05-multivariate-random-vectors.qmd
+    - chapters/06-numerical-characteristics.qmd
+    - chapters/07-concentration-and-limit-theorems.qmd
+    - chapters/08-mathematical-statistics-basics.qmd
+    - chapters/09-parameter-estimation.qmd
+
+  appendices:
+    - appendices/martingales-and-adaptive-concentration.qmd
+    - appendices/markov-chains.qmd
+
+lang: zh
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    number-sections: true
+    html-math-method: mathml
+  pdf:
+    documentclass: scrreprt
+    pdf-engine: xelatex
+    CJKmainfont: "Noto Serif CJK SC"
+    toc: true
+    number-sections: true
+
+execute:
+  freeze: auto

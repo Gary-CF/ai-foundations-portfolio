@@ -1,0 +1,165 @@
+# 连续型随机变量
+
+## CDF 累积分布函数
+
+对所有随机变量统一定义：
+
+$$
+F_X(x)=P(X\le x).
+$$
+
+## PDF 概率密度函数
+
+对于连续随机变量，
+
+$$
+F_X(x)=\int_{-\infty}^{x}f_X(t)\,dt.
+$$
+
+若可微，并且
+
+$$
+P(a<X\le b)=\int_a^b f_X(x)\,dx,
+$$
+
+称 $f_X(x)$ 为 PDF。
+
+
+## 连续型期望
+
+$$
+E[g(X)]=\int_{-\infty}^{\infty}g(x)f_X(x)\,dx.
+$$
+
+尾概率公式：若 $X\ge 0$，则
+
+$$
+E[X]=\int_0^{\infty}P(X>t)\,dt.
+$$
+
+方差 $\operatorname{Var}(X)$ 依旧等于
+
+$$
+E\!\left[(X-E[X])^2\right].
+$$
+
+## 典型的连续分布
+
+### 均匀分布
+
+$$
+X\sim U(a,b).
+$$
+
+$$
+f(x)=
+\begin{cases}
+\dfrac{1}{b-a}, & a\le x\le b,\\
+0, & \text{otherwise}.
+\end{cases}
+$$
+
+$$
+F(x)=
+\begin{cases}
+0, & x\le a,\\
+\dfrac{x-a}{b-a}, & a<x<b,\\
+1, & x\ge b.
+\end{cases}
+$$
+
+$$
+E[X]=\frac{a+b}{2},
+\qquad
+\operatorname{Var}(X)=\frac{(b-a)^2}{12}.
+$$
+
+### 指数分布
+
+$$
+X\sim e(\lambda).
+$$
+
+$$
+f(x)=
+\begin{cases}
+\lambda e^{-\lambda x}, & x>0,\\
+0, & x\le 0.
+\end{cases}
+$$
+
+$$
+F(x)=1-e^{-\lambda x}.
+$$
+
+$$
+E[X]=\frac1\lambda,
+\qquad
+\operatorname{Var}(X)=\frac1{\lambda^2}.
+$$
+
+具有无记忆性：
+
+$$
+P(X>x)=e^{-\lambda x},
+$$
+
+$$
+P(X>s+t\mid X>t)=P(X>s).
+$$
+
+Geometric $\longleftrightarrow$ 离散等待时间
+
+Exponential $\longleftrightarrow$ 连续等待时间
+
+### 正态分布
+
+$$
+X\sim N(\mu,\sigma^2).
+$$
+
+$$
+f(x)=\frac{1}{\sqrt{2\pi}\sigma}
+\exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right).
+$$
+
+$$
+E[X]=\mu,
+\qquad
+\operatorname{Var}(X)=\sigma^2.
+$$
+
+标准化：
+
+$$
+Z=\frac{X-\mu}{\sigma}\sim N(0,1).
+$$
+
+$\Phi(x)$ 为标准正态分布函数，
+
+$$
+P(a\le X\le b)
+=\Phi\!\left(\frac{b-\mu}{\sigma}\right)
+-\Phi\!\left(\frac{a-\mu}{\sigma}\right).
+$$
+
+## 随机变量函数
+
+设
+
+$$
+Y=g(X).
+$$
+
+求 $Y$ 的 CDF 和 PDF，一般思路都是化归到 $X$ 上去求。
+
+若 $g$ 单调，$x=h(y)=g^{-1}(y)$，则
+
+$$
+f_Y(y)=f_X(h(y))\lvert h'(y)\rvert.
+$$
+
+> **章节思路**
+>
+> CDF $\to$ PDF $\to$ 典型连续分布 $\to$ 随机变量函数
+

@@ -1,0 +1,16 @@
+# Quarto build artifacts
+_book/
+.quarto/
+
+# Temporary / local working directories
+_draft/
+
+# Downloaded Windows metadata
+*:Zone.Identifier
+
+# Archives and temporary packages
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,782 @@
+# 多维随机向量的数学特征
+
+## Covariance：协方差
+
+$$
+\operatorname{Cov}(X,Y)
+=E[(X-E[X])(Y-E[Y])]
+=E[XY]-E[X]E[Y].
+$$
+
+推出
+
+$$
+\operatorname{Var}(X+Y)
+=\operatorname{Var}(X)+\operatorname{Var}(Y)
++2\operatorname{Cov}(X,Y).
+$$
+
+$$
+X\perp Y\quad\Rightarrow\quad \operatorname{Cov}(X,Y)=0.
+$$
+
+### 协方差矩阵
+
+对随机向量
+
+$$
+X=(X_1,\ldots,X_d)^T,
+\qquad
+\mu=E[X],
+$$
+
+定义协方差矩阵
+
+$$
+\Sigma
+=\operatorname{Cov}(X)
+=E\!\left[(X-\mu)(X-\mu)^T\right].
+$$
+
+其中第 $(i,j)$ 个元素为
+
+$$
+\Sigma_{ij}=\operatorname{Cov}(X_i,X_j).
+$$
+
+$\Sigma$ 一定是对称半正定矩阵。对任意 $a\in\mathbb R^d$，
+
+$$
+a^T\Sigma a
+=\operatorname{Var}(a^TX)\ge0.
+$$
+
+这条等式给出协方差矩阵最重要的解释：它同时记录了随机向量沿所有方向 $a$ 的波动大小。
+
+若 $Y=AX+b$，则
+
+$$
+E[Y]=A\mu+b,
+\qquad
+\operatorname{Cov}(Y)=A\Sigma A^T.
+$$
+
+::: {.callout-warning title="不相关不等于独立"}
+$\operatorname{Cov}(X,Y)=0$ 一般只能说明没有线性相关性，不能推出独立。联合正态变量是重要例外：若 $(X,Y)$ 联合正态且协方差为 $0$，则 $X$ 与 $Y$ 独立。
+:::
+
+## Correlation：相关系数
+
+$$
+\rho_{XY}=\frac{\operatorname{Cov}(X,Y)}{\sigma_X\sigma_Y}.
+$$
+
+一种比较有趣的理解概率论内在几何结构的角度是内积。
+
+倘若将中心化后的随机变量看作概率空间中的向量，不难验证协方差运算其实构成一种内积结构，而标准差其实对应了这种内积结构中的“范数”，相关系数则对应了这种概率空间中向量之间夹角的余弦值。
+
+## 三个基础不等式
+
+下面三个不等式反复出现在方差分析、条件期望、集中不等式和统计学习中。
+
+### Jensen 不等式
+
+若 $\varphi$ 是凸函数，并且相关期望存在，则
+
+$$
+\varphi(E[X])\le E[\varphi(X)].
+$$
+
+直觉是：先取平均再代入凸函数，不会大于先经过凸函数再平均。若 $\varphi$ 可微，凸性给出支撑线不等式
+
+$$
+\varphi(x)
+\ge \varphi(m)+\varphi'(m)(x-m).
+$$
+
+取 $m=E[X]$ 并对两边取期望，线性项消失，就得到 Jensen 不等式。
+
+条件版本同样重要：
+
+$$
+\varphi(E[X\mid Y])
+\le E[\varphi(X)\mid Y].
+$$
+
+例如取 $\varphi(x)=x^2$，得到
+
+$$
+(E[X\mid Y])^2\le E[X^2\mid Y].
+$$
+
+### Cauchy–Schwarz 不等式
+
+若 $E[X^2],E[Y^2]<\infty$，则
+
+$$
+|E[XY]|
+\le\sqrt{E[X^2]E[Y^2]}.
+$$
+
+证明只需利用任意 $t\in\mathbb R$ 下
+
+$$
+E[(X-tY)^2]\ge0.
+$$
+
+把它看成关于 $t$ 的二次函数，其判别式不能为正，便得到上述结论。
+
+Cauchy–Schwarz 直接推出
+
+$$
+|\rho_{XY}|\le1.
+$$
+
+### Hölder 不等式
+
+若 $p,q>1$ 且
+
+$$
+\frac1p+\frac1q=1,
+$$
+
+则
+
+$$
+E[|XY|]
+\le
+\left(E[|X|^p]\right)^{1/p}
+\left(E[|Y|^q]\right)^{1/q}.
+$$
+
+它来自 Young 不等式
+
+$$
+uv\le\frac{u^p}{p}+\frac{v^q}{q}.
+$$
+
+把 $X,Y$ 分别除以自己的 $L^p,L^q$ 范数后应用 Young 不等式，再取期望即可。$p=q=2$ 时，Hölder 就退化为 Cauchy–Schwarz。
+
+## Conditional Expectation：条件期望
+
+一般的随机向量函数的期望：
+
+若离散型随机向量 $(X,Y)$ 的分布列为
+
+$$
+p_{ij}=P(X=x_i,Y=y_j),
+$$
+
+则随机向量函数 $g(X,Y)$ 的期望为
+
+$$
+E[g(X,Y)]=\sum_{i,j}g(x_i,y_j)p_{ij}.
+$$
+
+若连续型随机向量 $(X,Y)$ 的密度函数为 $f(x,y)$，则随机向量函数 $g(X,Y)$ 的期望为
+
+$$
+E[g(X,Y)]
+=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+g(x,y)f(x,y)\,dx\,dy.
+$$
+
+类似地有，对于离散型随机变量 $(X,Y)$，有随机变量函数 $g(X)$ 的条件期望
+
+$$
+E[g(X)\mid Y=y]
+=\sum_i g(x_i)P(X=x_i\mid Y=y).
+$$
+
+对连续型随机变量 $(X,Y)$，有随机变量函数 $g(X)$ 的条件期望是
+
+$$
+E[g(X)\mid Y=y]
+=\int_{-\infty}^{\infty}g(x)f_{X\mid Y}(x\mid y)\,dx.
+$$
+
+由上述产生三个有用的定理。
+
+### 条件期望首先是随机变量
+
+$E[X\mid Y]$ 不是把 $Y$ 固定为某个值后的一个常数，而是 $Y$ 的函数：
+
+$$
+E[X\mid Y]=g(Y).
+$$
+
+当观察到 $Y=y$ 后，它才取值为 $g(y)=E[X\mid Y=y]$。更一般地，$E[X\mid\mathcal G]$ 表示只使用信息集合 $\mathcal G$ 时对 $X$ 的最佳预测。
+
+常用性质包括：
+
+$$
+E[aX+bZ\mid Y]
+=aE[X\mid Y]+bE[Z\mid Y],
+$$
+
+若 $h(Y)$ 是由 $Y$ 决定的，则
+
+$$
+E[h(Y)X\mid Y]
+=h(Y)E[X\mid Y],
+$$
+
+以及塔式性质
+
+$$
+E[E[X\mid Y]]=E[X].
+$$
+
+若信息逐层增加，则更一般地有
+
+$$
+E[E[X\mid Y,Z]\mid Y]=E[X\mid Y].
+$$
+
+若 $X\perp Y$，则观察 $Y$ 不会改变对 $X$ 的预测：
+
+$$
+E[X\mid Y]=E[X].
+$$
+
+### 计算期望的另一种方法
+
+$$
+E[X]=E_Y[E[X\mid Y]].
+$$
+
+离散型：
+
+$$
+E[X]=\sum_{y_j}E[X\mid Y=y_j]P(Y=y_j).
+$$
+
+连续型：
+
+$$
+E[X]=\int_{-\infty}^{\infty}E[X\mid Y=y]f_Y(y)\,dy.
+$$
+
+### 全期望公式
+
+若 $A_1,A_2,\ldots,A_n$ 是样本空间 $\Omega$ 的一个分割，即
+
+$$
+A_i\cap A_j=\varnothing,
+\qquad
+\Omega=\bigcup_{i=1}^{n}A_i,
+$$
+
+则有
+
+$$
+E[X]
+=E[X\mid A_1]P(A_1)
++E[X\mid A_2]P(A_2)
++\cdots
++E[X\mid A_n]P(A_n).
+$$
+
+### 条件期望：信息子空间上的正交投影
+
+对平方可积随机变量，可以定义 $L^2$ 内积与范数
+
+$$
+\langle U,V\rangle=E[UV],
+\qquad
+\|U\|_2^2=E[U^2].
+$$
+
+于是随机变量可以看成 $L^2$ 空间中的向量。所有仅依赖于 $X$ 的平方可积随机变量构成一个子空间
+
+$$
+\mathcal H_X
+=
+\{g(X):E[g(X)^2]<\infty\}.
+$$
+
+它表示“只使用 $X$ 所包含的信息能够构造出的全部预测量”。
+
+令
+
+$$
+m(X)=E[Y\mid X].
+$$
+
+条件期望的几何意义是：
+
+$$
+m(X)=\operatorname{Proj}_{\mathcal H_X}Y,
+$$
+
+即 $E[Y\mid X]$ 是 $Y$ 在信息子空间 $\mathcal H_X$ 上的正交投影。对应的残差
+
+$$
+Y-E[Y\mid X]
+$$
+
+与子空间中的任意方向 $h(X)$ 都正交：
+
+$$
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)h(X)
+\right]=0.
+$$
+
+事实上，由塔式性质，
+
+$$
+\begin{aligned}
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)h(X)
+\right]
+&=
+E\!\left[
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)h(X)
+\mid X
+\right]
+\right]\\
+&=
+E\!\left[
+h(X)E\!\left[
+Y-E[Y\mid X]\mid X
+\right]
+\right]\\
+&=0.
+\end{aligned}
+$$
+
+因此对任意平方可积函数 $g(X)$，都有正交分解
+
+$$
+Y-g(X)
+=
+\bigl(Y-m(X)\bigr)
++
+\bigl(m(X)-g(X)\bigr).
+$$
+
+其中第一项与第二项正交，所以由勾股定理，
+
+$$
+E[(Y-g(X))^2]
+=
+E[(Y-m(X))^2]
++
+E[(m(X)-g(X))^2].
+$$
+
+第二项恒非负，因此
+
+$$
+E[Y\mid X]
+=
+\underset{g(X)}{\operatorname{arg\,min}}
+\;E[(Y-g(X))^2].
+$$
+
+这说明条件期望是只利用 $X$ 的全部信息时，对 $Y$ 的最佳均方预测。
+
+::: {.callout-warning title="不是最佳线性预测"}
+这里优化的是所有平方可积函数 $g(X)$，而不只是 $aX+b$。只有把预测器限制为线性形式时，问题才变成线性回归。例如若
+
+$$
+Y=X^2+\varepsilon,
+\qquad
+E[\varepsilon\mid X]=0,
+$$
+
+则
+
+$$
+E[Y\mid X]=X^2,
+$$
+
+它通常不是 $X$ 的线性函数。
+:::
+
+### 全方差公式：概率空间中的勾股定理
+
+首先定义给定 $X$ 后，$Y$ 的条件方差：
+
+$$
+\operatorname{Var}(Y\mid X)
+=
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)^2
+\mid X
+\right].
+$$
+
+它本身是 $X$ 的函数，表示已经知道 $X$ 以后，$Y$ 仍然保留多少不确定性。再对 $X$ 取平均，有
+
+$$
+E[\operatorname{Var}(Y\mid X)]
+=
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)^2
+\right].
+$$
+
+为了分解总体波动，在 $Y-E[Y]$ 中加上并减去 $E[Y\mid X]$：
+
+$$
+Y-E[Y]
+=
+\underbrace{Y-E[Y\mid X]}_{\text{无法由 }X\text{ 解释的残差}}
++
+\underbrace{E[Y\mid X]-E[Y]}_{\text{由 }X\text{ 解释的变化}}.
+$$
+
+第一项与第二项正交。因为 $E[Y\mid X]-E[Y]$ 是 $X$ 的函数，所以
+
+$$
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)
+\bigl(E[Y\mid X]-E[Y]\bigr)
+\right]
+=0.
+$$
+
+因此平方后取期望，交叉项消失：
+
+$$
+\begin{aligned}
+\operatorname{Var}(Y)
+&=
+E\!\left[
+\bigl(Y-E[Y]\bigr)^2
+\right]\\
+&=
+E\!\left[
+\bigl(Y-E[Y\mid X]\bigr)^2
+\right]
++
+E\!\left[
+\bigl(E[Y\mid X]-E[Y]\bigr)^2
+\right]\\
+&=
+E[\operatorname{Var}(Y\mid X)]
++
+\operatorname{Var}(E[Y\mid X]).
+\end{aligned}
+$$
+
+从几何上看，这是 $L^2$ 空间中的勾股定理：
+
+$$
+\|Y-E[Y]\|_2^2
+=
+\|Y-E[Y\mid X]\|_2^2
++
+\|E[Y\mid X]-E[Y]\|_2^2.
+$$
+
+::: {.callout-note title="Noise–Signal 分解"}
+全方差公式把总体波动分成两部分：
+
+- $E[\operatorname{Var}(Y\mid X)]$：知道 $X$ 后仍无法解释的平均残差波动；
+- $\operatorname{Var}(E[Y\mid X])$：条件均值随 $X$ 变化而产生的可解释波动。
+
+因此可以记成
+
+$$
+\text{总波动}
+=
+\text{平均组内波动}
++
+\text{组间波动}.
+$$
+
+若 $X$ 几乎不能解释 $Y$，则第二项较小；若 $X$ 含有很强的预测信息，则第二项通常较大。
+:::
+
+## 多维正态分布
+
+$$
+X\sim N(\mu,\Sigma).
+$$
+
+$$
+f(x)
+=\frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}
+\exp\!\left[-\frac12(x-\mu)^T\Sigma^{-1}(x-\mu)\right].
+$$
+
+其中
+
+$$
+E[X]=\mu,
+\qquad
+\operatorname{Cov}(X)=\Sigma.
+$$
+
+### Mahalanobis 几何与白化
+
+多元正态密度不是由普通欧氏距离 $\|x-\mu\|_2$ 决定，而是由 Mahalanobis 距离
+
+$$
+d_\Sigma(x,\mu)^2
+=
+(x-\mu)^T\Sigma^{-1}(x-\mu)
+$$
+
+决定。它会根据不同方向上的方差，对偏离程度进行不同尺度的衡量。
+
+若 $\Sigma$ 正定并作特征值分解
+
+$$
+\Sigma
+=
+U\Lambda U^T,
+\qquad
+\Lambda
+=
+\operatorname{diag}(\lambda_1,\ldots,\lambda_d),
+$$
+
+其中 $u_j$ 是第 $j$ 个特征向量，则
+
+$$
+\begin{aligned}
+(x-\mu)^T\Sigma^{-1}(x-\mu)
+&=
+(x-\mu)^T
+U\Lambda^{-1}U^T
+(x-\mu)\\
+&=
+\sum_{j=1}^d
+\frac{\bigl(u_j^T(x-\mu)\bigr)^2}{\lambda_j}.
+\end{aligned}
+$$
+
+因此，多元正态的等密度面
+
+$$
+(x-\mu)^T\Sigma^{-1}(x-\mu)=c
+$$
+
+是以 $\mu$ 为中心的椭球：
+
+- 特征向量 $u_j$ 给出椭球的主轴方向；
+- 第 $j$ 个方向的轴长与 $\sqrt{\lambda_j}$ 成正比；
+- $\lambda_j$ 越大，分布在该方向越分散，同样大小的偏离受到的惩罚越小。
+
+定义白化变换
+
+$$
+Z
+=
+\Lambda^{-1/2}U^T(X-\mu),
+$$
+
+则
+
+$$
+Z\sim N(0,I),
+$$
+
+并且
+
+$$
+d_\Sigma(X,\mu)^2
+=
+\|Z\|_2^2.
+$$
+
+白化的作用是先旋转到协方差矩阵的特征方向，再按照各方向的标准差进行缩放，从而把原来的椭球几何变成标准球面几何。
+
+::: {.callout-note title="这个几何视角为什么重要"}
+Mahalanobis 距离、PCA、Gaussian anomaly detection 和许多高斯模型都依赖同一个思想：不同方向上的波动尺度不同，不能直接用未经归一化的欧氏距离衡量异常程度。
+:::
+
+仿射变换：
+
+$$
+AX+b\sim N(A\mu+b,A\Sigma A^T).
+$$
+
+### 边缘分布与独立性
+
+把随机向量分块：
+
+$$
+X=
+\begin{pmatrix}
+X_1\\
+X_2
+\end{pmatrix},
+\qquad
+\mu=
+\begin{pmatrix}
+\mu_1\\
+\mu_2
+\end{pmatrix},
+\qquad
+\Sigma=
+\begin{pmatrix}
+\Sigma_{11} & \Sigma_{12}\\
+\Sigma_{21} & \Sigma_{22}
+\end{pmatrix}.
+$$
+
+则两个分块的边缘分布仍然是正态分布：
+
+$$
+X_1\sim N(\mu_1,\Sigma_{11}),
+\qquad
+X_2\sim N(\mu_2,\Sigma_{22}).
+$$
+
+若 $\Sigma_{12}=0$，则联合正态性进一步保证 $X_1\perp X_2$。
+
+### 多元正态的条件分布
+
+若 $\Sigma_{22}$ 可逆，则
+
+$$
+X_1\mid X_2=x_2
+\sim
+N(\mu_{1\mid2},\Sigma_{1\mid2}),
+$$
+
+其中
+
+$$
+\mu_{1\mid2}
+=\mu_1
++\Sigma_{12}\Sigma_{22}^{-1}(x_2-\mu_2),
+$$
+
+$$
+\Sigma_{1\mid2}
+=\Sigma_{11}
+-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}.
+$$
+
+条件均值是在原均值 $\mu_1$ 上，根据 $X_2$ 的观测偏差作线性修正；条件协方差则从原不确定性中减去由 $X_2$ 所解释的部分。
+
+其中
+
+$$
+\Sigma_{1\mid2}
+=
+\Sigma_{11}
+-
+\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}
+$$
+
+称为 $\Sigma_{22}$ 在联合协方差矩阵中的 Schur complement。它描述观察 $X_2$ 后，$X_1$ 仍然保留的不确定性。
+
+值得注意的是，在联合高斯模型中，条件均值依赖具体观测值 $x_2$，但条件协方差只由原来的协方差结构决定，不依赖 $x_2$。
+
+### 线性高斯观测的统一更新
+
+设隐藏变量满足
+
+$$
+X\sim N(\mu,\Sigma),
+$$
+
+并通过带高斯噪声的线性模型观察到
+
+$$
+Y=AX+b+\varepsilon,
+\qquad
+\varepsilon\sim N(0,R),
+$$
+
+其中 $\varepsilon$ 与 $X$ 独立。
+
+由高斯分布在仿射变换下的封闭性，
+
+$$
+\begin{pmatrix}
+X\\
+Y
+\end{pmatrix}
+\sim
+N\!\left(
+\begin{pmatrix}
+\mu\\
+A\mu+b
+\end{pmatrix},
+\begin{pmatrix}
+\Sigma & \Sigma A^T\\
+A\Sigma & A\Sigma A^T+R
+\end{pmatrix}
+\right).
+$$
+
+将这个联合分布代入分块高斯条件公式，可得
+
+$$
+X\mid Y=y
+\sim
+N(\mu_{\mathrm{post}},\Sigma_{\mathrm{post}}),
+$$
+
+其中
+
+$$
+\mu_{\mathrm{post}}
+=
+\mu
++
+\Sigma A^T
+(A\Sigma A^T+R)^{-1}
+(y-A\mu-b),
+$$
+
+以及
+
+$$
+\Sigma_{\mathrm{post}}
+=
+\Sigma
+-
+\Sigma A^T
+(A\Sigma A^T+R)^{-1}
+A\Sigma.
+$$
+
+条件均值可以理解为
+
+$$
+\text{原有预测}
++
+\text{修正系数}
+\times
+\text{观测残差}.
+$$
+
+这里的观测残差
+
+$$
+y-(A\mu+b)
+$$
+
+表示实际观测与模型原先预测之间的差异；矩阵
+
+$$
+\Sigma A^T(A\Sigma A^T+R)^{-1}
+$$
+
+决定应该相信这次观测到什么程度。
+
+::: {.callout-important title="一个反复出现的高斯更新模板"}
+Bayesian linear regression、Kalman filter、高斯过程回归和线性高斯概率图模型，虽然具体符号不同，本质上都在使用
+
+$$
+\text{联合高斯}
+\longrightarrow
+\text{条件高斯}
+\longrightarrow
+\text{均值修正与协方差收缩}.
+$$
+:::
+
+::: {.callout-note title="本章抓住什么"}
+本章的主线不是孤立公式，而是：协方差矩阵描述各方向波动，条件期望是平方损失下的投影，多元正态则让这种投影和条件更新得到闭式表达。
+:::

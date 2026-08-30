@@ -1,0 +1,79 @@
+# 概统课程知识脉络 {.unnumbered}
+
+## 知识树
+
+概率论与数理统计
+
+## 概率论
+
+### I. 概率：如何描述不确定性
+
+#### Ch1 随机事件与概率
+
+样本空间 $\to$ 事件 $\to$ $\sigma$-代数 $\to$ 概率公理
+
+#### Ch2 条件概率与独立性
+
+条件概率 $\to$ 乘法公式 $\to$ 全概率 $\to$ Bayes $\to$ 独立性
+
+### II. 随机变量：如何把随机现象数值化
+
+#### Ch3 离散型随机变量
+
+PMF $\to$ $E/\operatorname{Var}$ $\to$ Bernoulli / Binomial / Poisson / Geometric
+
+#### Ch4 连续型随机变量
+
+CDF $\to$ PDF $\to$ $E/\operatorname{Var}$ $\to$ Uniform / Exponential / Normal $\to$ 随机变量函数
+
+#### Ch5 多维随机向量
+
+Joint $\to$ Marginal $\to$ Conditional $\to$ Independence $\to$ 变量变换
+
+#### Ch6 多维随机向量的数学特征
+
+Covariance $\to$ Correlation $\to$ Conditional Expectation $\to$ Multivariate Gaussian
+
+### III. 概率的“大样本规律”
+
+#### Ch7 集中不等式与集中定理
+
+Markov / Chebyshev $\to$ Chernoff / 有界变量指数界 $\to$ 大数定律 $\to$ 中心极限定理
+
+## 数理统计：从样本反推未知总体
+
+### Ch8 数理统计基本概念
+
+Population / Sample / Statistic
+
+$\downarrow$
+
+Beta / Gamma / Dirichlet
+
+$\downarrow$
+
+$\chi^2$ / $t$ / $F$
+
+$\downarrow$
+
+Normal Sampling Theorems
+
+### Ch9 参数估计
+
+Point Estimation
+
+- Method of Moments
+- Maximum Likelihood
+
+$\downarrow$
+
+Estimator Evaluation
+
+- Unbiasedness
+- Efficiency
+- Consistency
+
+$\downarrow$
+
+Interval Estimation
+
