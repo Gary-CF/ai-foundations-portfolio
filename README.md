@@ -1,32 +1,40 @@
-# 2026 Summer AI Foundations
+# AI Foundations Portfolio
 
-This repository records my learning outputs during Summer 2026.
+A structured collection of my notes and derivations on the mathematical and theoretical foundations of modern AI.
 
-The goal is to build a structured foundation for AI research,
-covering mathematical foundations, machine learning theory,
-and modern AI systems.
+This repository documents my ongoing study of the foundations underlying modern machine learning and sequential decision-making, from probability and optimization to statistical learning, deep learning, and reinforcement learning.
 
-## Topics
+## Contents
 
-- Probability and Statistics
-- Convex Optimization
-- Statistical Learning
-- Online Learning and Bandits
-- Reinforcement Learning
-- Transformer and Foundation Models
+### I. Mathematical Foundations
 
-## Current Status
+- **Probability & Mathematical Statistics**
+  Probability, random variables, distributions, estimation, concentration, and statistical foundations.
 
-This repository is under active development.
+- **Convex Optimization**
+  Convex sets and functions, duality, KKT conditions, and optimization tools commonly used in machine learning.
 
-Future contents will include:
+- **Matrix & Vector Calculus**
+  Differential tools for matrix-valued and vector-valued functions, with an emphasis on machine learning applications.
 
-- Structured theoretical notes
-- Important mathematical derivations
-- Paper reading notes
-- Research reflections
+### II. Learning Foundations
 
-## Related Projects
+- **Statistical Learning**
+  ERM, generalization, classical statistical learning methods, kernel methods, boosting, and related theory.
 
-- mini-cs336-transformer
-- minimal-bandit-platform
+- **Deep Learning**
+  Core principles and theoretical tools behind neural networks, optimization, representation learning, and modern architectures.
+
+- **Reinforcement Learning**
+  Sequential decision-making, value functions, policy optimization, exploration, and connections to bandits and online learning.
+
+## Philosophy
+
+The goal of this repository is not to reproduce textbooks or lecture notes chapter by chapter. Instead, I aim to build a compact and reusable foundation centered on:
+
+- core concepts and mathematical structure;
+- important derivations and proofs;
+- reusable tools and intuitions;
+- connections between different areas of AI.
+
+The repository will continue to evolve as my understanding develops.
