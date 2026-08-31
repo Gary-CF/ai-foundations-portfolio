@@ -151,7 +151,7 @@ y^\top z-f(z)
 y^\top x-f(x),
 $$
 
-所以共轭定义中的上确界在 $z=x$ 处取得。不可微情形需要用次梯度描述等号条件，留到进阶算法附录。
+所以共轭定义中的上确界在 $z=x$ 处取得。不可微情形的等号条件是 $y\in\partial f(x)$；次微分与共轭之间的完整等价关系见 @sec-advanced-algorithms。
 
 ## Lagrangian
 
@@ -592,6 +592,8 @@ $$ {#eq-lagrangian-saddle}
 ::: {.callout-note title="使用顺序"}
 实际分析时通常先写 Lagrangian 和对偶函数，再检查 Slater 条件，最后使用 KKT 求候选解并验证。不要先机械罗列 KKT，再倒推问题是否满足凸性和约束资格条件。
 :::
+
+当标量不等式被二阶锥或半正定序等广义不等式替代时，乘子应属于对偶锥，互补松弛也改写为锥内积为零。该推广见 @sec-conic-optimization。
 
 ## 典型误区
 

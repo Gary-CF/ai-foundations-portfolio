@@ -11,9 +11,12 @@
 - 十二份课件支撑的 P0 主线补全；
 - 第 3 章样章校准及全书语言、推导和几何解释标准统一；
 - 凸集、凸函数、问题变换、对偶与 KKT、一阶算法和机器学习应用整理；
+- 次微分、近端梯度、FISTA、坐标下降、Newton/BFGS、增广 Lagrangian 与 ADMM 的 P1 补全；
+- 正常锥、对偶锥、广义 KKT 以及 LP/SOCP/SDP 统一锥形式的 P1 补全；
+- SGD、随机镜像下降、OGD、OMD、FTRL、Regret 与 online-to-batch 的 P2 专题补全；
 - 数学预备工具、材料映射、纠错记录和 P0/P1/P2 边界登记。
 
-Newton、近端、增广 Lagrangian、ADMM、锥规划等 P1 内容尚未系统扩写。
+向量优化、几何规划和内点法仍作为 P2 待添加专题；动态遗憾、AdaGrad、optimism 与 Bandit feedback 在当前版本只保留研究接口。
 
 ## 项目结构
 

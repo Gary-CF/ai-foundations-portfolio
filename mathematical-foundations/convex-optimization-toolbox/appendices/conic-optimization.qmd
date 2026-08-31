@@ -1,11 +1,602 @@
-# 广义不等式与锥规划 {.appendix}
+# 广义不等式与锥规划 {#sec-conic-optimization .appendix}
 
-本附录计划整理：
+标量不等式 $x_i\ge0$、二阶锥约束 $\lVert u\rVert_2\le t$ 和矩阵不等式 $X\succeq0$ 表面上属于不同模型，实际上都可以写成“某个向量属于一个凸锥”。锥语言把线性规划、二阶锥规划和半定规划放进同一套可行性、对偶与 KKT 框架。
 
-- 正常锥、对偶锥与广义不等式；
-- 线性规划、二阶锥规划与半定规划的统一视角；
-- 广义不等式约束下的对偶与 KKT 条件；
-- 向量优化和多目标优化的必要概念。
+本附录只展开课程主线需要的锥结构。向量优化、几何规划和内点法属于 P2，不在这里延伸。
 
-该部分主要来自 Lecture 3、5、7、9，属于 P1 内容。
+## 正常锥与广义不等式
 
+设 $K\subseteq\mathbb R^n$ 为凸锥。若 $K$ 同时满足：
+
+1. **闭性**：$K$ 包含其所有极限点；
+2. **实心性**：$\operatorname{int}K\ne\varnothing$；
+3. **尖性**：$K\cap(-K)=\{0\}$，即 $K$ 不包含直线；
+
+则称 $K$ 为正常锥。凸性与闭性保证良好的几何和极限性质；实心性使严格不等式有意义；尖性则保证反对称性。
+
+由正常锥 $K$ 定义广义不等式
+
+$$
+x\preceq_K y
+\quad\Longleftrightarrow\quad
+y-x\in K,
+$$ {#eq-generalized-inequality}
+
+以及严格广义不等式
+
+$$
+x\prec_K y
+\quad\Longleftrightarrow\quad
+y-x\in\operatorname{int}K.
+$$
+
+$\preceq_K$ 是偏序而不一定是全序。两个向量可能无法比较；这在半正定序中很常见。
+
+### 三个基本例子
+
+对非负正交锥 $K=\mathbb R_+^n$，
+
+$$
+x\preceq_K y
+\quad\Longleftrightarrow\quad
+x_i\le y_i,
+\quad i=1,\ldots,n.
+$$
+
+对二阶锥
+
+$$
+\mathcal Q^{n+1}
+=
+\{(u,t)\in\mathbb R^n\times\mathbb R
+\mid \lVert u\rVert_2\le t\},
+$$ {#eq-second-order-cone}
+
+锥成员关系同时编码一个范数上界和右端非负性。
+
+对半正定锥 $K=\mathbb S_+^n$，
+
+$$
+X\preceq_K Y
+\quad\Longleftrightarrow\quad
+Y-X\succeq0.
+$$
+
+这里的矩阵不等式按特征值或二次型判断，不是逐元素比较。
+
+## 对偶锥
+
+锥 $K$ 的对偶锥定义为
+
+$$
+K^\star
+=
+\{y\mid \langle y,x\rangle\ge0,\ \forall x\in K\}.
+$$ {#eq-dual-cone}
+
+对偶锥收集所有在 $K$ 上非负的线性函数。几何上，$y\in K^\star$ 当且仅当法向量为 $y$ 的超平面在原点支撑 $K$，并把 $K$ 保留在非负一侧。
+
+无论 $K$ 是否凸，$K^\star$ 都是闭凸锥，因为它是半空间
+
+$$
+\{y\mid y^\top x\ge0\}
+$$
+
+对所有 $x\in K$ 的交。
+
+常用性质为
+
+$$
+K_1\subseteq K_2
+\quad\Longrightarrow\quad
+K_2^\star\subseteq K_1^\star,
+$$
+
+以及
+
+$$
+K^{\star\star}
+=
+\operatorname{cl}(\operatorname{cone}K).
+$$
+
+特别地，若 $K$ 已是闭凸锥，则
+
+$$
+K^{\star\star}=K.
+$$
+
+正常锥的对偶锥仍为正常锥。
+
+### 自对偶锥
+
+若 $K^\star=K$，则称 $K$ 自对偶。非负正交锥满足
+
+$$
+(\mathbb R_+^n)^\star=\mathbb R_+^n.
+$$
+
+二阶锥也自对偶：若 $(v,s)\in\mathcal Q^{n+1}$，则对任意 $(u,t)\in\mathcal Q^{n+1}$，
+
+$$
+v^\top u+st
+\ge
+-\lVert v\rVert_2\lVert u\rVert_2+st
+\ge0.
+$$
+
+反向包含可通过选择与 $v$ 反向的边界向量得到。
+
+在矩阵空间 $\mathbb S^n$ 中使用 Frobenius 内积
+
+$$
+\langle X,Y\rangle
+=
+\operatorname{tr}(XY).
+$$
+
+半正定锥满足
+
+$$
+(\mathbb S_+^n)^\star=\mathbb S_+^n.
+$$
+
+若 $X,Y\succeq0$，则
+
+$$
+\operatorname{tr}(XY)
+=
+\operatorname{tr}(X^{1/2}YX^{1/2})
+\ge0.
+$$
+
+反之，若 $Y$ 在方向 $v$ 上有 $v^\top Yv<0$，取 $X=vv^\top\succeq0$ 即违反对偶锥定义。
+
+### 广义不等式的对偶刻画
+
+对闭凸锥 $K$，
+
+$$
+x\preceq_K y
+\quad\Longleftrightarrow\quad
+\lambda^\top x
+\le
+\lambda^\top y,
+\qquad \forall\lambda\in K^\star.
+$$ {#eq-dual-order-characterization}
+
+正向由对偶锥定义立即得到；反向使用 $K^{\star\star}=K$。这说明一个向量广义不等式等价于对所有对偶非负方向同时成立的一族标量不等式。
+
+## 关于锥的凸映射
+
+设 $f:\mathbb R^n\to\mathbb R^m$ 的定义域为凸集，$K\subseteq\mathbb R^m$ 为正常锥。若对任意 $x,y\in\operatorname{dom}f$ 和 $\theta\in[0,1]$，
+
+$$
+f(\theta x+(1-\theta)y)
+\preceq_K
+\theta f(x)+(1-\theta)f(y),
+$$ {#eq-k-convex-mapping}
+
+则称 $f$ 为 $K$-凸映射。
+
+由式 @eq-dual-order-characterization，$f$ 为 $K$-凸当且仅当对每个
+
+$$
+\lambda\in K^\star,
+$$
+
+标量函数
+
+$$
+x\mapsto\lambda^\top f(x)
+$$
+
+都是凸函数。这个标量化结论是把普通凸分析迁移到向量值约束的主要接口。
+
+考虑问题
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & f_0(x)\\
+\operatorname{subject\ to}\quad
+& f_i(x)\preceq_{K_i}0,
+\quad i=1,\ldots,m,\\
+& Ax=b.
+\end{aligned}
+$$ {#eq-generalized-convex-problem}
+
+若 $f_0$ 凸、每个 $f_i$ 为 $K_i$-凸映射且等式约束仿射，则可行域为凸集。证明只需把两个可行点代入式 @eq-k-convex-mapping，并利用 $-K_i$ 的凸性。
+
+## 锥规划标准形式
+
+锥规划把线性规划中的逐分量非负约束替换为一般锥成员关系：
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & c^\top x\\
+\operatorname{subject\ to}\quad
+& Ax=b,\\
+& x\succeq_K0.
+\end{aligned}
+$$ {#eq-conic-primal}
+
+其中 $K$ 为闭凸锥。目标与等式约束保持线性，所有非线性几何都集中在 $x\in K$。
+
+很多模型最初写成仿射锥约束
+
+$$
+Fx+g\in K.
+$$
+
+通过引入变量 $z=Fx+g$，可以转为式 @eq-conic-primal 的标准形式。标准化的目的不是制造更多变量，而是让对偶与算法只需识别锥 $K$。
+
+## 锥规划对偶
+
+对式 @eq-conic-primal，引入等式乘子 $y$，并把 $x\in K$ 保留为取下确界时的定义域。Lagrangian 为
+
+$$
+L(x,y)
+=
+c^\top x+y^\top(b-Ax)
+=
+b^\top y+(c-A^\top y)^\top x.
+$$
+
+记
+
+$$
+s=c-A^\top y.
+$$
+
+若 $s\in K^\star$，则
+
+$$
+\inf_{x\in K}s^\top x=0,
+$$
+
+并在 $x=0$ 处取得。若 $s\notin K^\star$，则存在 $x\in K$ 使 $s^\top x<0$；利用锥的正比例封闭性可令下确界为 $-\infty$。
+
+因此对偶问题为
+
+$$
+\begin{aligned}
+\operatorname{maximize}\quad & b^\top y\\
+\operatorname{subject\ to}\quad
+& c-A^\top y=s,\\
+& s\succeq_{K^\star}0.
+\end{aligned}
+$$ {#eq-conic-dual}
+
+$s$ 称为对偶松弛变量。
+
+对任意原始可行 $x$ 和对偶可行 $(y,s)$，
+
+$$
+\begin{aligned}
+c^\top x-b^\top y
+&=(A^\top y+s)^\top x-b^\top y\\
+&=s^\top x\\
+&\ge0.
+\end{aligned}
+$$ {#eq-conic-duality-gap}
+
+这就是锥规划的弱对偶。对偶间隙恰好是两个互为对偶锥的变量之间的内积。
+
+## 锥 Slater 条件与 KKT
+
+若存在严格原始可行点
+
+$$
+\widetilde x\in\operatorname{int}K,
+\qquad
+A\widetilde x=b,
+$$ {#eq-conic-slater}
+
+则称原问题满足锥形式的 Slater 条件。在原问题最优值有限等常用条件下，它保证强对偶，并保证对偶最优解能够取到。
+
+若 $(x^\star,y^\star,s^\star)$ 为原始—对偶最优点且强对偶成立，则由式 @eq-conic-duality-gap，
+
+$$
+\langle s^\star,x^\star\rangle=0.
+$$ {#eq-conic-complementarity}
+
+锥规划 KKT 条件为：
+
+1. **原始可行性**
+
+   $$
+   Ax^\star=b,
+   \qquad
+   x^\star\in K;
+   $$
+
+2. **对偶可行性**
+
+   $$
+   A^\top y^\star+s^\star=c,
+   \qquad
+   s^\star\in K^\star;
+   $$
+
+3. **锥互补性**
+
+   $$
+   \langle s^\star,x^\star\rangle=0.
+   $$
+
+对锥线性规划，任何满足这三组条件的点都是原始—对偶最优点；Slater 条件主要用于保证最优解能够配上这样的对偶变量。
+
+### 广义不等式约束的 KKT
+
+对式 @eq-generalized-convex-problem，引入
+
+$$
+\lambda_i\in K_i^\star,
+$$
+
+Lagrangian 为
+
+$$
+L(x,\lambda,\nu)
+=
+f_0(x)
++\sum_{i=1}^m
+\langle\lambda_i,f_i(x)\rangle
++\nu^\top(Ax-b).
+$$ {#eq-generalized-lagrangian}
+
+若 $f_i(x)\preceq_{K_i}0$ 且 $\lambda_i\in K_i^\star$，则
+
+$$
+\langle\lambda_i,f_i(x)\rangle\le0,
+$$
+
+所以普通弱对偶推导保持不变。
+
+若所有函数可微，KKT 条件中的互补性与驻点条件分别变为
+
+$$
+\langle\lambda_i^\star,f_i(x^\star)\rangle=0,
+$$
+
+以及
+
+$$
+\nabla f_0(x^\star)
++\sum_{i=1}^m
+Df_i(x^\star)^\top\lambda_i^\star
++A^\top\nu^\star
+=0.
+$$ {#eq-generalized-kkt-stationarity}
+
+这里
+
+$$
+Df_i(x^\star)^\top
+\in
+\mathbb R^{n\times k_i},
+\qquad
+\lambda_i^\star\in\mathbb R^{k_i},
+$$
+
+所以每一项都属于 $\mathbb R^n$。广义 Slater 条件要求存在 $\widetilde x$ 使
+
+$$
+f_i(\widetilde x)\prec_{K_i}0,
+\qquad
+A\widetilde x=b.
+$$
+
+## 线性规划作为锥规划
+
+在线性规划标准形式中取
+
+$$
+K=\mathbb R_+^n.
+$$
+
+原问题为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & c^\top x\\
+\operatorname{subject\ to}\quad
+& Ax=b,\\
+& x\ge0,
+\end{aligned}
+$$
+
+由于 $K^\star=K$，对偶为
+
+$$
+\begin{aligned}
+\operatorname{maximize}\quad & b^\top y\\
+\operatorname{subject\ to}\quad
+& A^\top y+s=c,\\
+& s\ge0.
+\end{aligned}
+$$
+
+消去 $s$ 可写为
+
+$$
+A^\top y\le c.
+$$
+
+逐坐标互补性
+
+$$
+x_i^\star s_i^\star=0
+$$
+
+正是一般锥互补条件 $\langle x^\star,s^\star\rangle=0$ 在非负正交锥中的展开。
+
+## 二阶锥规划
+
+二阶锥规划的典型形式为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & c^\top x\\
+\operatorname{subject\ to}\quad
+& \lVert A_i x+b_i\rVert_2
+\le
+d_i^\top x+e_i,
+\quad i=1,\ldots,m,\\
+& Fx=g.
+\end{aligned}
+$$ {#eq-socp-form}
+
+每个范数约束等价于
+
+$$
+\bigl(A_i x+b_i,\ d_i^\top x+e_i\bigr)
+\in
+\mathcal Q.
+$$
+
+因此它是仿射映射到二阶锥的成员约束。右端非负不需要另写，因为二阶锥成员关系已经蕴含
+
+$$
+d_i^\top x+e_i\ge0.
+$$
+
+SOCP 能表示范数逼近、鲁棒线性约束、最小 Euclidean 范数和许多凸二次约束；其表达能力严格强于 LP，同时保留成熟的锥对偶结构。
+
+### 旋转二阶锥
+
+旋转二阶锥定义为
+
+$$
+\mathcal Q_r^{n+2}
+=
+\left\{
+(u,v,w)
+\;\middle|\;
+2uv\ge\lVert w\rVert_2^2,
+\ u\ge0,
+\ v\ge0
+\right\}.
+$$
+
+若 $P\succeq0$，二次上境约束
+
+$$
+x^\top Px\le t
+$$
+
+可以写为
+
+$$
+\left(t,\frac12,P^{1/2}x\right)
+\in
+\mathcal Q_r.
+$$
+
+旋转二阶锥是把凸二次函数转为锥约束的常用接口。
+
+## 半定规划
+
+半定规划使用半正定锥。一个线性矩阵不等式形式为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & c^\top x\\
+\operatorname{subject\ to}\quad
+& F_0+\sum_{i=1}^n x_iF_i\succeq0,\\
+& Ax=b,
+\end{aligned}
+$$ {#eq-sdp-lmi-form}
+
+其中 $F_i\in\mathbb S^m$。若所有 $F_i$ 都是对角矩阵，矩阵不等式退化为一组线性不等式，因此 LP 是 SDP 的特殊情形。
+
+以矩阵 $X\in\mathbb S^n$ 为变量的标准形式为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \langle C,X\rangle\\
+\operatorname{subject\ to}\quad
+& \langle A_i,X\rangle=b_i,
+\quad i=1,\ldots,p,\\
+& X\succeq0.
+\end{aligned}
+$$ {#eq-sdp-standard}
+
+由半正定锥自对偶，其对偶问题为
+
+$$
+\begin{aligned}
+\operatorname{maximize}\quad
+& b^\top y\\
+\operatorname{subject\ to}\quad
+& C-\sum_{i=1}^p y_iA_i=S,\\
+& S\succeq0.
+\end{aligned}
+$$ {#eq-sdp-dual}
+
+互补性为
+
+$$
+\langle X^\star,S^\star\rangle=0.
+$$
+
+由于 $X^\star,S^\star\succeq0$，这进一步意味着
+
+$$
+X^\star S^\star=0.
+$$
+
+两者的非零特征子空间彼此正交。
+
+### 谱范数的 LMI 表示
+
+对矩阵 $M$，约束
+
+$$
+\lVert M\rVert_2\le t
+$$
+
+等价于
+
+$$
+\begin{bmatrix}
+tI & M\\
+M^\top & tI
+\end{bmatrix}
+\succeq0.
+$$ {#eq-spectral-norm-lmi}
+
+这一等价关系可以由 Schur 补得到。若 $M=M(x)$ 关于变量仿射，则最小化谱范数可以写成 SDP。
+
+## 三类锥规划的统一视角
+
+| 模型 | 基本锥 $K$ | 典型约束 | 对偶锥 |
+|---|---|---|---|
+| LP | $\mathbb R_+^n$ | 分量线性不等式 | 自对偶 |
+| SOCP | $\mathcal Q^n$ 或 $\mathcal Q_r^n$ | Euclidean 范数与凸二次约束 | 自对偶 |
+| SDP | $\mathbb S_+^n$ | 线性矩阵不等式、谱约束 | 自对偶 |
+
+从 LP 到 SOCP 再到 SDP，表达能力逐步增强，但单次求解成本和建模复杂度通常也会上升。应优先使用能准确表达问题的最小锥：线性约束足够时不必升到 SDP，范数结构可由 SOCP 表达时也不必引入矩阵变量。
+
+## 建模检查清单
+
+1. 先判断约束是逐分量不等式、范数上界，还是矩阵半正定约束。
+2. 明确锥所在的向量空间及其内积；矩阵空间使用 $\operatorname{tr}(XY)$。
+3. 统一不等式方向，再确定乘子属于 $K^\star$ 还是 $-K^\star$。
+4. 检查严格可行点是否位于 $\operatorname{int}K$，同时精确满足仿射等式。
+5. 若要使用 KKT，分别写出原始可行、对偶可行与锥互补性，不要只写驻点式。
+6. 若同一模型可用多个锥表示，优先选择维度更小、结构更直接的形式。
+
+## 典型误区
+
+1. **广义不等式可以比较任意两个向量。** 它通常只给出偏序，很多向量不可比。
+2. **$X\succeq0$ 表示矩阵元素都非负。** 它表示所有特征值非负，或 $z^\top Xz\ge0$ 对所有 $z$ 成立。
+3. **原锥中的变量与乘子属于同一个锥。** 一般乘子属于对偶锥；只有自对偶锥时二者形式相同。
+4. **锥互补性要求 $x^\star=0$ 或 $s^\star=0$。** 它只要求内积为零，允许两者分别位于互相正交的边界面。
+5. **Slater 条件允许近似满足等式。** 严格性只用于锥不等式，仿射等式必须精确满足。
+6. **任何凸二次约束都是线性规划。** 它通常需要二阶锥或半定锥表示。
+
+## 本附录小结
+
+正常锥把非负、范数和半正定三类结构统一为广义不等式；对偶锥把向量序转成一族标量线性不等式。锥标准形式的对偶松弛变量自然属于 $K^\star$，其对偶间隙等于 $\langle s,x\rangle$；Slater 条件与锥 KKT 则延续了第 5 章的强对偶和最优性证书。LP、SOCP 与 SDP 的区别主要在所选锥，而不是另起一套对偶理论。

@@ -1,0 +1,1017 @@
+# 随机梯度、镜像下降与在线优化 {#sec-stochastic-online .appendix}
+
+确定性梯度法假设每轮都能获得当前目标的完整梯度。但机器学习中的数据可能只能逐样本到达，环境也可能随时间改变。此时算法面对的不是一次性求解一个固定函数，而是持续利用带噪信息更新决策。
+
+本附录沿着三条递进关系组织：
+
+$$
+\text{随机梯度}
+\longrightarrow
+\text{非 Euclidean 几何}
+\longrightarrow
+\text{在线决策与遗憾}.
+$$
+
+随机梯度解决“完整梯度太贵”的问题；镜像下降解决“Euclidean 几何不合适”的问题；在线优化则把评价标准从固定目标的函数误差改为一段决策序列的累积损失。
+
+本附录复用 @sec-advanced-algorithms 中的次微分和投影工具，但把重点转向随机信息、范数几何与序列决策。
+
+## 四种信息模式
+
+先区分算法实际能够观察什么。
+
+| 模式 | 每轮获得的信息 | 典型目标 |
+|---|---|---|
+| 确定性优化 | 完整函数或完整梯度 | 最小化固定 $F(x)$ |
+| 随机优化 | 无偏或近似无偏的随机梯度 | 最小化期望风险 |
+| 在线凸优化 | 决策后观察本轮损失或梯度 | 控制累积遗憾 |
+| Bandit 优化 | 通常只观察所选动作的标量反馈 | 在部分反馈下控制遗憾 |
+
+这些模式可能使用相似的更新式，但假设和结论不同。特别是，随机梯度的期望收敛结论不能直接替代对任意损失序列的在线遗憾界。
+
+## 随机目标与随机一阶 oracle
+
+随机优化常写为
+
+$$
+\min_{x\in C}
+F(x)
+=
+\mathbb E_{\xi}\bigl[f(x;\xi)\bigr],
+$$ {#eq-stochastic-objective}
+
+其中 $C$ 为非空闭凸集，$\xi$ 表示随机样本。有限数据集上的经验风险
+
+$$
+F(x)=\frac1N\sum_{i=1}^N f_i(x)
+$$
+
+是特殊情形：每轮随机抽取索引 $i_t$，用单样本梯度代替完整平均梯度。
+
+在第 $t$ 轮，随机一阶 oracle 返回 $\widehat g_t$。最常用的条件是条件无偏性：
+
+$$
+\mathbb E_t[\widehat g_t]
+\in
+\partial F(x_t),
+$$ {#eq-stochastic-unbiased}
+
+其中 $\mathbb E_t[\cdot]$ 表示在给定历史
+
+$$
+\mathcal F_{t-1}
+=
+\sigma(x_1,\widehat g_1,\ldots,\widehat g_{t-1},x_t)
+$$
+
+后的条件期望。条件无偏比无条件无偏更强：它要求即使固定算法已经走过的随机轨迹，当前梯度估计仍然指向正确的一阶信息。
+
+常用噪声控制有两种写法：
+
+$$
+\mathbb E_t
+\lVert \widehat g_t\rVert_\star^2
+\le G^2,
+$$ {#eq-stochastic-second-moment}
+
+或在可微情形下，
+
+$$
+\mathbb E_t
+\left\lVert
+\widehat g_t-\nabla F(x_t)
+\right\rVert_\star^2
+\le \sigma^2.
+$$ {#eq-stochastic-variance}
+
+第一式控制随机梯度的二阶矩；第二式只控制噪声方差。两者不能静默互换，因为
+
+$$
+\mathbb E_t\lVert\widehat g_t\rVert_\star^2
+=
+\lVert\nabla F(x_t)\rVert_\star^2
++
+\mathbb E_t
+\lVert\widehat g_t-\nabla F(x_t)\rVert_\star^2
+$$
+
+在 Euclidean 几何下成立。
+
+## 随机梯度下降
+
+投影随机梯度下降更新为
+
+$$
+x_{t+1}
+=
+\Pi_C\bigl(x_t-\eta_t\widehat g_t\bigr).
+$$ {#eq-projected-sgd}
+
+若 $C=\mathbb R^n$，投影消失。与确定性梯度下降相比，随机梯度下降每轮便宜，但更新方向含噪，因此函数值通常不单调下降。
+
+本节使用 Euclidean 投影和 $\ell_2$ 范数，因此式 @eq-stochastic-second-moment 中的对偶范数仍为 $\ell_2$。
+
+### 一般凸情形的主界
+
+假设：
+
+1. $F$ 为凸函数，最优解 $x^\star\in C$ 存在；
+2. $C$ 非空、闭、凸；
+3. 式 @eq-stochastic-unbiased 与 @eq-stochastic-second-moment 成立；
+4. $R=\lVert x_1-x^\star\rVert_2$。
+
+由投影非扩张性，
+
+$$
+\begin{aligned}
+\lVert x_{t+1}-x^\star\rVert_2^2
+&\le
+\lVert x_t-x^\star\rVert_2^2
+-2\eta_t
+\widehat g_t^\top(x_t-x^\star)
++\eta_t^2\lVert\widehat g_t\rVert_2^2.
+\end{aligned}
+$$
+
+对历史取条件期望，再使用凸函数的次梯度不等式，
+
+$$
+\mathbb E_t
+\bigl[
+\widehat g_t^\top(x_t-x^\star)
+\bigr]
+\ge
+F(x_t)-F(x^\star).
+$$
+
+因此
+
+$$
+2\eta_t
+\mathbb E\bigl[F(x_t)-F(x^\star)\bigr]
+\le
+\mathbb E
+\left[
+\lVert x_t-x^\star\rVert_2^2
+-\lVert x_{t+1}-x^\star\rVert_2^2
+\right]
++\eta_t^2G^2.
+$$
+
+定义加权平均点
+
+$$
+\bar x_T
+=
+\frac{
+\sum_{t=1}^T\eta_t x_t
+}{
+\sum_{t=1}^T\eta_t
+}.
+$$
+
+对上式求和并使用 Jensen 不等式，得到
+
+$$
+\mathbb E
+\bigl[
+F(\bar x_T)-F(x^\star)
+\bigr]
+\le
+\frac{
+R^2+G^2\sum_{t=1}^T\eta_t^2
+}{
+2\sum_{t=1}^T\eta_t
+}.
+$$ {#eq-sgd-master-bound}
+
+若已知总轮数并取
+
+$$
+\eta_t=\frac{R}{G\sqrt T},
+$$
+
+则
+
+$$
+\mathbb E
+\bigl[
+F(\bar x_T)-F(x^\star)
+\bigr]
+\le
+\frac{RG}{\sqrt T}.
+$$ {#eq-sgd-convex-rate}
+
+这里的 $O(1/\sqrt T)$ 与确定性光滑梯度法的 $O(1/T)$ 并不矛盾。前者只使用带噪且二阶矩有界的一阶信息；若增加光滑性、方差结构或方差缩减机制，可以获得更精细的界。
+
+### 强凸情形
+
+若 $F$ 进一步为 $\mu$-强凸函数，则对任意 $g_t\in\partial F(x_t)$，次梯度不等式加强为
+
+$$
+F(x_t)-F(x^\star)
+\le
+g_t^\top(x_t-x^\star)
+-\frac\mu2
+\lVert x_t-x^\star\rVert_2^2.
+$$
+
+额外的二次项产生距离收缩。取
+
+$$
+\eta_t=\frac{2}{\mu(t+1)}
+$$
+
+并输出加权平均
+
+$$
+\widetilde x_T
+=
+\frac{2}{T(T+1)}
+\sum_{t=1}^T t x_t,
+$$
+
+在式 @eq-stochastic-unbiased 与 @eq-stochastic-second-moment 成立时，有
+
+$$
+\mathbb E
+\bigl[
+F(\widetilde x_T)-F(x^\star)
+\bigr]
+\le
+\frac{2G^2}{\mu(T+1)}.
+$$ {#eq-sgd-strongly-convex-rate}
+
+强凸性把期望函数误差从 $O(1/\sqrt T)$ 改善为 $O(1/T)$，但需要递减步长和适当平均；使用固定大步长通常只能收敛到由噪声决定的邻域。
+
+## 光滑非凸目标中的 SGD
+
+深度学习目标通常不凸。此时不能承诺到达全局最优，只能控制一阶驻点指标。
+
+本节考虑无约束更新
+
+$$
+x_{t+1}=x_t-\eta\widehat g_t.
+$$
+
+假设：
+
+1. $F$ 可微、下界有限，记 $F_{\inf}=\inf_xF(x)$；
+2. $F$ 为 $L$-光滑函数；
+3. $\mathbb E_t[\widehat g_t]=\nabla F(x_t)$；
+4. 式 @eq-stochastic-variance 成立；
+5. 使用固定步长 $0<\eta\le1/L$。
+
+由光滑上界，
+
+$$
+F(x_{t+1})
+\le
+F(x_t)
+-\eta\nabla F(x_t)^\top\widehat g_t
++\frac{L\eta^2}{2}
+\lVert\widehat g_t\rVert_2^2.
+$$
+
+取条件期望并分解二阶矩，得到
+
+$$
+\mathbb E_t[F(x_{t+1})]
+\le
+F(x_t)
+-\frac\eta2
+\lVert\nabla F(x_t)\rVert_2^2
++\frac{L\eta^2\sigma^2}{2}.
+$$
+
+求和后，
+
+$$
+\frac1T
+\sum_{t=1}^T
+\mathbb E
+\lVert\nabla F(x_t)\rVert_2^2
+\le
+\frac{
+2(F(x_1)-F_{\inf})
+}{
+\eta T
+}
++L\eta\sigma^2.
+$$ {#eq-sgd-nonconvex-rate}
+
+取 $\eta$ 与 $1/\sqrt T$ 同阶，可使平均梯度平方范数达到 $O(1/\sqrt T)$。这只是“随机选取一个迭代点时梯度通常较小”，不表示函数值已接近全局最优。
+
+## 小批量、采样与步长
+
+若同一轮独立抽取 $B$ 个样本并平均，
+
+$$
+\widehat g_t
+=
+\frac1B
+\sum_{j=1}^B
+\widehat g_{t,j},
+$$
+
+则在条件独立且单样本方差不超过 $\sigma^2$ 时，
+
+$$
+\mathbb E_t
+\left\lVert
+\widehat g_t-\nabla F(x_t)
+\right\rVert_2^2
+\le
+\frac{\sigma^2}{B}.
+$$
+
+增大 batch size 会降低方差，但单轮计算和通信成本上升。方差缩小 $B$ 倍不等于总计算量自动缩小 $B$ 倍，评价时必须同时区分迭代复杂度和样本复杂度。
+
+若样本不是均匀抽取，必须用重要性权重修正，否则随机梯度可能有偏。对
+
+$$
+F(x)=\frac1N\sum_{i=1}^N f_i(x),
+$$
+
+若以概率 $p_i>0$ 抽取 $i$，无偏估计可写为
+
+$$
+\widehat g
+=
+\frac{1}{Np_i}
+\nabla f_i(x).
+$$
+
+步长有两类常见设计：
+
+- 为得到有限轮数速率，直接按 $T$ 选择常步长或分段常步长；
+- 为研究渐近收敛，常要求 Robbins–Monro 条件
+
+  $$
+  \sum_{t=1}^\infty\eta_t=+\infty,
+  \qquad
+  \sum_{t=1}^\infty\eta_t^2<+\infty.
+  $$
+
+第一项防止算法过早停止移动，第二项使累计噪声能量有限。满足渐近条件不代表它在有限时间内就是最优步长。
+
+## 为什么需要镜像下降
+
+投影梯度隐含使用 Euclidean 距离
+
+$$
+\frac12\lVert x-x_t\rVert_2^2.
+$$
+
+但变量可能位于概率单纯形、稀疏集合或具有非 Euclidean 范数约束。此时 Euclidean 投影既可能不自然，也可能给出依赖维数较差的界。
+
+镜像下降的核心不是换一个“更复杂的梯度”，而是换一个衡量更新幅度的几何。
+
+## Bregman 散度
+
+设 $\psi:C\to\mathbb R$ 可微，并且关于范数 $\lVert\cdot\rVert$ 为 $1$-强凸，即
+
+$$
+\psi(y)
+\ge
+\psi(x)
++\nabla\psi(x)^\top(y-x)
++\frac12\lVert y-x\rVert^2.
+$$
+
+由 $\psi$ 生成的 Bregman 散度为
+
+$$
+D_\psi(y,x)
+=
+\psi(y)-\psi(x)
+-\nabla\psi(x)^\top(y-x).
+$$ {#eq-bregman-divergence}
+
+强凸性保证
+
+$$
+D_\psi(y,x)
+\ge
+\frac12\lVert y-x\rVert^2.
+$$
+
+Bregman 散度一般不对称，也不满足三角不等式，所以它不是距离度量。它表示函数 $\psi$ 在 $x$ 处的一阶近似低估 $\psi(y)$ 的程度。
+
+关键的三点恒等式为
+
+$$
+\begin{aligned}
+&\bigl(
+\nabla\psi(y)-\nabla\psi(x)
+\bigr)^\top(z-y)\\
+&\qquad
+=
+D_\psi(z,x)
+-D_\psi(z,y)
+-D_\psi(y,x).
+\end{aligned}
+$$ {#eq-bregman-three-point}
+
+它在镜像下降中承担 Euclidean 平方距离展开的作用。
+
+## 镜像下降更新
+
+给定一阶信息 $g_t$，镜像下降更新为
+
+$$
+x_{t+1}
+=
+\operatorname*{argmin}_{x\in C}
+\left\{
+\eta_t g_t^\top x
++D_\psi(x,x_t)
+\right\}.
+$$ {#eq-mirror-descent}
+
+第一项希望降低当前线性化损失，第二项限制新点不要在 $\psi$ 所定义的几何中离 $x_t$ 太远。
+
+若没有约束，且迭代位于 $\psi$ 可微的内部、镜像映射 $\nabla\psi$ 可逆，则最优性条件可写为
+
+$$
+\nabla\psi(x_{t+1})
+=
+\nabla\psi(x_t)-\eta_t g_t.
+$$ {#eq-mirror-dual-update}
+
+算法先在对偶坐标 $\nabla\psi(x)$ 中做加法更新，再通过镜像映射回原变量空间，这就是“镜像”的来源。
+
+### 单步核心不等式
+
+由式 @eq-mirror-descent 的最优性条件，对任意 $u\in C$，
+
+$$
+\left[
+\eta_tg_t
++\nabla\psi(x_{t+1})
+-\nabla\psi(x_t)
+\right]^\top
+(u-x_{t+1})
+\ge0.
+$$
+
+结合式 @eq-bregman-three-point，并把
+
+$$
+g_t^\top(x_t-u)
+=
+g_t^\top(x_t-x_{t+1})
++g_t^\top(x_{t+1}-u)
+$$
+
+分开处理，可得
+
+$$
+\begin{aligned}
+\eta_t g_t^\top(x_t-u)
+&\le
+D_\psi(u,x_t)
+-D_\psi(u,x_{t+1})\\
+&\quad
++\frac{\eta_t^2}{2}
+\lVert g_t\rVert_\star^2.
+\end{aligned}
+$$ {#eq-mirror-descent-one-step}
+
+最后一项使用了 Hölder 不等式与 $\psi$ 的强凸性。这个单步界是随机镜像下降和在线镜像下降共同的证明模板。
+
+## 两种核心几何
+
+### Euclidean 几何
+
+取
+
+$$
+\psi(x)=\frac12\lVert x\rVert_2^2.
+$$
+
+则
+
+$$
+D_\psi(y,x)
+=
+\frac12\lVert y-x\rVert_2^2,
+$$
+
+式 @eq-mirror-descent 退化为
+
+$$
+x_{t+1}
+=
+\Pi_C(x_t-\eta_tg_t).
+$$
+
+因此投影梯度、投影次梯度和 OGD 都是镜像下降的 Euclidean 特例。
+
+### 概率单纯形上的负熵几何
+
+在概率单纯形
+
+$$
+\Delta_n
+=
+\left\{
+x\in\mathbb R_+^n
+\;\middle|\;
+\sum_{i=1}^n x_i=1
+\right\}
+$$
+
+上取负熵
+
+$$
+\psi(x)=\sum_{i=1}^n x_i\log x_i.
+$$
+
+对应的 Bregman 散度为 Kullback–Leibler 散度
+
+$$
+D_\psi(y,x)
+=
+\sum_{i=1}^n
+y_i\log\frac{y_i}{x_i}.
+$$
+
+从内部点 $x_{1,i}>0$ 出发，镜像下降得到指数权重更新
+
+$$
+x_{t+1,i}
+=
+\frac{
+x_{t,i}\exp(-\eta_tg_{t,i})
+}{
+\sum_{j=1}^n
+x_{t,j}\exp(-\eta_tg_{t,j})
+}.
+$$ {#eq-exponentiated-gradient}
+
+它自动保持非负和归一化，不需要做 Euclidean 单纯形投影。若 $x_1$ 为均匀分布，则对任意 $u\in\Delta_n$，
+
+$$
+D_\psi(u,x_1)\le\log n.
+$$
+
+负熵关于 $\ell_1$ 范数强凸，对偶范数是 $\ell_\infty$。因此当
+
+$$
+\lVert g_t\rVert_\infty\le G_\infty
+$$
+
+时，后续遗憾界只依赖 $\sqrt{\log n}$，而 Euclidean 分析往往产生更差的维数依赖。
+
+## 随机镜像下降
+
+在随机目标式 @eq-stochastic-objective 中，用随机梯度 $\widehat g_t$ 代替 $g_t$：
+
+$$
+x_{t+1}
+=
+\operatorname*{argmin}_{x\in C}
+\left\{
+\eta_t\widehat g_t^\top x
++D_\psi(x,x_t)
+\right\}.
+$$ {#eq-stochastic-mirror-descent}
+
+假设：
+
+1. $F$ 凸，$x^\star$ 存在；
+2. $\mathbb E_t[\widehat g_t]\in\partial F(x_t)$；
+3. $\mathbb E_t\lVert\widehat g_t\rVert_\star^2\le G^2$；
+4. $D_\psi(x^\star,x_1)\le R_\psi^2$。
+
+对式 @eq-mirror-descent-one-step 求条件期望并望远镜求和，可得
+
+$$
+\mathbb E
+\bigl[
+F(\bar x_T)-F(x^\star)
+\bigr]
+\le
+\frac{
+R_\psi^2
++\frac{G^2}{2}
+\sum_{t=1}^T\eta_t^2
+}{
+\sum_{t=1}^T\eta_t
+},
+$$ {#eq-stochastic-mirror-rate}
+
+其中 $\bar x_T$ 是按 $\eta_t$ 加权的平均点。
+
+当 $\eta_t=\eta$ 时，
+
+$$
+\mathbb E
+\bigl[
+F(\bar x_T)-F(x^\star)
+\bigr]
+\le
+\frac{R_\psi^2}{\eta T}
++\frac{\eta G^2}{2}.
+$$
+
+选择
+
+$$
+\eta
+=
+\frac{\sqrt2R_\psi}{G\sqrt T}
+$$
+
+得到
+
+$$
+\mathbb E
+\bigl[
+F(\bar x_T)-F(x^\star)
+\bigr]
+\le
+\frac{\sqrt2R_\psi G}{\sqrt T}.
+$$
+
+速率阶仍为 $O(1/\sqrt T)$，但常数和维数依赖由所选几何决定。镜像下降的价值通常不是改变这个阶数，而是让界与问题结构匹配。
+
+## 在线凸优化
+
+在线凸优化在每一轮 $t=1,\ldots,T$ 按以下顺序运行：
+
+1. 学习者选择 $x_t\in C$；
+2. 环境给出凸损失函数 $f_t$；
+3. 学习者承担损失 $f_t(x_t)$；
+4. 学习者获得 $f_t$ 或其一阶信息，并更新到 $x_{t+1}$。
+
+环境不必从固定分布独立采样，也可以根据过去历史选择损失，但不能预见学习者本轮尚未公开的私有随机性。算法的目标不是求某个预先固定的最优点，而是让累计损失接近最佳固定比较点。
+
+对任意 $u\in C$，静态遗憾定义为
+
+$$
+R_T(u)
+=
+\sum_{t=1}^T
+\bigl[
+f_t(x_t)-f_t(u)
+\bigr].
+$$ {#eq-static-regret}
+
+最坏比较点遗憾为
+
+$$
+R_T
+=
+\sum_{t=1}^T f_t(x_t)
+-\min_{u\in C}
+\sum_{t=1}^T f_t(u).
+$$
+
+若
+
+$$
+R_T=o(T),
+$$
+
+则称算法无遗憾，因为平均每轮差距 $R_T/T$ 趋于零。
+
+::: {.callout-note title="One-pass 不等于忘掉历史"}
+在线算法可以不保存原始损失或全部样本，但会把历史压缩进当前参数、累计梯度、二阶矩或正则化状态。不能回放原始历史，与完全不保留历史信息，是两个不同要求。
+:::
+
+## 在线梯度下降
+
+取
+
+$$
+g_t\in\partial f_t(x_t),
+$$
+
+在线梯度下降更新为
+
+$$
+x_{t+1}
+=
+\Pi_C(x_t-\eta g_t).
+$$ {#eq-online-gradient-descent}
+
+假设集合在 Euclidean 范数下直径不超过 $D$：
+
+$$
+\lVert x-y\rVert_2\le D,
+\qquad \forall x,y\in C,
+$$
+
+且
+
+$$
+\lVert g_t\rVert_2\le G.
+$$
+
+由投影距离递推，
+
+$$
+g_t^\top(x_t-u)
+\le
+\frac{
+\lVert x_t-u\rVert_2^2
+-\lVert x_{t+1}-u\rVert_2^2
+}{
+2\eta
+}
++\frac{\eta G^2}{2}.
+$$
+
+凸性给出
+
+$$
+f_t(x_t)-f_t(u)
+\le
+g_t^\top(x_t-u).
+$$
+
+对 $t$ 求和，
+
+$$
+R_T(u)
+\le
+\frac{D^2}{2\eta}
++\frac{\eta G^2T}{2}.
+$$ {#eq-ogd-regret}
+
+选择
+
+$$
+\eta=\frac{D}{G\sqrt T},
+$$
+
+得到
+
+$$
+R_T(u)\le DG\sqrt T.
+$$ {#eq-ogd-sqrt-regret}
+
+因此平均遗憾为 $O(1/\sqrt T)$。这条证明与次梯度法非常相似，但结论适用于任意凸损失序列，不需要 $f_t$ 来自同一个随机分布。
+
+### 强凸在线损失
+
+若每个 $f_t$ 都为 $\mu$-强凸函数，且次梯度范数不超过 $G$，使用
+
+$$
+\eta_t=\frac{1}{\mu t}
+$$
+
+可得
+
+$$
+R_T
+\le
+\frac{G^2}{2\mu}
+\bigl(1+\log T\bigr).
+$$ {#eq-strongly-convex-online-regret}
+
+强凸性把一般凸损失的 $O(\sqrt T)$ 静态遗憾改善为 $O(\log T)$。
+
+## 在线镜像下降
+
+对一般范数几何，令
+
+$$
+g_t\in\partial f_t(x_t)
+$$
+
+并使用式 @eq-mirror-descent。若 $\psi$ 关于 $\lVert\cdot\rVert$ 为 $1$-强凸函数，则对任意 $u\in C$，
+
+$$
+R_T(u)
+\le
+\frac{D_\psi(u,x_1)}{\eta}
++\frac{\eta}{2}
+\sum_{t=1}^T
+\lVert g_t\rVert_\star^2.
+$$ {#eq-omd-regret}
+
+证明只需把凸性不等式
+
+$$
+f_t(x_t)-f_t(u)
+\le
+g_t^\top(x_t-u)
+$$
+
+代入式 @eq-mirror-descent-one-step，再对 Bregman 项望远镜求和。
+
+在单纯形上使用负熵，若 $x_1$ 均匀且 $\lVert g_t\rVert_\infty\le G_\infty$，取
+
+$$
+\eta
+=
+\sqrt{
+\frac{2\log n}{
+TG_\infty^2
+}
+},
+$$
+
+可得指数权重算法的遗憾界
+
+$$
+R_T(u)
+\le
+G_\infty\sqrt{2T\log n}.
+$$ {#eq-entropic-omd-regret}
+
+这里的 $\log n$ 正是负熵几何相对于 Euclidean 几何的结构收益。
+
+## FTRL
+
+Follow-the-Regularized-Leader 使用截至当前的累计线性化损失：
+
+$$
+x_t
+=
+\operatorname*{argmin}_{x\in C}
+\left\{
+\sum_{s=1}^{t-1}g_s^\top x
++\frac1\eta\psi(x)
+\right\}.
+$$ {#eq-ftrl}
+
+若 $\psi$ 关于所选范数为 $1$-强凸函数，则线性化遗憾满足
+
+$$
+\sum_{t=1}^T
+g_t^\top(x_t-u)
+\le
+\frac{
+\psi(u)-\min_{x\in C}\psi(x)
+}{\eta}
++\frac{\eta}{2}
+\sum_{t=1}^T
+\lVert g_t\rVert_\star^2.
+$$ {#eq-ftrl-regret}
+
+OMD 与 FTRL 都通过正则函数选择几何，但记忆方式不同：
+
+- OMD 从当前点出发，用一个局部 Bregman 项更新；
+- FTRL 对累计梯度重新求一个正则化领导者。
+
+在许多可微、固定正则的设置中，两者可以导出相同更新；在时变正则、自适应步长和复合损失下，它们的形式差异会变得重要。
+
+FTRL 不必保存所有过去的 $g_s$，只需维护累计量
+
+$$
+G_{t-1}=\sum_{s=1}^{t-1}g_s.
+$$
+
+因此它可以是严格的单遍算法，同时仍保留过去信息的充分统计。
+
+## Online-to-batch 转换
+
+随机优化和在线优化可以通过 online-to-batch 转换连接。
+
+设
+
+$$
+f_t(x)=f(x;\xi_t),
+$$
+
+其中 $\xi_t$ 独立同分布，且
+
+$$
+F(x)=\mathbb E_\xi[f(x;\xi)].
+$$
+
+由于 $x_t$ 只依赖过去样本，它与当前新样本 $\xi_t$ 条件独立，因此
+
+$$
+\mathbb E[f_t(x_t)]
+=
+\mathbb E[F(x_t)].
+$$
+
+对平均点
+
+$$
+\bar x_T=\frac1T\sum_{t=1}^T x_t,
+$$
+
+由凸性和 Jensen 不等式，
+
+$$
+\begin{aligned}
+\mathbb E[F(\bar x_T)-F(u)]
+&\le
+\frac1T
+\sum_{t=1}^T
+\mathbb E[F(x_t)-F(u)]\\
+&=
+\frac{\mathbb E[R_T(u)]}{T}.
+\end{aligned}
+$$ {#eq-online-to-batch}
+
+因此一个 $O(\sqrt T)$ 的在线遗憾界会产生 $O(1/\sqrt T)$ 的随机优化期望误差界。反过来并不自动成立：只对 i.i.d. 数据有效的算法，未必能抵抗任意在线损失序列。
+
+## 静态遗憾与非平稳环境
+
+静态遗憾只和一个固定比较点比较。如果环境变化，固定比较点本身可能已经不合适。
+
+给定比较序列 $u_1,\ldots,u_T$，动态遗憾定义为
+
+$$
+R_T^{\mathrm{dyn}}(u_{1:T})
+=
+\sum_{t=1}^T
+\bigl[
+f_t(x_t)-f_t(u_t)
+\bigr].
+$$ {#eq-dynamic-regret}
+
+若允许 $u_t$ 任意变化，就不可能普遍获得次线性动态遗憾。因此必须限制比较序列或环境的变化，例如使用比较点路径长度
+
+$$
+P_T
+=
+\sum_{t=2}^T
+\lVert u_t-u_{t-1}\rVert,
+$$ {#eq-comparator-path-length}
+
+函数变化量或变化次数预算。动态遗憾界通常依赖这些非平稳度量；重启、滑动窗口和折扣历史则是在算法层面控制“保留多少旧信息”。
+
+::: {.callout-tip title="静态无遗憾不等于适应得快"}
+算法可能相对最佳固定决策具有很小的静态遗憾，却在每次环境切换后恢复很慢。研究非平稳问题时，应明确比较对象和变化预算，而不能只报告静态遗憾。
+:::
+
+## 与自适应方法、optimism 和 Bandit 的接口
+
+以下内容对后续在线学习与 Bandit 很重要，但本附录只保留入口。
+
+### 自适应几何
+
+AdaGrad 根据历史梯度的坐标尺度或矩阵结构动态选择正则几何。它把统一的最坏界
+
+$$
+G\sqrt T
+$$
+
+替换为依赖实际累计梯度的量，使稀疏或各向异性序列获得更好的数据依赖界。其本质不是普通 SGD 外加一个技巧，而是时变正则下的 OMD 或 FTRL。
+
+### Optimism
+
+若在第 $t$ 轮决策前能够预测梯度 $m_t$，乐观在线方法会让遗憾依赖预测误差
+
+$$
+\sum_{t=1}^T
+\lVert g_t-m_t\rVert_\star^2
+$$
+
+而不是完整梯度能量。序列越可预测，收益越大；预测错误时仍需要保留最坏情形保护。该视角是可预测环境、博弈和许多序贯决策算法的重要入口。
+
+### Bandit feedback
+
+标准 OCO 通常在决策后获得完整梯度或完整损失函数；Bandit 场景只观察
+
+$$
+f_t(x_t)
+$$
+
+或所选臂的奖励。为了使用梯度型更新，必须构造重要性加权或随机扰动梯度估计，由此引入额外方差、探索和维数代价。
+
+因此从 OMD 进入 Bandit 时，真正新增的难点不是更新公式，而是：
+
+1. 如何在部分反馈下构造可控的一阶估计；
+2. 如何保证每个动作有足够探索概率；
+3. 如何把估计方差纳入遗憾分析。
+
+## 方法选择速查
+
+| 问题结构 | 常用入口 | 主要保证 |
+|---|---|---|
+| i.i.d. 数据、单样本梯度便宜 | SGD | 一般凸 $O(1/\sqrt T)$ |
+| 强凸随机目标 | 递减步长 SGD | 加权平均 $O(1/T)$ |
+| 光滑非凸随机目标 | SGD | 平均梯度平方范数界 |
+| 非 Euclidean 约束或单纯形 | 随机镜像下降 | 几何匹配的 $O(1/\sqrt T)$ |
+| 任意凸损失序列 | OGD | $O(\sqrt T)$ 静态遗憾 |
+| 强凸在线损失 | 递减步长 OGD | $O(\log T)$ 静态遗憾 |
+| 单纯形上的专家权重 | 负熵 OMD / 指数权重 | $O(\sqrt{T\log n})$ |
+| 需要累计历史或时变正则 | FTRL | 正则化累计损失界 |
+| 非平稳比较对象 | 动态遗憾方法 | 必须依赖变化预算 |
+| 只观察所选动作反馈 | Bandit 方法 | 需要探索和无偏估计 |
+
+## 典型误区
+
+1. **随机梯度只要无条件均值正确就足够。** 自适应迭代通常需要给定历史后的条件无偏性。
+2. **SGD 每轮都应降低目标函数。** 随机方向含噪，理论通常控制期望、平均点或随机输出点。
+3. **batch size 增大 $B$ 倍就会让总训练时间缩短 $B$ 倍。** 方差、迭代数和单轮成本必须共同计算。
+4. **镜像下降只是把 Euclidean 投影换个记号。** 正则函数决定原空间与对偶空间的几何，并改变维数依赖。
+5. **Bregman 散度是一个距离。** 它通常不对称，也不满足三角不等式。
+6. **在线无遗憾表示每一轮都接近当轮最优。** 静态遗憾只要求累计表现接近最佳固定比较点。
+7. **随机优化的期望收敛率等同于任意序列上的遗憾界。** i.i.d. 假设和对抗序列是不同问题。
+8. **静态遗憾足以刻画非平稳适应。** 环境变化时还要考察动态遗憾、路径长度或变化预算。
+9. **Bandit 只是信息更少的 OGD。** 部分反馈会新增探索与估计方差这两个核心困难。
+
+## 本附录小结
+
+SGD 用带噪一阶信息换取低单轮成本：一般凸目标获得 $O(1/\sqrt T)$，强凸目标在递减步长和加权平均下获得 $O(1/T)$，非凸情形则控制平均梯度平方范数。镜像下降用 Bregman 散度选择问题几何，其单步不等式同时支撑随机优化和在线遗憾分析。OCO 以累计遗憾评价决策序列，OGD、OMD 与 FTRL 分别提供 Euclidean、非 Euclidean 和累计正则化视角；online-to-batch 把在线遗憾重新连接到统计学习。动态遗憾、optimism 和 Bandit feedback 则说明，进入非平稳与部分反馈环境后，比较对象、可预测性和梯度估计会成为新的主角。

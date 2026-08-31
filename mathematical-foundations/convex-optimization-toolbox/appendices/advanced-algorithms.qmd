@@ -1,13 +1,887 @@
-# 进阶算法模板 {.appendix}
+# 进阶算法工具箱 {#sec-advanced-algorithms .appendix}
 
-本附录暂存课件没有系统覆盖、但纸质主线或后续机器学习会用到的算法：
+本附录承接第 6–8 章的一阶方法主线，处理三个在机器学习中反复出现的问题：目标不可微、变量具有可分结构，以及约束或损失适合分块求解。内容按“最优性语言 $\rightarrow$ 复合算法 $\rightarrow$ 二阶算法 $\rightarrow$ 分裂算法”组织。
 
-- 次梯度与投影次梯度；
-- 近端算子与近端梯度；
-- 加速梯度法；
-- 坐标下降；
-- Newton 与拟 Newton；
-- 增广 Lagrangian 与 ADMM。
+## 次梯度与次微分
 
-这些内容均处于 P1 状态，本轮不扩写。
+梯度通过切平面给出可微凸函数的全局下界。不可微时，支撑超平面的斜率通常不唯一，次梯度把这些斜率全部保留下来。
 
+设 $f:\mathbb R^n\to\mathbb R\cup\{+\infty\}$ 为凸函数，且 $x\in\operatorname{dom}f$。若向量 $g\in\mathbb R^n$ 满足
+
+$$
+f(y)
+\ge
+f(x)+g^\top(y-x),
+\qquad \forall y\in\mathbb R^n,
+$$ {#eq-subgradient-definition}
+
+则称 $g$ 是 $f$ 在 $x$ 处的一个次梯度。所有次梯度组成次微分
+
+$$
+\partial f(x)
+=
+\left\{
+g\mid
+f(y)\ge f(x)+g^\top(y-x),\ \forall y
+\right\}.
+$$
+
+若 $f$ 在 $x$ 处可微，则
+
+$$
+\partial f(x)=\{\nabla f(x)\}.
+$$
+
+次微分不是一个数值导数，而是一个凸集。它描述在 $x$ 处能够支撑函数上境图的全部斜率。
+
+### 常用例子
+
+绝对值函数的次微分为
+
+$$
+\partial |x|
+=
+\begin{cases}
+\{-1\}, & x<0,\\
+[-1,1], & x=0,\\
+\{1\}, & x>0.
+\end{cases}
+$$
+
+因此
+
+$$
+\partial\lVert x\rVert_1
+=
+\left\{
+g\in\mathbb R^n
+\;\middle|\;
+g_i=\operatorname{sign}(x_i)\text{ 若 }x_i\ne0,
+\quad g_i\in[-1,1]\text{ 若 }x_i=0
+\right\}.
+$$
+
+若
+
+$$
+f(x)=\max_{i=1,\ldots,m}f_i(x),
+$$
+
+其中每个 $f_i$ 凸且可微，记活跃指标集
+
+$$
+I(x)=\{i\mid f_i(x)=f(x)\},
+$$
+
+则
+
+$$
+\partial f(x)
+=
+\operatorname{conv}
+\{\nabla f_i(x)\mid i\in I(x)\}.
+$$ {#eq-max-subdifferential}
+
+最大值的拐角正是由多个活跃函数的梯度共同形成。
+
+对非空闭凸集 $C$ 的指示函数 $I_C$，有
+
+$$
+\partial I_C(x)=N_C(x),
+\qquad x\in C,
+$$
+
+其中
+
+$$
+N_C(x)
+=
+\{g\mid g^\top(y-x)\le0,\ \forall y\in C\}
+$$
+
+称为 $C$ 在 $x$ 处的法锥。于是集合约束也可以进入统一的次微分语言。
+
+### 最优性条件与运算法则
+
+对正常凸函数 $f$，
+
+$$
+x^\star\in\operatorname*{argmin}f
+\quad\Longleftrightarrow\quad
+0\in\partial f(x^\star).
+$$ {#eq-subgradient-optimality}
+
+充分性直接来自式 @eq-subgradient-definition；必要性则取 $g=0$，因为最优点处 $f(y)\ge f(x^\star)$。
+
+常用运算法则包括：
+
+$$
+\partial(\alpha f)(x)
+=
+\alpha\partial f(x),
+\qquad \alpha>0,
+$$
+
+以及在适当的相对内部条件，例如
+
+$$
+\operatorname{relint}(\operatorname{dom}f)
+\cap
+\operatorname{relint}(\operatorname{dom}g)
+\ne\varnothing,
+$$
+
+成立时，
+
+$$
+\partial(f+g)(x)
+=
+\partial f(x)+\partial g(x).
+$$
+
+若 $f$ 为闭正常凸函数，则 Fenchel–Young 等号条件可以写为
+
+$$
+y\in\partial f(x)
+\quad\Longleftrightarrow\quad
+f(x)+f^\star(y)=x^\top y
+\quad\Longleftrightarrow\quad
+x\in\partial f^\star(y).
+$$ {#eq-fenchel-subgradient-equivalence}
+
+这补全了第 5 章中共轭函数与斜率之间的关系。
+
+## 次梯度法
+
+考虑最小化凸函数 $f$。在 $x_k$ 处任选
+
+$$
+g_k\in\partial f(x_k),
+$$
+
+次梯度法更新为
+
+$$
+x_{k+1}=x_k-\eta_k g_k.
+$$ {#eq-subgradient-method}
+
+若还有非空闭凸约束集 $C$，则使用投影次梯度法
+
+$$
+x_{k+1}
+=
+\Pi_C(x_k-\eta_k g_k).
+$$ {#eq-projected-subgradient-method}
+
+次梯度不一定是下降方向，所以 $f(x_{k+1})$ 可能高于 $f(x_k)$。算法保证来自长期距离递推，而不是每一步都下降。
+
+假设：
+
+1. $f$ 凸，最优解 $x^\star\in C$ 存在；
+2. $C$ 非空、闭、凸；无约束时取 $C=\mathbb R^n$；
+3. 沿迭代点有 $\lVert g_k\rVert_2\le G$；
+4. $R=\lVert x_0-x^\star\rVert_2$。
+
+由投影非扩张性与次梯度不等式，
+
+$$
+\begin{aligned}
+\lVert x_{k+1}-x^\star\rVert_2^2
+&\le
+\lVert x_k-x^\star\rVert_2^2
+-2\eta_k\bigl(f(x_k)-f(x^\star)\bigr)
++\eta_k^2G^2.
+\end{aligned}
+$$
+
+求和后得到
+
+$$
+\min_{0\le k<K}
+\bigl(f(x_k)-f(x^\star)\bigr)
+\le
+\frac{
+R^2+G^2\sum_{k=0}^{K-1}\eta_k^2
+}{
+2\sum_{k=0}^{K-1}\eta_k
+}.
+$$ {#eq-subgradient-general-rate}
+
+若预先知道迭代轮数并取
+
+$$
+\eta_k=\frac{R}{G\sqrt K},
+$$
+
+则
+
+$$
+\min_{0\le k<K}
+f(x_k)-f(x^\star)
+\le
+\frac{RG}{\sqrt K}.
+$$
+
+也可以输出加权平均点。若采用递减步长，典型充分条件是
+
+$$
+\sum_{k=0}^\infty\eta_k=+\infty,
+\qquad
+\sum_{k=0}^\infty\eta_k^2<+\infty.
+$$
+
+第一条防止总移动距离过早耗尽，第二条抑制长期振荡。
+
+## 近端算子
+
+次梯度法把所有不可微结构都压缩成一个次梯度，因此速率通常只有 $O(1/\sqrt K)$。如果不可微项本身可以被精确最小化，近端算子能保留更多结构。
+
+设 $g$ 为闭正常凸函数，$\eta>0$。其近端算子定义为
+
+$$
+\operatorname{prox}_{\eta g}(v)
+=
+\operatorname*{argmin}_{x}
+\left\{
+g(x)+\frac{1}{2\eta}\lVert x-v\rVert_2^2
+\right\}.
+$$ {#eq-prox-definition}
+
+二次项是强凸的，因此极小点存在且唯一。令
+
+$$
+x^+=\operatorname{prox}_{\eta g}(v),
+$$
+
+一阶最优性条件为
+
+$$
+0
+\in
+\partial g(x^+)+\frac1\eta(x^+-v),
+$$
+
+等价于
+
+$$
+\frac{v-x^+}{\eta}
+\in
+\partial g(x^+).
+$$ {#eq-prox-optimality}
+
+近端映射不是简单地在 $v$ 处取一个次梯度，而是寻找一个新点，使“结构代价”和“偏离 $v$ 的距离”达到平衡。
+
+### 三个高频近端映射
+
+若 $g=I_C$，其中 $C$ 非空闭凸，则
+
+$$
+\operatorname{prox}_{\eta I_C}(v)=\Pi_C(v).
+$$
+
+因此投影是近端算子的特殊情形。
+
+若 $g(x)=\lambda\lVert x\rVert_1$，则近端映射逐坐标软阈值化：
+
+$$
+[\operatorname{prox}_{\eta\lambda\lVert\cdot\rVert_1}(v)]_i
+=
+\operatorname{sign}(v_i)
+\max\{|v_i|-\eta\lambda,0\}.
+$$ {#eq-soft-thresholding}
+
+这说明 $\ell_1$ 正则化产生精确零值，不只是让坐标“变小”。
+
+若 $g(x)=\lambda\lVert x\rVert_2$，则
+
+$$
+\operatorname{prox}_{\eta g}(v)
+=
+\left(1-\frac{\eta\lambda}{\lVert v\rVert_2}\right)_+v,
+$$
+
+其中 $(a)_+=\max\{a,0\}$。它对整个向量做成组收缩，是 group lasso 中的基本操作。
+
+### 稳定性与 Moreau 包络
+
+近端算子满足坚定非扩张性。若
+
+$$
+p=\operatorname{prox}_{\eta g}(v),
+\qquad
+q=\operatorname{prox}_{\eta g}(w),
+$$
+
+则
+
+$$
+\lVert p-q\rVert_2^2
+\le
+(p-q)^\top(v-w).
+$$ {#eq-prox-firm-nonexpansive}
+
+由 Cauchy–Schwarz 不等式可进一步得到普通非扩张性。
+
+Moreau 包络定义为
+
+$$
+e_{\eta g}(v)
+=
+\min_x
+\left\{
+g(x)+\frac{1}{2\eta}\lVert x-v\rVert_2^2
+\right\}.
+$$
+
+即使 $g$ 不可微，$e_{\eta g}$ 仍可微，并且
+
+$$
+\nabla e_{\eta g}(v)
+=
+\frac1\eta
+\left(v-\operatorname{prox}_{\eta g}(v)\right).
+$$
+
+近端点可以理解为对不可微函数进行局部平滑后的一次梯度校正。
+
+## 近端梯度法
+
+考虑复合问题
+
+$$
+\min_x F(x)=f(x)+g(x),
+$$ {#eq-composite-problem}
+
+其中：
+
+- $f$ 凸、可微且 $L$-光滑；
+- $g$ 闭、正常、凸，但允许不可微；
+- 最优解 $x^\star$ 存在。
+
+在 $x_k$ 处保留 $f$ 的一阶近似，并加入二次稳定项：
+
+$$
+Q_\eta(z;x_k)
+=
+f(x_k)
++\nabla f(x_k)^\top(z-x_k)
++\frac{1}{2\eta}\lVert z-x_k\rVert_2^2
++g(z).
+$$
+
+当 $0<\eta\le1/L$ 时，光滑上界保证
+
+$$
+F(z)\le Q_\eta(z;x_k),
+$$
+
+所以最小化这个上界得到
+
+$$
+\begin{aligned}
+x_{k+1}
+&=
+\operatorname*{argmin}_z Q_\eta(z;x_k)\\
+&=
+\operatorname{prox}_{\eta g}
+\bigl(x_k-\eta\nabla f(x_k)\bigr).
+\end{aligned}
+$$ {#eq-proximal-gradient}
+
+这一式统一了多种算法：
+
+- $g=0$ 时退化为梯度下降；
+- $g=I_C$ 时退化为投影梯度；
+- $g=\lambda\lVert\cdot\rVert_1$ 时得到迭代软阈值算法。
+
+定义近端梯度映射
+
+$$
+G_\eta(x)
+=
+\frac1\eta
+\left[
+x-
+\operatorname{prox}_{\eta g}
+\bigl(x-\eta\nabla f(x)\bigr)
+\right].
+$$ {#eq-prox-gradient-mapping}
+
+则更新为 $x_{k+1}=x_k-\eta G_\eta(x_k)$，并且
+
+$$
+G_\eta(x)=0
+\quad\Longleftrightarrow\quad
+0\in\nabla f(x)+\partial g(x).
+$$
+
+因此 $\lVert G_\eta(x)\rVert_2$ 是复合问题中替代梯度范数的停止指标。
+
+在上述条件和 $0<\eta\le1/L$ 下，
+
+$$
+F(x_k)-F(x^\star)
+\le
+\frac{\lVert x_0-x^\star\rVert_2^2}{2\eta k}.
+$$ {#eq-prox-gradient-rate}
+
+证明与投影梯度相同：近端子问题的一阶最优性条件产生单步距离望远镜界。若 $f$ 进一步为 $\mu$-强凸函数，基本近端梯度在固定步长下获得依赖 $\mu/L$ 的线性收敛。
+
+## 加速梯度与 FISTA
+
+基本梯度法和近端梯度法在一般凸情形下都是 $O(1/k)$。Nesterov 加速通过在当前点之外构造一个带惯性的外推点，把速率提升为 $O(1/k^2)$。
+
+对式 @eq-composite-problem，取 $\eta=1/L$，初始化
+
+$$
+x_0=y_0,
+\qquad t_0=1.
+$$
+
+FISTA 迭代为
+
+$$
+x_{k+1}
+=
+\operatorname{prox}_{\eta g}
+\bigl(y_k-\eta\nabla f(y_k)\bigr),
+$$
+
+$$
+t_{k+1}
+=
+\frac{1+\sqrt{1+4t_k^2}}{2},
+$$
+
+$$
+y_{k+1}
+=
+x_{k+1}
++\frac{t_k-1}{t_{k+1}}
+(x_{k+1}-x_k).
+$$ {#eq-fista}
+
+在 $f$ 凸且 $L$-光滑、$g$ 闭正常凸、最优解存在的条件下，
+
+$$
+F(x_k)-F(x^\star)
+\le
+\frac{2L\lVert x_0-x^\star\rVert_2^2}{(k+1)^2}.
+$$ {#eq-fista-rate}
+
+达到函数误差 $\varepsilon$ 所需迭代次数由 $O(1/\varepsilon)$ 降为 $O(1/\sqrt\varepsilon)$。
+
+::: {.callout-warning title="加速不保证函数值逐步下降"}
+外推点 $y_k$ 可能越过当前低值区域，所以 $F(x_{k+1})$ 可以短暂上升。加速结论控制的是整体势函数，而不是每轮单调性。实践中常在函数值恶化或动量方向失效时重启 $t_k$。
+:::
+
+若 $g=0$ 且 $f$ 同时为 $\mu$-强凸、$L$-光滑函数，可取固定动量
+
+$$
+\beta
+=
+\frac{\sqrt L-\sqrt\mu}{\sqrt L+\sqrt\mu},
+$$
+
+得到
+
+$$
+f(x_k)-p^\star
+=
+O\left(
+\left(1-\sqrt{\frac\mu L}\right)^k
+\right).
+$$
+
+它把梯度下降对条件数的 $O(\kappa)$ 依赖改善为 $O(\sqrt\kappa)$。
+
+## 坐标下降
+
+当变量维数很高、单个偏导比完整梯度便宜，或目标对坐标可分时，可以每轮只更新一个坐标。
+
+设 $e_i$ 为第 $i$ 个标准基向量。若 $f$ 沿第 $i$ 个坐标的偏导满足
+
+$$
+|\nabla_i f(x+te_i)-\nabla_i f(x)|
+\le
+L_i|t|,
+$$
+
+则坐标方向有上界
+
+$$
+f(x+te_i)
+\le
+f(x)+t\nabla_i f(x)+\frac{L_i}{2}t^2.
+$$
+
+最小化右侧得到更新
+
+$$
+x_{k+1}
+=
+x_k-\frac{1}{L_{i_k}}
+\nabla_{i_k}f(x_k)e_{i_k},
+$$ {#eq-coordinate-descent}
+
+并保证
+
+$$
+f(x_{k+1})
+\le
+f(x_k)
+-\frac{[\nabla_{i_k}f(x_k)]^2}{2L_{i_k}}.
+$$ {#eq-coordinate-descent-decrease}
+
+坐标可以循环选择，也可以随机选择。随机选择便于给出整体速率；循环选择常有更好的缓存与实现性能，但理论分析更依赖问题结构。
+
+若 $i_k$ 在 $\{1,\ldots,n\}$ 上均匀随机、$L_i\le L_{\max}$，则对凸光滑函数，在相应水平集有界时，
+
+$$
+\mathbb E[f(x_k)-p^\star]
+=
+O\left(\frac{nL_{\max}R^2}{k}\right).
+$$
+
+若 $f$ 进一步为 $\mu$-强凸函数，则由式 @eq-coordinate-descent-decrease 与
+
+$$
+\lVert\nabla f(x)\rVert_2^2
+\ge
+2\mu(f(x)-p^\star)
+$$
+
+可得
+
+$$
+\mathbb E[f(x_k)-p^\star]
+\le
+\left(1-\frac{\mu}{nL_{\max}}\right)^k
+(f(x_0)-p^\star).
+$$ {#eq-random-coordinate-linear-rate}
+
+对复合目标
+
+$$
+F(x)=f(x)+\sum_{i=1}^n g_i(x_i),
+$$
+
+可以使用坐标近端更新
+
+$$
+x_{i_k}^{k+1}
+=
+\operatorname{prox}_{g_{i_k}/L_{i_k}}
+\left(
+x_{i_k}^k-\frac{1}{L_{i_k}}\nabla_{i_k}f(x_k)
+\right),
+$$
+
+其余坐标保持不变。Lasso 适合坐标下降，正是因为 $\ell_1$ 正则项逐坐标可分，单坐标子问题具有软阈值闭式解。
+
+## Newton 法
+
+梯度法用统一的 Euclidean 二次项控制步长；Newton 法则直接使用函数在当前位置的曲率。
+
+对二阶可微函数 $f$，在 $x_k$ 附近的二阶模型为
+
+$$
+m_k(d)
+=
+f(x_k)
++\nabla f(x_k)^\top d
++\frac12d^\top\nabla^2f(x_k)d.
+$$
+
+若
+
+$$
+H_k=\nabla^2f(x_k)\succ0,
+$$
+
+模型的唯一极小点满足
+
+$$
+H_kd_k=-\nabla f(x_k).
+$$ {#eq-newton-system}
+
+Newton 更新为
+
+$$
+x_{k+1}=x_k+\alpha_kd_k,
+$$ {#eq-damped-newton}
+
+其中 $\alpha_k=1$ 给出完整 Newton 步；远离最优点时通常用回溯线搜索选择 $\alpha_k\in(0,1]$。
+
+因为
+
+$$
+\nabla f(x_k)^\top d_k
+=
+-\nabla f(x_k)^\top H_k^{-1}\nabla f(x_k)<0
+$$
+
+在梯度非零时成立，所以 $d_k$ 是下降方向。若 Hessian 不正定或奇异，Newton 方程可能不给出下降方向，此时需要阻尼或正则化，例如用 $H_k+\delta I$ 替代 $H_k$。
+
+### 局部二次收敛
+
+设 $x^\star$ 满足
+
+$$
+\nabla f(x^\star)=0,
+\qquad
+\nabla^2f(x^\star)\succ0,
+$$
+
+并且 Hessian 在 $x^\star$ 邻域内 Lipschitz 连续。若 $x_0$ 足够接近 $x^\star$，完整 Newton 步满足
+
+$$
+\lVert x_{k+1}-x^\star\rVert_2
+\le
+C\lVert x_k-x^\star\rVert_2^2
+$$ {#eq-newton-quadratic-rate}
+
+对某个常数 $C>0$ 成立。这意味着进入局部区域后，有效精度位数大致每轮翻倍。
+
+“局部二次”不等于从任意初值都快速收敛。实际 Newton 法通常分为两个阶段：线搜索保证远处的全局下降，接近解后接受 $\alpha_k=1$ 并进入二次收敛区。
+
+## 拟 Newton 与 BFGS
+
+显式形成或分解 Hessian 的成本通常为 $O(n^2)$ 存储和 $O(n^3)$ 线性代数。拟 Newton 法用梯度差逐步学习曲率。
+
+记
+
+$$
+s_k=x_{k+1}-x_k,
+\qquad
+y_k=\nabla f(x_{k+1})-\nabla f(x_k).
+$$
+
+希望 Hessian 近似 $B_{k+1}$ 满足割线条件
+
+$$
+B_{k+1}s_k=y_k.
+$$ {#eq-quasi-newton-secant}
+
+BFGS 更新为
+
+$$
+B_{k+1}
+=
+B_k
+-\frac{B_ks_ks_k^\top B_k}{s_k^\top B_ks_k}
++\frac{y_ky_k^\top}{y_k^\top s_k}.
+$$ {#eq-bfgs-update}
+
+当
+
+$$
+B_k\succ0,
+\qquad
+y_k^\top s_k>0,
+$$
+
+时，$B_{k+1}\succ0$，从而
+
+$$
+B_kd_k=-\nabla f(x_k)
+$$
+
+仍产生下降方向。Wolfe 线搜索的重要作用之一，就是在常见光滑凸条件下保证曲率条件 $y_k^\top s_k>0$。
+
+在目标二阶连续可微、最优点 Hessian 正定并配合适当线搜索等标准条件下，完整 BFGS 可获得局部超线性收敛。L-BFGS 只保存最近若干组 $(s_k,y_k)$，把存储降为 $O(mn)$，适合高维稀疏机器学习问题，但它不是严格的完整 Hessian 重建。
+
+## 增广 Lagrangian 方法
+
+考虑等式约束问题
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & f(x)\\
+\operatorname{subject\ to}\quad & Ax=b.
+\end{aligned}
+$$ {#eq-alm-problem}
+
+普通 Lagrangian 对违反约束只施加线性代价。增广 Lagrangian 加入二次惩罚：
+
+$$
+L_\rho(x,\nu)
+=
+f(x)
++\nu^\top(Ax-b)
++\frac\rho2\lVert Ax-b\rVert_2^2,
+\qquad \rho>0.
+$$ {#eq-augmented-lagrangian}
+
+算法迭代为
+
+$$
+x_{k+1}
+\in
+\operatorname*{argmin}_x
+L_\rho(x,\nu_k),
+$$
+
+$$
+\nu_{k+1}
+=
+\nu_k+\rho(Ax_{k+1}-b).
+$$ {#eq-alm-update}
+
+二次项改善了子问题对不可行方向的曲率，而乘子更新会累积约束残差。与单纯令惩罚参数趋于无穷不同，增广 Lagrangian 可以使用适中的 $\rho$，减少病态性。
+
+若 $f$ 闭、正常、凸，原问题可行且存在鞍点，并且每个 $x$ 子问题精确求解，则在标准条件下
+
+$$
+Ax_k-b\to0,
+\qquad
+f(x_k)\to p^\star.
+$$
+
+更深一层的解释是：乘子更新等价于对凹对偶函数执行近端点法。若对偶最优解 $\nu^\star$ 存在且 $\rho$ 固定，则相应对偶目标误差具有 $O(1/k)$ 的近端点速率。实际采用非精确子问题时，通常要求求解误差可控，例如误差序列可求和。
+
+不等式约束可以通过松弛变量转为等式，或使用带投影的乘子更新；但符号、锥结构和可行域会随具体模型变化，不应把等式形式机械照搬。
+
+## ADMM
+
+若增广 Lagrangian 的联合 $x$ 子问题仍然很难，但目标可以分成两块，交替方向乘子法会分别利用每一块的结构。
+
+考虑
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& f(x)+g(z)\\
+\operatorname{subject\ to}\quad
+& Ax+Bz=c,
+\end{aligned}
+$$ {#eq-admm-problem}
+
+其中 $f,g$ 为闭正常凸函数。令缩放乘子 $u=\nu/\rho$，两块 ADMM 为
+
+$$
+x_{k+1}
+\in
+\operatorname*{argmin}_x
+\left\{
+f(x)
++\frac\rho2
+\lVert Ax+Bz_k-c+u_k\rVert_2^2
+\right\},
+$$
+
+$$
+z_{k+1}
+\in
+\operatorname*{argmin}_z
+\left\{
+g(z)
++\frac\rho2
+\lVert Ax_{k+1}+Bz-c+u_k\rVert_2^2
+\right\},
+$$
+
+$$
+u_{k+1}
+=
+u_k+Ax_{k+1}+Bz_{k+1}-c.
+$$ {#eq-admm-updates}
+
+它不是同时最小化增广 Lagrangian，而是先固定 $z$ 更新 $x$，再使用新 $x$ 更新 $z$，最后做乘子更新。
+
+### 原始残差与对偶残差
+
+原始残差为
+
+$$
+r_{k+1}=Ax_{k+1}+Bz_{k+1}-c.
+$$
+
+对偶残差可以写为
+
+$$
+s_{k+1}
+=
+\rho A^\top B(z_{k+1}-z_k).
+$$
+
+$r_k$ 衡量约束违反，$s_k$ 衡量相邻分块更新引起的对偶驻点误差。常用停止条件同时要求
+
+$$
+\lVert r_k\rVert_2\le\varepsilon_{\mathrm{pri}},
+\qquad
+\lVert s_k\rVert_2\le\varepsilon_{\mathrm{dual}}.
+$$
+
+只观察目标值可能掩盖严重的不可行性。
+
+### 变量分裂例子
+
+对
+
+$$
+\min_x \ell(x)+\lambda\lVert x\rVert_1,
+$$
+
+引入 $z$ 并约束 $x=z$：
+
+$$
+\min_{x,z}
+\ell(x)+\lambda\lVert z\rVert_1
+\quad
+\text{s.t.}\quad x-z=0.
+$$
+
+于是 $x$ 更新只处理光滑损失与二次项，$z$ 更新则是软阈值：
+
+$$
+z_{k+1}
+=
+\operatorname{prox}_{(\lambda/\rho)\lVert\cdot\rVert_1}
+(x_{k+1}+u_k).
+$$
+
+变量分裂的目的不是增加变量，而是把一个困难联合问题改造成两个结构清楚的子问题。
+
+### 收敛边界
+
+若 $f,g$ 闭正常凸，未增广 Lagrangian 存在鞍点，两个子问题可解并被精确求解，则标准两块 ADMM 满足
+
+$$
+r_k\to0,
+\qquad
+f(x_k)+g(z_k)\to p^\star,
+$$
+
+并在常见有界性条件下对遍历平均量给出 $O(1/k)$ 的原始—对偶误差。若还具有强凸性、光滑性或满秩等附加结构，可得到线性收敛，但这些条件不能省略。
+
+直接把两块 ADMM 逐项推广到三个或更多分块可能发散；非凸 ADMM 也不能直接沿用上述结论。
+
+## 方法选择速查
+
+| 结构 | 首选入口 | 关键条件或代价 |
+|---|---|---|
+| 一般不可微凸目标 | 次梯度法 | 只需次梯度，但速率通常为 $O(1/\sqrt k)$ |
+| 光滑项 + 简单不可微项 | 近端梯度 | 近端映射可高效计算，基本速率 $O(1/k)$ |
+| 同上且追求更快一阶速率 | FISTA | $O(1/k^2)$，但函数值未必单调 |
+| 高维可分变量 | 坐标下降 | 单坐标更新便宜，最好有坐标 Lipschitz 常数 |
+| 中等维、高精度、Hessian 可用 | Newton | 线性系统成本高，局部二次收敛 |
+| 高维光滑问题、Hessian 不便形成 | L-BFGS | 用梯度差学习曲率，需线搜索保护 |
+| 等式约束、联合子问题可解 | 增广 Lagrangian | 乘子更新 + 二次惩罚 |
+| 可分目标 + 线性耦合约束 | 两块 ADMM | 分块子问题简单，必须同时监控两类残差 |
+
+## 典型误区
+
+1. **任意次梯度都是下降方向。** 次梯度法允许函数值短暂上升，收敛来自累积距离界。
+2. **近端算子只是投影的另一种写法。** 投影对应指示函数；一般近端算子还编码正则项或损失结构。
+3. **加速法每轮都优于基本梯度法。** 加速改善最坏情形阶数，但可能振荡，且对误差与参数更敏感。
+4. **Newton 法天然全局收敛。** 二次收敛是局部结论，远离解时需要阻尼或线搜索。
+5. **BFGS 在任何更新下都保持正定。** 必须保证 $y_k^\top s_k>0$。
+6. **惩罚参数越大越好。** 过大的 $\rho$ 会让子问题病态；它还改变 ADMM 两类残差的平衡。
+7. **两块 ADMM 的结论可直接用于任意多块或非凸问题。** 这些推广需要额外算法修正与理论条件。
+
+## 本附录小结
+
+次微分把不可微凸优化的最优性条件统一为 $0\in\partial f(x^\star)$；近端算子进一步把可计算的不可微结构变成单步精确子问题。近端梯度与 FISTA 分别给出 $O(1/k)$ 与 $O(1/k^2)$ 的复合优化模板；坐标法利用可分性；Newton 与 BFGS 利用曲率；增广 Lagrangian 与 ADMM 则通过乘子和变量分裂处理约束耦合。选择算法时，应首先判断哪一个基本操作——完整梯度、单坐标、Hessian 线性系统、近端映射或分块子问题——最容易计算。
+
+本附录默认一阶信息可被准确计算。带噪梯度、非 Euclidean 几何、在线遗憾与 one-pass 接口见 @sec-stochastic-online。

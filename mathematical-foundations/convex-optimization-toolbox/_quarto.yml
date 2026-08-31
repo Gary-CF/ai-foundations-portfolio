@@ -31,6 +31,7 @@ book:
         - appendices/mathematical-toolbox.qmd
         - appendices/conic-optimization.qmd
         - appendices/advanced-algorithms.qmd
+        - appendices/stochastic-online-optimization.qmd
         - appendices/notation.qmd
 
 format:

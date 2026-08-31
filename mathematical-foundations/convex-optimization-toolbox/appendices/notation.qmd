@@ -21,5 +21,23 @@
 | $L$ | 梯度 Lipschitz 常数 |
 | $\kappa=L/\mu$ | 强凸光滑问题的条件数 |
 | $\eta_k$ | 第 $k$ 次迭代的步长 |
+| $\partial f(x)$ | 凸函数 $f$ 在 $x$ 处的次微分 |
+| $N_C(x)$ | 闭凸集 $C$ 在 $x$ 处的法锥 |
+| $\operatorname{prox}_{\eta g}$ | 参数为 $\eta$ 的近端算子 |
+| $G_\eta(x)$ | 近端梯度映射 |
+| $L_i$ | 第 $i$ 个坐标方向的 Lipschitz 常数 |
+| $K^\star$ | 锥 $K$ 的对偶锥 |
+| $\mathcal Q^n$ | $n$ 维二阶锥 |
+| $\mathbb S_+^n$ | $n\times n$ 实对称半正定锥 |
+| $\rho$ | 增广 Lagrangian 或 ADMM 的惩罚参数 |
+| $r_k,s_k$ | ADMM 的原始残差与对偶残差 |
+| $\widehat g_t$ | 第 $t$ 轮获得的随机梯度估计 |
+| $\mathbb E_t[\cdot]$ | 给定第 $t$ 轮以前历史后的条件期望 |
+| $\psi$ | 镜像下降的强凸正则函数 |
+| $D_\psi(y,x)$ | 由 $\psi$ 生成的 Bregman 散度 |
+| $\Delta_n$ | $n$ 维概率单纯形 |
+| $R_T(u)$ | 相对固定比较点 $u$ 的静态遗憾 |
+| $R_T^{\mathrm{dyn}}$ | 相对时变比较序列的动态遗憾 |
+| $P_T$ | 比较点序列的路径长度 |
 
 全书约定：向量使用小写字母，矩阵使用大写字母，梯度使用列向量；最优点写作 $x^\star$，最优值写作 $p^\star$。

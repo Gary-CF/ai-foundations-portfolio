@@ -70,7 +70,7 @@ $$
 则称 $K$ 为凸锥。等价地，$K$ 对任意锥组合封闭：
 
 $$
-x,y\in K,quad \alpha,\beta\ge0
+x,y\in K,\quad \alpha,\beta\ge0
 \quad\Longrightarrow\quad
 \alpha x+\beta y\in K.
 $$
@@ -230,6 +230,8 @@ z^\top\bigl(\theta X+(1-\theta)Y\bigr)z
 \theta z^\top Xz+(1-\theta)z^\top Yz
 \ge0.
 $$
+
+正常锥、对偶锥以及二阶锥和半正定锥所诱导的广义不等式在 @sec-conic-optimization 中统一整理。
 
 ## 保持凸性的集合运算
 

@@ -231,7 +231,7 @@ $$
 R(x)=\lVert x\rVert_1,
 $$
 
-其单位球带有尖角，最优解更容易落在坐标轴或低维面上，从而产生稀疏性。Lasso 是凸问题，但目标在坐标为零处不可微，需要近端或坐标类方法；算法细节留在 P1。
+其单位球带有尖角，最优解更容易落在坐标轴或低维面上，从而产生稀疏性。Lasso 是凸问题，但目标在坐标为零处不可微。软阈值近端映射、近端梯度和坐标下降的算法模板见 @sec-advanced-algorithms。
 
 ## 最小范数问题
 
@@ -319,7 +319,7 @@ $$ {#eq-hyperplane-projection}
 $$
 (x_i,y_i),
 \qquad
-x_i\in\mathbb R^n,quad y_i\in\{-1,+1\},
+x_i\in\mathbb R^n,\quad y_i\in\{-1,+1\},
 $$
 
 仿射分类器为
@@ -454,6 +454,10 @@ $$ {#eq-logistic-regression}
 | 最近可行点 | 投影问题 | 二次目标 + 凸约束 |
 | 最大间隔分类 | SVM / QP | 归一化函数间隔 |
 | 概率分类 | Logistic 回归 | log-sum-exp 原子 |
+| Euclidean 范数约束 | SOCP | 仿射映射进入二阶锥 |
+| 线性矩阵与谱约束 | SDP | 仿射映射进入半正定锥 |
+
+LP、SOCP 与 SDP 的统一锥形式、对偶和 Slater 条件见 @sec-conic-optimization。
 
 ## 典型误区
 

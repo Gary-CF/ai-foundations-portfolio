@@ -301,7 +301,7 @@ $$
 $$
 \text{寻找 }x
 \quad\text{使得}\quad
-x\in\mathcal X,quad f(x)\le t
+x\in\mathcal X,\quad f(x)\le t
 $$ {#eq-quasiconvex-feasibility}
 
 对固定 $t$ 是凸可行性问题。
