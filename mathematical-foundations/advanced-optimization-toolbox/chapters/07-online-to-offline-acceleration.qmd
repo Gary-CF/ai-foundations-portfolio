@@ -1,21 +1,211 @@
 # 从在线遗憾到离线加速 {#sec-online-to-offline-acceleration}
 
-本章解释在线算法的自适应遗憾如何经过稳定转换，重新产生离线优化中的加速率。
+普通 online-to-batch 把 $O(\sqrt T)$ 遗憾除以 $T$，得到 $O(T^{-1/2})$。若在线算法能利用光滑目标产生的梯度可预测性，并让累计权重增长到 $\Theta(T^2)$，同一转换可以得到 $O(T^{-2})$。关键不是机械加权，而是稳定转换、optimism 和负稳定项三者匹配。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 9，并参考 Lecture 4 与 AOPT_Holder。稳定 online-to-batch 和 optimism design 进入正文；Hölder 光滑下的通用最优率留在研究接口附录。
+本章对应 Lecture 9，并与 Lecture 4 的 Nesterov 加速结果对照。完整保留 stabilized online-to-batch 的恒等式和 optimism 设计；Hölder 光滑下的 universal 方法只留研究接口。
 :::
 
-## 普通 online-to-batch 的限制
+## 普通转换的上限
 
-## 稳定 online-to-batch
+对凸函数 $F$，第 @sec-ogd-online-to-batch 章的基本转换给出
 
-## Optimism design
+$$
+F\!\left(\frac1T\sum_{t=1}^Tx_t\right)-F(x^*)
+\le
+\frac{\operatorname{Reg}_T(x^*)}{T}.
+$$
 
-## Gradient variation 与光滑加速
+若在线算法只有 $O(\sqrt T)$ 最坏情形遗憾，离线速率就是 $O(T^{-1/2})$。即使 $F$ 光滑，重复使用同一个静态在线损失构造也不会自动产生 $O(T^{-2})$；必须让在线损失序列显露“相邻梯度越来越接近”的结构。
+
+variation 型遗憾提供了入口，但普通均匀平均会让查询点变化不够稳定，无法充分利用 OOMD 中的负项。
+
+## 稳定加权平均
+
+取权重 $\alpha_t>0$，记
+
+$$
+A_t=\sum_{s=1}^t\alpha_s,
+\qquad
+\bar x_t=\frac1{A_t}\sum_{s=1}^t\alpha_sx_s.
+$$ {#eq-stabilized-average}
+
+它满足递推恒等式
+
+$$
+A_t\bar x_t=A_{t-1}\bar x_{t-1}+\alpha_tx_t,
+$$
+
+从而
+
+$$
+\alpha_t(\bar x_t-x_t)
+=
+A_{t-1}(\bar x_{t-1}-\bar x_t).
+$$ {#eq-stabilization-identity}
+
+这条恒等式把当前在线点与平均点的差，转成相邻平均点之间的移动；后者会在凸性求和中望远镜消去。
+
+定义线性在线损失
+
+$$
+\ell_t(x)
+=
+\alpha_t\langle\nabla F(\bar x_t),x\rangle.
+$$ {#eq-stabilized-online-loss}
+
+::: {.callout-note title="定理：stabilized online-to-batch"}
+若 $F$ 凸，$x_t\in\mathcal X$，并由 @eq-stabilized-average 产生 $\bar x_t$，则
+
+$$
+F(\bar x_T)-F(x^*)
+\le
+\frac1{A_T}
+\sum_{t=1}^T
+\bigl(\ell_t(x_t)-\ell_t(x^*)\bigr)
+=
+\frac{\operatorname{Reg}_T(x^*)}{A_T}.
+$$ {#eq-stabilized-o2b}
+:::
+
+证明的关键不是只用一次 Jensen，而是利用 @eq-stabilization-identity：
+
+$$
+\begin{aligned}
+\alpha_t\langle\nabla F(\bar x_t),\bar x_t-x_t\rangle
+&=
+A_{t-1}\langle\nabla F(\bar x_t),\bar x_{t-1}-\bar x_t\rangle\\
+&\le
+A_{t-1}\bigl(F(\bar x_{t-1})-F(\bar x_t)\bigr).
+\end{aligned}
+$$
+
+与 $\alpha_t(F(\bar x_t)-F(x^*))$ 求和后，函数值项精确望远镜，留下 @eq-stabilized-o2b。
+
+## 为什么要取 $\alpha_t=t$
+
+若 $\alpha_t=t$，则
+
+$$
+A_T=\frac{T(T+1)}2=\Theta(T^2).
+$$
+
+因此只要能让加权在线遗憾保持 $O(1)$，除以 $A_T$ 后就得到 $O(T^{-2})$。但加权损失的梯度为
+
+$$
+\nabla\ell_t(x)=\alpha_t\nabla F(\bar x_t),
+$$
+
+其幅度随 $t$ 增大。普通 OGD 会因此付出快速增长的二阶项；必须用 optimism 预测这个大梯度。
+
+## Optimism 设计
+
+在选择 $x_t$ 前，真正的平均点 $\bar x_t$ 尚未确定，因为它包含 $x_t$。构造可预先计算的稳定预测点
+
+$$
+\widetilde x_t
+=
+\frac1{A_t}
+\left(
+\sum_{s=1}^{t-1}\alpha_sx_s
++\alpha_tx_{t-1}
+\right).
+$$ {#eq-stabilized-prediction-point}
+
+由定义，
+
+$$
+\bar x_t-\widetilde x_t
+=
+\frac{\alpha_t}{A_t}(x_t-x_{t-1}).
+$$ {#eq-stabilized-gap}
+
+对在线损失 @eq-stabilized-online-loss，选择 optimism
+
+$$
+M_t=\alpha_t\nabla F(\widetilde x_t),
+\qquad
+g_t=\alpha_t\nabla F(\bar x_t).
+$$ {#eq-acceleration-optimism}
+
+若 $F$ 为 $L$-光滑，则
+
+$$
+\|g_t-M_t\|_2
+\le
+\frac{L\alpha_t^2}{A_t}\|x_t-x_{t-1}\|_2.
+$$ {#eq-acceleration-prediction-error}
+
+当 $\alpha_t=t$ 时，$\alpha_t^2/A_t=O(1)$。因此预测误差不再随 $t$ 爆炸，而是与相邻在线点移动成正比。
+
+## 负稳定项完成抵消
+
+Euclidean Optimistic OMD 的精细遗憾界具有形式
+
+$$
+\operatorname{Reg}_T(u)
+\le
+\frac{D^2}{2\eta}
++\eta\sum_{t=1}^T\|g_t-M_t\|_2^2
+-\frac1{4\eta}\sum_{t=1}^T\|x_t-x_{t-1}\|_2^2,
+$$ {#eq-acceleration-oomd-bound}
+
+其中 $D$ 控制初始 Bregman 半径。将 @eq-acceleration-prediction-error 代入：
+
+$$
+\eta\|g_t-M_t\|_2^2
+\le
+\eta L^2\frac{\alpha_t^4}{A_t^2}
+\|x_t-x_{t-1}\|_2^2.
+$$
+
+对 $\alpha_t=t$，系数 $\alpha_t^4/A_t^2=O(1)$。取 $\eta=\Theta(1/L)$，正的预测误差项被 @eq-acceleration-oomd-bound 中的负稳定项吸收，于是
+
+$$
+\operatorname{Reg}_T(x^*)=O(LD^2).
+$$ {#eq-constant-weighted-regret}
+
+再由 $A_T=\Theta(T^2)$ 和 @eq-stabilized-o2b，
+
+$$
+F(\bar x_T)-F(x^*)
+=O\!\left(\frac{LD^2}{T^2}\right).
+$$ {#eq-oomd-accelerated-rate}
+
+这正是光滑凸优化的一阶最优加速阶。
 
 ## 与 Nesterov 加速的关系
 
+两种视角的变量可以对应起来：
+
+| Nesterov 视角 | Optimistic OMD 视角 |
+|---|---|
+| 梯度计算点 | 稳定平均点 $\bar x_t$ |
+| 动量/预测点 | $\widetilde x_t$ |
+| 特定动量系数 | 线性权重 $\alpha_t=t$ |
+| 势函数抵消 | OOMD 负稳定项吸收预测误差 |
+
+这不是说所有加速法都等于同一个 OOMD 实现，而是揭示共同结构：构造一个比真实查询点提前一步的稳定预测，并让系数保证误差可以望远镜或被负项吸收。
+
 ## 未知光滑性与 universality
 
-## 适用条件与方法边界
+上述推导使用 $\eta=\Theta(1/L)$。若 $L$ 未知，可以考虑：
+
+- 回溯线搜索或 doubling；
+- 多学习率专家聚合；
+- 由观测到的预测误差自适应调节学习率；
+- Hölder 光滑类上的 universal 方法。
+
+这些方法要同时处理未知平滑阶、未知尺度与模型选择开销。AOPT_Holder 中的完整 universal 结果属于 P2 研究接口，本章不展开其多层 ensemble 证明。
+
+## 适用边界
+
+::: {.callout-warning title="典型误用"}
+- 只取 $\alpha_t=t$，却没有让加权在线遗憾保持常数；此时 $A_T=\Theta(T^2)$ 并不自动带来加速。
+- 用 $\bar x_t$ 构造 $M_t$；它包含尚未产生的 $x_t$，违反在线时序。
+- 在 @eq-acceleration-oomd-bound 中丢掉负稳定项后，仍声称能得到 $O(T^{-2})$。
+- 对非光滑目标沿用 @eq-acceleration-prediction-error；梯度 Lipschitz 性正是抵消成立的关键。
+- 把 online-to-batch 的函数值输出保证误读为最后一个原始在线点 $x_T$ 的保证。
+:::
+
+本章的加速模板可以压缩成：**线性增长的权重制造 $T^2$ 分母，稳定平均制造可预测梯度，Optimistic OMD 的负项支付预测误差。**

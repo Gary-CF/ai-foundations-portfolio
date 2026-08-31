@@ -4,18 +4,113 @@
 
 ## 势函数下降
 
+选择非负势函数 $\Phi_t(u)$，把单轮误差写成
+
+$$
+\text{gap}_t
+\le
+\Phi_t(u)-\Phi_{t+1}(u)+\text{stability}_t.
+$$
+
+Euclidean 方法使用平方距离；Hedge 使用 log-partition；OMD 使用 Bregman 散度；ONS 与 LinUCB 使用 log-determinant。
+
 ## 望远镜求和
+
+固定系数时直接消去中间项。时变学习率时先展开
+
+$$
+\sum_{t=1}^T\frac{a_t-a_{t+1}}{\eta_t}
+=
+\frac{a_1}{\eta_1}
++\sum_{t=2}^Ta_t
+\left(\frac1{\eta_t}-\frac1{\eta_{t-1}}\right)
+-\frac{a_{T+1}}{\eta_T}.
+$$
+
+必须检查 $1/\eta_t$ 的单调性，再用势函数上界控制新增项。
 
 ## 凸性线性化
 
+$$
+f_t(x_t)-f_t(u)
+\le
+\langle g_t,x_t-u\rangle.
+$$
+
+它把一般凸损失化为线性损失，但只给上界；后续算法实际处理的是 $g_t$ 及其几何。
+
 ## 强凸负二次项
+
+$$
+f_t(x_t)-f_t(u)
+\le
+\langle g_t,x_t-u\rangle
+-\frac\mu2\|x_t-u\|^2.
+$$
+
+选 $1/\eta_t$ 的增量与 $\mu$ 匹配，使负项抵消时变势函数系数。若强凸参数随轮次变化，应匹配累计强凸性。
 
 ## 指数权重与 log-partition
 
+1. 定义 $W_t=\sum_i e^{-\eta L_{t,i}}$；
+2. 用最佳专家下界 $\log W_T$；
+3. 用指数函数二阶上界控制 $\log(W_t/W_{t-1})$；
+4. 保留 $\sum_{t,i}p_{t,i}\ell_{t,i}^2$，需要自适应界时不要过早替换成 $T$。
+
 ## 重要性加权估计
+
+Bandit 降到全信息通常检查三件事：
+
+$$
+\mathbb E_t[\widehat\ell_t]=\ell_t,
+\qquad
+\langle p_t,\widehat\ell_t\rangle=\ell_{t,a_t},
+\qquad
+\mathbb E_t\|\widehat\ell_t\|_{p_t}^2\le\text{variance budget}.
+$$
+
+只有无偏性不够；遗憾通常由估计器二阶矩主导。
 
 ## 椭圆势函数
 
+若
+
+$$
+V_t=V_{t-1}+x_tx_t^\top,
+$$
+
+矩阵行列式引理把局部不确定性转成 log-determinant：
+
+$$
+\sum_{t=1}^T\min\{1,\|x_t\|_{V_{t-1}^{-1}}^2\}
+\le
+2\log\frac{\det V_T}{\det V_0}.
+$$
+
+再用 trace–determinant 关系把它上界为 $O(d\log T)$。
+
 ## 步长优化
 
+面对
+
+$$
+\frac{A}{\eta}+B\eta,
+$$
+
+事后最优步长为 $\eta^*=\sqrt{A/B}$，最优值为 $2\sqrt{AB}$。若 $A,B$ 或 $T$ 事前未知，必须说明 doubling、self-confident tuning 或 parameter-free 机制，不能直接使用未来量。
+
 ## 速率、假设与输出点对照
+
+每个结论交付前填写：
+
+| 检查项 | 需要写明 |
+|---|---|
+| 问题结构 | 凸、强凸、光滑、exp-concave |
+| 信息模型 | 全信息、一阶、Bandit、随机 oracle |
+| 环境 | 随机、oblivious、adaptive/non-anticipating |
+| 有界条件 | 域直径、梯度、损失、噪声尾部 |
+| 输出 | 最后点、最佳点、均匀/加权平均 |
+| 结论类型 | 逐路径、期望、高概率、anytime |
+| 参数依赖 | $D,G,L,\mu,d,K,\delta$ |
+
+若其中一项无法回答，通常说明定理还没有被完整转录。

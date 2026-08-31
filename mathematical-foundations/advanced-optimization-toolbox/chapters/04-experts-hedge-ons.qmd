@@ -1,21 +1,236 @@
 # 专家建议、Hedge 与二阶曲率 {#sec-experts-hedge-ons}
 
-本章从有限专家集合出发，建立指数权重方法，并说明 exp-concavity 如何支持二阶在线算法。
+当决策是“如何组合 $N$ 个专家”时，可行域是概率单纯形。直接使用 Euclidean OGD 会引入不理想的维数因子；指数权重则自然产生 $\sqrt{\log N}$。本章先完整分析 Hedge，再说明局部二阶曲率如何导出 Online Newton Step（ONS）。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 6。Hedge 在本章完整定义和分析；后续章节只将它作为负熵 OMD/FTRL 的实例，不再重复证明。
+本章对应 Lecture 6。Hedge 的 log-sum-exp 势函数证明完整保留；ONS 只保留 exp-concavity 二次下界、矩阵更新和椭圆势函数主链，不展开行列式代数的每个中间步骤。
 :::
 
-## Prediction with Expert Advice
+## 专家建议协议
 
-## Hedge 与乘法权重更新
+有 $N$ 个专家。第 $t$ 轮：
+
+1. 学习器选择权重 $p_t\in\Delta_N$；
+2. 环境给出损失向量 $\ell_t\in[0,1]^N$；
+3. 学习器损失为 $\langle p_t,\ell_t\rangle$。
+
+其中
+
+$$
+\Delta_N
+=
+\left\{p\in\mathbb R_+^N:\sum_{i=1}^Np_i=1\right\}.
+$$
+
+相对于最佳单个专家的遗憾为
+
+$$
+\operatorname{Reg}_T
+=
+\sum_{t=1}^T\langle p_t,\ell_t\rangle
+-\min_{i\in[N]}\sum_{t=1}^T\ell_{t,i}.
+$$ {#eq-expert-regret}
+
+选择“目前累计损失最小的专家”的 Follow the Leader 可能在交替损失下每轮追错方向，产生 $\Theta(T)$ 遗憾。Hedge 用 softmin 代替硬最小化，使历史领先程度平滑地转化为权重。
+
+## Hedge：指数权重更新
+
+记
+
+$$
+L_{t,i}=\sum_{s=1}^t\ell_{s,i},
+\qquad L_{0,i}=0.
+$$
+
+固定学习率 $\eta>0$ 时，Hedge 取
+
+$$
+p_{t,i}
+=
+\frac{\exp(-\eta L_{t-1,i})}
+{\sum_{j=1}^N\exp(-\eta L_{t-1,j})}.
+$$ {#eq-hedge-update}
+
+等价的乘法更新为
+
+$$
+p_{t+1,i}
+\propto
+p_{t,i}\exp(-\eta\ell_{t,i}).
+$$
+
+固定 $\eta$ 时两式相同；当学习率随时间变化时，“对累计损失重新计算”的 lazy update 与“在旧权重上乘一次”的 greedy update 不再自动等价，必须明确算法版本。
 
 ## Log-sum-exp 势函数证明
 
-## 最优维数依赖与下界
+令未归一化总权重
 
-## Exp-concavity
+$$
+W_t=\sum_{i=1}^N\exp(-\eta L_{t,i}).
+$$
+
+一方面，对任意专家 $i$，
+
+$$
+\log W_T\ge-\eta L_{T,i}.
+$$ {#eq-hedge-potential-lower}
+
+另一方面，由 $e^{-\eta x}\le1-\eta x+\eta^2x^2$（$x\in[0,1]$，取适当的小学习率）以及 $\log(1+z)\le z$，
+
+$$
+\begin{aligned}
+\log\frac{W_t}{W_{t-1}}
+&=
+\log\sum_{i=1}^Np_{t,i}e^{-\eta\ell_{t,i}}\\
+&\le
+-\eta\langle p_t,\ell_t\rangle
++\eta^2\sum_{i=1}^Np_{t,i}\ell_{t,i}^2.
+\end{aligned}
+$$ {#eq-hedge-potential-one-step}
+
+对 $t$ 求和，并用 $W_0=N$ 与 @eq-hedge-potential-lower，得到对任意 $i$，
+
+$$
+\sum_{t=1}^T\langle p_t,\ell_t\rangle-L_{T,i}
+\le
+\frac{\log N}{\eta}
++\eta\sum_{t=1}^T\sum_{j=1}^Np_{t,j}\ell_{t,j}^2.
+$$ {#eq-hedge-second-order-bound}
+
+由于 $0\le\ell_{t,i}\le1$，二阶项至多为 $T$，于是
+
+$$
+\operatorname{Reg}_T
+\le
+\frac{\log N}{\eta}+\eta T.
+$$ {#eq-hedge-basic-bound}
+
+取
+
+$$
+\eta=\sqrt{\frac{\log N}{T}},
+$$
+
+便有
+
+$$
+\operatorname{Reg}_T\le2\sqrt{T\log N}.
+$$ {#eq-hedge-rate}
+
+这里的 $\log N$ 来自初始总权重与最佳专家单个权重之间的势函数差，而不是把 $N$ 维坐标逐一求和得到。
+
+## 维数依赖与下界
+
+对任意专家算法，都存在 $[0,1]^N$ 中的损失序列使
+
+$$
+\operatorname{Reg}_T=\Omega(\sqrt{T\log N}).
+$$
+
+因此 Hedge 在最坏情形下达到最优阶。若实际损失很小，@eq-hedge-second-order-bound 中的二阶项可能远小于 $T$；第 @sec-adaptive-optimistic-online 章会利用这一点得到 small-loss 界。
+
+## Exp-concavity：弱于强凸但强于普通凸
+
+若 $x\mapsto e^{-\alpha f(x)}$ 在 $\mathcal X$ 上凹，则称 $f$ 为 $\alpha$-exp-concave。典型例子包括适当定义域上的对数损失和投资组合的负对数收益。
+
+设 $\|\nabla f(x)\|_2\le G$，$\mathcal X$ 直径至多为 $D$。对
+
+$$
+\gamma
+\le
+\frac12\min\left\{\frac1{GD},\alpha\right\},
+$$
+
+exp-concavity 蕴含局部二次下界
+
+$$
+f(x)
+\ge
+f(y)+\langle\nabla f(y),x-y\rangle
++\frac\gamma2
+\langle\nabla f(y),x-y\rangle^2.
+$$ {#eq-exp-concave-quadratic-lower}
+
+与强凸性的 $\|x-y\|_2^2$ 不同，这里的曲率只沿当前梯度方向出现：
+
+$$
+\langle\nabla f(y),x-y\rangle^2
+=(x-y)^\top
+\nabla f(y)\nabla f(y)^\top(x-y).
+$$
+
+因此合适的几何应累计历史梯度外积，而不是始终使用单位矩阵。
 
 ## Online Newton Step
 
-## 二阶几何的收益与代价
+令
+
+$$
+A_0=\varepsilon I,
+\qquad
+A_t=A_{t-1}+g_tg_t^\top,
+\qquad
+g_t=\nabla f_t(x_t).
+$$ {#eq-ons-matrix}
+
+ONS 更新为
+
+$$
+x_{t+1}
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\|
+x-\left(x_t-\frac1\gamma A_t^{-1}g_t\right)
+\right\|_{A_t}^2,
+$$ {#eq-ons-update}
+
+其中 $\|z\|_{A}^2=z^\top Az$。它可以理解为在累计二阶几何 $A_t$ 下做一次预条件梯度步。
+
+对 @eq-ons-update 做加权投影展开，再用 @eq-exp-concave-quadratic-lower，可得
+
+$$
+\operatorname{Reg}_T(u)
+\le
+\frac\gamma2\|x_1-u\|_{A_0}^2
++\frac1{2\gamma}
+\sum_{t=1}^T\|g_t\|_{A_t^{-1}}^2.
+$$ {#eq-ons-regret-template}
+
+关键的椭圆势函数引理为
+
+$$
+\sum_{t=1}^T\|g_t\|_{A_t^{-1}}^2
+\le
+\log\frac{\det A_T}{\det A_0}
+\le
+d\log\left(1+\frac{G^2T}{\varepsilon d}\right).
+$$ {#eq-elliptical-potential-ons}
+
+适当选择 $\varepsilon$ 后，得到
+
+$$
+\operatorname{Reg}_T
+=O\!\left(
+d\left(\frac1\alpha+GD\right)\log T
+\right).
+$$ {#eq-ons-log-regret}
+
+ONS 不要求损失强凸，却借助 exp-concavity 达到对数遗憾；代价是显式的维数 $d$、矩阵存储与求逆/递推更新。
+
+## 何时值得使用二阶几何
+
+| 方法 | 利用的结构 | 遗憾阶 | 每轮主要代价 |
+|---|---|---:|---|
+| OGD | 普通凸性 | $O(\sqrt T)$ | 向量更新与投影 |
+| 强凸 OGD | 全方向强曲率 | $O(\log T)$ | 向量更新与投影 |
+| ONS | 梯度方向的 exp-concave 曲率 | $O(d\log T)$ | 维护 $d\times d$ 矩阵 |
+| Hedge | 单纯形 + 负熵几何 | $O(\sqrt{T\log N})$ | $N$ 个权重 |
+
+::: {.callout-warning title="典型误区"}
+- 把 exp-concavity 当成强凸性；前者的二次项依赖梯度方向。
+- 在可变学习率下混用 lazy 与 greedy Hedge 更新。
+- 只看到 ONS 的 $\log T$，忽略其 $d$ 依赖和矩阵计算代价。
+- 用 Euclidean 直径分析单纯形，得到 $\sqrt N$ 后误以为这是专家问题的固有维数代价。
+:::
+
+下一章将用 Bregman 散度统一解释：OGD、Hedge 与 ONS 其实是在不同几何下运行的同一类近端更新。

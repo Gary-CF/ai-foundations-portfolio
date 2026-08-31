@@ -1,29 +1,297 @@
 # 随机多臂 Bandit {#sec-stochastic-bandits}
 
-随机 Bandit 假设每个臂具有固定但未知的奖励分布，使置信区间和后验不确定性能够指导自适应探索。
+随机 Bandit 假设每个动作背后有固定但未知的奖励分布。与对抗 Bandit 不同，重复拉取同一臂会产生可累积的统计证据，因此探索可以逐渐集中到仍有可能最优的臂。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 11。ETC、UCB、Thompson Sampling 及 gap-dependent/gap-independent 界为 P0；best-of-both-worlds 与 Best Arm Identification 保留为 P1 接口。
+本章对应 Lecture 11。ETC 保留一次完整误判分析，UCB 保留置信事件上的计数证明，Thompson Sampling 保留后验更新和结论边界；best-of-both-worlds 与 Best Arm Identification 只作为进阶接口。
 :::
 
-## 随机 MAB 与 gap
+## 随机 MAB 模型
 
-## 遗憾分解
+有 $K$ 个臂。臂 $a$ 的奖励独立同分布于未知分布 $\mathcal D_a$，均值为
 
-## 探索—利用矛盾
+$$
+\mu_a=\mathbb E_{r\sim\mathcal D_a}[r].
+$$
+
+记最优均值与一个最优臂为
+
+$$
+\mu^*=\max_{a\in[K]}\mu_a,
+\qquad
+a^*\in\operatorname*{argmax}_{a\in[K]}\mu_a.
+$$
+
+第 $t$ 轮选择 $a_t$，只观察 $r_t\sim\mathcal D_{a_t}$。次优差定义为
+
+$$
+\Delta_a=\mu^*-\mu_a\ge0.
+$$ {#eq-bandit-gap}
+
+$\Delta_a$ 越小，臂 $a$ 越难与最优臂区分，但误选一次的代价也越小。
+
+## 伪遗憾与计数分解
+
+记臂 $a$ 在前 $T$ 轮被选择的次数为
+
+$$
+N_T(a)=\sum_{t=1}^T\mathbf 1\{a_t=a\}.
+$$
+
+伪遗憾为
+
+$$
+\overline R_T
+=
+T\mu^*-\sum_{t=1}^T\mu_{a_t}.
+$$
+
+代入 @eq-bandit-gap，得到随机 MAB 最重要的分解：
+
+$$
+\overline R_T
+=
+\sum_{a=1}^K\Delta_aN_T(a),
+\qquad
+\mathbb E[\overline R_T]
+=
+\sum_{a=1}^K\Delta_a\mathbb E[N_T(a)].
+$$ {#eq-stochastic-regret-decomposition}
+
+因此证明遗憾界等价于控制每个次优臂被拉取多少次。真实累计奖励遗憾还包含样本噪声；在期望下通常与伪遗憾一致，但高概率陈述时不能混用。
+
+## 两类难度刻画
+
+随机 MAB 有两类互补结论：
+
+- **gap-dependent**：依赖具体 $\Delta_a$，描述固定实例的渐近难度；
+- **gap-independent**：消去未知 gap，给出所有实例上的 minimax 保证。
+
+在典型次高斯奖励下，任何一致算法都受到 Lai–Robbins 型下界
+
+$$
+\liminf_{T\to\infty}
+\frac{\mathbb E[\overline R_T]}{\log T}
+\ge
+\sum_{a:\Delta_a>0}
+\frac{\Delta_a}
+{\operatorname{KL}(\mathcal D_a\|\mathcal D_{a^*})}.
+$$ {#eq-lai-robbins-lower}
+
+当 KL 散度与 $\Delta_a^2$ 同阶时，右侧为 $\Omega(\sum_a(\log T)/\Delta_a)$。另一方面，最坏实例的 minimax 下界为
+
+$$
+\Omega(\sqrt{KT}).
+$$
+
+小 gap 不会与两类下界矛盾：若 $\Delta\asymp\sqrt{K/T}$，实例依赖式本身就过渡到 $\sqrt{KT}$ 尺度。
 
 ## Explore-Then-Commit
 
-## 固定探索率及其局限
+ETC 先均匀探索，再永久提交给经验均值最大的臂。设探索总长度为 $T_0$，每个臂被探索
 
-## Upper Confidence Bound
+$$
+m=\frac{T_0}{K}
+$$
 
-## Gap-dependent 遗憾界
+次；之后选择
 
-## Gap-independent 遗憾界
+$$
+\widehat a
+\in
+\operatorname*{argmax}_{a\in[K]}\widehat\mu_m(a)
+$$
+
+并一直使用到第 $T$ 轮。
+
+若奖励位于 $[0,1]$，Hoeffding 不等式给出对任意次优臂 $a$，
+
+$$
+\Pr(\widehat a=a)
+\le
+2\exp\left(-\frac{m\Delta_a^2}{2}\right).
+$$
+
+于是
+
+$$
+\mathbb E[\overline R_T]
+\le
+\sum_{a=1}^K
+\left[
+\frac{T_0}{K}
++2T\exp\left(-\frac{T_0\Delta_a^2}{2K}\right)
+\right]\Delta_a.
+$$ {#eq-etc-regret}
+
+第一项是主动探索代价，第二项是提交错误后的长期代价。若已知最小正 gap
+
+$$
+\Delta_{\min}=\min_{a:\Delta_a>0}\Delta_a,
+$$
+
+可取 $m\asymp(\log T)/\Delta_{\min}^2$。但 gap 未知时调参困难；一次错误提交也无法被后续数据纠正。ETC 因而适合阶段明确、可接受先探索后部署的场景，却不是通用 minimax 最优策略。
+
+## $\varepsilon$-greedy 的局限
+
+$\varepsilon$-greedy 每轮以 $1-\varepsilon_t$ 选择经验最优臂，以 $\varepsilon_t$ 均匀探索。固定 $\varepsilon>0$ 会持续拉取明显次优臂，产生线性遗憾；递减 $\varepsilon_t$ 可得到对数阶实例依赖界，但通常需要已知或估计 $\Delta_{\min}$。
+
+它实现简单，却把探索平均分给所有臂，没有利用“某些臂已经明显不可能最优”的证据。
+
+## UCB：用乐观原则分配探索
+
+UCB 为每个臂维护经验均值和置信半径。以 $[0,1]$ 奖励为例，定义
+
+$$
+\widehat\mu_t(a)
+=
+\frac1{N_t(a)}
+\sum_{s\le t:a_s=a}r_s,
+$$
+
+以及
+
+$$
+\operatorname{UCB}_t(a)
+=
+\widehat\mu_t(a)
++\sqrt{\frac{\log T}{N_t(a)}}.
+$$ {#eq-ucb-index}
+
+初始化时每个臂至少拉取一次；之后选择
+
+$$
+a_{t+1}
+\in
+\operatorname*{argmax}_{a\in[K]}
+\operatorname{UCB}_t(a).
+$$ {#eq-ucb-action}
+
+置信上界大可能有两种原因：经验均值高，或样本太少、仍不确定。取最大 UCB 因而自动统一 exploitation 与 exploration。
+
+## UCB 的 gap-dependent 证明
+
+由 Hoeffding 不等式和 union bound，以至少 $1-2K/T$ 的概率，对所有 $a,t$ 同时有
+
+$$
+|\widehat\mu_t(a)-\mu_a|
+\le
+\sqrt{\frac{\log T}{N_t(a)}}.
+$$ {#eq-ucb-good-event}
+
+在此好事件上，如果次优臂 $a$ 在时刻 $t+1$ 仍被选择，则
+
+$$
+\mu^*
+\le
+\operatorname{UCB}_t(a)
+\le
+\mu_a+2\sqrt{\frac{\log T}{N_t(a)}}.
+$$
+
+因此
+
+$$
+N_T(a)
+\le
+\frac{4\log T}{\Delta_a^2}+1.
+$$ {#eq-ucb-pull-count}
+
+代入 @eq-stochastic-regret-decomposition：
+
+$$
+\overline R_T
+\le
+\sum_{a:\Delta_a>0}
+\left(
+\frac{4\log T}{\Delta_a}+\Delta_a
+\right)
+$$ {#eq-ucb-gap-dependent}
+
+在好事件上成立。它与 @eq-lai-robbins-lower 的典型 $\sum_a(\log T)/\Delta_a$ 量级匹配。
+
+## 从 gap-dependent 到 gap-independent
+
+取阈值 $\Delta>0$，把臂分成小 gap 与大 gap 两组：
+
+$$
+\overline R_T
+\le
+T\Delta
++\sum_{a:\Delta_a>\Delta}
+\frac{4\log T}{\Delta_a}.
+$$
+
+第二项可用 $K(4\log T)/\Delta$ 控制。平衡两项，取
+
+$$
+\Delta\asymp\sqrt{\frac{K\log T}{T}},
+$$
+
+得到
+
+$$
+\overline R_T
+=O(\sqrt{KT\log T}).
+$$ {#eq-ucb-gap-independent}
+
+这比 minimax 下界多一个 $\sqrt{\log T}$；MOSS 等算法通过改变置信半径获得最优 $O(\sqrt{KT})$。
 
 ## Thompson Sampling
 
-## ETC、UCB 与 TS 的选择边界
+Thompson Sampling 用后验抽样表达不确定性。对 Bernoulli 奖励，取独立先验
+
+$$
+\mu_a\sim\operatorname{Beta}(\alpha_{a,1},\beta_{a,1}).
+$$
+
+每轮：
+
+1. 对每个臂采样 $\widetilde\mu_{t,a}\sim\operatorname{Beta}(\alpha_{a,t},\beta_{a,t})$；
+2. 选择 $a_t\in\operatorname*{argmax}_a\widetilde\mu_{t,a}$；
+3. 观察 $r_t\in\{0,1\}$ 后更新
+   $$
+   \alpha_{a_t,t+1}=\alpha_{a_t,t}+r_t,
+   \qquad
+   \beta_{a_t,t+1}=\beta_{a_t,t}+1-r_t.
+   $$
+
+后验均值大对应 exploitation，后验方差大则增加该臂偶尔被抽为最大值的概率，对应 exploration。
+
+在合适的 Bernoulli/有界奖励条件下，TS 具有实例依赖对数遗憾；精细结论以 KL 散度刻画：
+
+$$
+\mathbb E[\overline R_T]
+=O\!\left(
+\sum_{a:\Delta_a>0}
+\frac{\Delta_a\log T}
+{\operatorname{KL}(\mu_a,\mu^*)}
+\right)
+$$
+
+并带有较低阶项。先验、似然与奖励模型必须匹配；Beta 更新不能直接用于任意实值高斯奖励。
+
+## ETC、UCB 与 TS 的边界
+
+| 方法 | 探索方式 | 主要优点 | 主要限制 |
+|---|---|---|---|
+| ETC | 固定探索阶段 | 结构最清楚，易部署 | 依赖 gap/时域，提交后不能纠错 |
+| $\varepsilon$-greedy | 均匀随机探索 | 实现简单 | 探索不区分臂，调度依赖问题尺度 |
+| UCB | 确定性乐观置信区间 | 频率学派保证清晰 | 置信半径需匹配噪声模型 |
+| TS | 后验概率匹配 | 实践常有效，探索自然 | 依赖概率模型与先验，证明更细致 |
 
 ## 进阶接口
+
+- **Best of Both Worlds**：同一算法在随机环境达到 gap-dependent 对数遗憾，在对抗环境仍保持 $O(\sqrt{KT})$。普通 UCB 在对抗环境可能近线性，普通 Exp3 又不充分利用随机 gap。
+- **Best Arm Identification**：目标不是累计遗憾，而是在固定预算下最小化误识别概率，或以最少样本在置信度 $1-\delta$ 下返回最优臂。它是纯探索问题，不能直接用累计遗憾衡量。
+- **在线强化学习**：状态—动作对的访问计数、置信奖励和乐观动态规划把 UCB 原理推广到序贯决策。
+
+::: {.callout-warning title="典型误用"}
+- 把一次观测的最高奖励当作最优臂均值。
+- 只写 $O(\log T)$，不说明常数中含有 $1/\Delta_a$ 或 KL 散度。
+- 在 UCB 证明中只对单个固定 $t$ 使用集中不等式，却直接宣称所有轮同时成立。
+- 把伪遗憾的高概率界当成实现奖励遗憾的同一事件。
+- 在奖励模型不匹配时机械套用 Beta–Bernoulli Thompson Sampling。
+:::
+
+下一章将用共享线性参数连接不同动作，使一次观测同时减少一整个方向上的不确定性。

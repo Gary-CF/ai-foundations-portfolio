@@ -1,6 +1,6 @@
 # 统一记号与模型对照 {#sec-notation .appendix}
 
-本附录将在电子化过程中持续维护。当前先固定全书最重要的符号角色。
+本附录固定全书最重要的符号角色。局部章节若需要特殊记号，应在首次出现时定义，不静默复用已有字母。
 
 ## 决策、动作与损失
 
@@ -8,18 +8,20 @@
 |---|---|
 | $t=1,\ldots,T$ | 在线轮次 |
 | $x_t$ | 连续决策或 OCO 动作 |
-| $i_t$ | 多臂 Bandit 中选择的臂 |
+| $a_t$ | 多臂 Bandit 中选择的臂 |
 | $f_t$ | 第 $t$ 轮损失函数 |
-| $g_t$ | 梯度、次梯度或其估计 |
+| $g_t$ | 真实梯度、次梯度或随机一阶 oracle 输出 |
+| $M_t$ | 在观察 $g_t$ 前产生的 optimistic prediction |
 | $\mathcal X$ | 决策集合 |
 
 ## Regret
 
 | 记号 | 含义 |
 |---|---|
-| $R_T(u)$ | 相对固定比较点 $u$ 的遗憾 |
-| $R_T$ | 对最佳固定比较点取最小后的静态遗憾 |
-| $\mathbb E[R_T]$ | 期望遗憾 |
+| $\operatorname{Reg}_T(u)$ | 相对固定比较点 $u$ 的在线遗憾 |
+| $\operatorname{Reg}_T$ | 相对最佳固定比较点的静态遗憾 |
+| $\overline R_T$ | 随机 Bandit 的伪遗憾 |
+| $\mathbb E[\operatorname{Reg}_T]$ | 对算法或环境随机性取期望后的遗憾 |
 | $\widetilde O(\cdot)$ | 隐去对数因子的量级 |
 
 ## 随机历史
@@ -28,7 +30,7 @@
 |---|---|
 | $\mathcal F_{t-1}$ | 第 $t$ 轮决策前的历史信息 |
 | $\mathbb E_t[\cdot]$ | 给定 $\mathcal F_{t-1}$ 的条件期望 |
-| $\widehat g_t$ | 随机或 Bandit 梯度估计 |
+| $\widehat g_t,\widetilde g_t$ | 随机或 Bandit 梯度估计 |
 
 ## 几何
 
@@ -38,7 +40,37 @@
 | $\lVert\cdot\rVert_\star$ | 对偶范数 |
 | $\psi$ | 正则函数或镜像势函数 |
 | $D_\psi(x,y)$ | 由 $\psi$ 生成的 Bregman 散度 |
+| $\|x\|_A$ | $\sqrt{x^\top Ax}$，其中 $A\succeq0$ |
+| $\Pi_{\mathcal X}$ | Euclidean 投影；其他几何投影会显式标注 |
+
+## Bandit
+
+| 记号 | 含义 |
+|---|---|
+| $K$ | 多臂 Bandit 的动作数 |
+| $N_T(a)$ | 前 $T$ 轮动作 $a$ 的选择次数 |
+| $\mu_a$ | 随机 Bandit 中臂 $a$ 的均值奖励 |
+| $\Delta_a=\mu^*-\mu_a$ | 次优差 |
+| $X_t$ | 线性 Bandit 中选择的特征向量 |
+| $V_t$ | 正则化设计/协方差矩阵 |
+| $\widehat\theta_t$ | 未知线性参数的估计 |
+| $\beta_t(\delta)$ | 置信椭球半径 |
+
+## 常数角色
+
+| 记号 | 含义 |
+|---|---|
+| $D,R$ | 域直径或到比较点的距离尺度；以所在章节定义为准 |
+| $G$ | 梯度/次梯度范数上界 |
+| $L$ | 光滑常数；在线性 Bandit 章节局部也用于动作范数上界 |
+| $\mu,\sigma$ | 强凸参数；同一推导内只使用其中一个 |
+| $\alpha$ | exp-concavity 参数或局部权重；须在章节内重新声明 |
+| $\eta_t$ | 学习率/步长 |
+| $d$ | 连续参数空间维数 |
+| $\delta$ | 失败概率或 BCO 扰动半径；须依上下文区分 |
 
 ## Loss 与 reward 的约定
 
 在线凸优化默认采用损失最小化语言；Bandit 课件若采用奖励最大化，将先转换为统一的损失或明确标注奖励形式，避免在同一推导中静默改变遗憾符号方向。
+
+随机 MAB 与线性 Bandit 章节保留奖励最大化语言，并使用 $\overline R_T$ 表示伪遗憾；对抗 Bandit 采用损失最小化语言并使用 $\operatorname{Reg}_T$。

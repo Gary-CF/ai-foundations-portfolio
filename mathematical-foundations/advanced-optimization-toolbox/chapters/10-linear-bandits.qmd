@@ -1,25 +1,303 @@
 # 线性 Bandit 与置信椭球 {#sec-linear-bandits}
 
-线性 Bandit 用共享参数连接不同动作，使探索从“逐臂试验”转化为“在参数空间中缩小不确定性”。
+多臂 Bandit 把每个动作当成独立对象；动作很多甚至连续时，逐臂探索不再可行。线性 Bandit 假设奖励通过共享参数生成：观察一个动作，能够同时减少与它方向相近的其他动作的不确定性。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 12。正则最小二乘、自归一化集中、置信椭球与 LinUCB/OFUL 为 P0；GLB、重尾反馈、线性 MDP 与 one-pass 更新进入研究接口。
+本章对应 Lecture 12。正则最小二乘、条件次高斯噪声、自归一化置信椭球、LinUCB 和椭圆势函数构成主线；GLB、重尾反馈、线性 MDP 与 one-pass 计算问题只建立研究接口。
 :::
 
 ## 线性奖励模型
 
-## 正则最小二乘与递推统计量
+动作由特征向量 $x\in\mathcal X\subseteq\mathbb R^d$ 表示，假设
 
-## 置信椭球
+$$
+\|x\|_2\le L,
+\qquad
+\|\theta^*\|_2\le S.
+$$
 
-## 自归一化集中不等式
+第 $t$ 轮选择 $X_t\in\mathcal X$，观察
 
-## LinUCB 与 OFUL
+$$
+r_t=X_t^\top\theta^*+\eta_t,
+$$ {#eq-linear-bandit-model}
 
-## 椭圆势函数与遗憾分析
+其中 $\theta^*$ 未知。记历史过滤为 $\mathcal F_{t-1}$，噪声满足条件 $R$-次高斯：
+
+$$
+\mathbb E\left[
+e^{\lambda\eta_t}\mid\mathcal F_{t-1}
+\right]
+\le
+\exp\left(\frac{\lambda^2R^2}{2}\right),
+\qquad \forall\lambda\in\mathbb R.
+$$ {#eq-linear-bandit-subgaussian}
+
+这一条件允许 $X_t$ 依赖过去奖励；不能把自适应动作序列当作预先固定的独立设计矩阵。
+
+若动作集固定，伪遗憾为
+
+$$
+\overline R_T
+=
+T\max_{x\in\mathcal X}x^\top\theta^*
+-\sum_{t=1}^TX_t^\top\theta^*.
+$$ {#eq-linear-bandit-regret}
+
+## 正则最小二乘
+
+给定正则参数 $\lambda>0$，在第 $t$ 轮决策前定义
+
+$$
+V_{t-1}
+=
+\lambda I+\sum_{s=1}^{t-1}X_sX_s^\top,
+\qquad
+b_{t-1}=\sum_{s=1}^{t-1}r_sX_s.
+$$ {#eq-linear-bandit-stats}
+
+ridge 估计量为
+
+$$
+\widehat\theta_{t-1}
+=
+\operatorname*{argmin}_{\theta\in\mathbb R^d}
+\left\{
+\lambda\|\theta\|_2^2
++\sum_{s=1}^{t-1}(X_s^\top\theta-r_s)^2
+\right\}
+=
+V_{t-1}^{-1}b_{t-1}.
+$$ {#eq-ridge-linear-bandit}
+
+充分统计量可单遍更新：
+
+$$
+V_t=V_{t-1}+X_tX_t^\top,
+\qquad
+b_t=b_{t-1}+r_tX_t.
+$$
+
+无需保存全部历史样本；但精确维护 $V_t$ 仍需 $O(d^2)$ 内存。利用 Sherman–Morrison 公式可将逆矩阵从头计算的 $O(d^3)$ 降为每轮 $O(d^2)$ 的秩一更新。
+
+## 为什么是置信椭球
+
+由 @eq-linear-bandit-model 和 @eq-ridge-linear-bandit，
+
+$$
+\widehat\theta_{t-1}-\theta^*
+=
+V_{t-1}^{-1}
+\left(
+\sum_{s=1}^{t-1}\eta_sX_s-\lambda\theta^*
+\right).
+$$
+
+对任意动作 $x$，广义 Cauchy–Schwarz 不等式给出
+
+$$
+|x^\top(\widehat\theta_{t-1}-\theta^*)|
+\le
+\|x\|_{V_{t-1}^{-1}}
+\|\widehat\theta_{t-1}-\theta^*\|_{V_{t-1}}.
+$$ {#eq-linear-prediction-error}
+
+因此参数误差在 $V_{t-1}$ 范数下的球，映射到 Euclidean 空间就是椭球。历史经常探索的方向使 $V_{t-1}$ 特征值增大，对应置信半径缩小；未探索方向仍保持较大不确定性。
+
+## 自归一化集中
+
+设
+
+$$
+S_t=\sum_{s=1}^t\eta_sX_s,
+\qquad
+V_t=\lambda I+\sum_{s=1}^tX_sX_s^\top.
+$$
+
+向量值鞅的自归一化不等式说明：以至少 $1-\delta$ 的概率，对所有 $t$ 同时成立
+
+$$
+\|S_t\|_{V_t^{-1}}
+\le
+R\sqrt{
+2\log\frac1\delta
++\log\frac{\det V_t}{\det(\lambda I)}
+}.
+$$ {#eq-self-normalized-concentration}
+
+结合 $\|\theta^*\|_2\le S$，得到置信半径
+
+$$
+\beta_{t-1}(\delta)
+=
+R\sqrt{
+2\log\frac1\delta
++d\log\left(
+1+\frac{(t-1)L^2}{\lambda d}
+\right)
+}
++\sqrt\lambda S,
+$$ {#eq-linear-confidence-radius}
+
+以及同时对所有 $x\in\mathcal X$ 成立的界
+
+$$
+|x^\top(\widehat\theta_{t-1}-\theta^*)|
+\le
+\beta_{t-1}(\delta)\|x\|_{V_{t-1}^{-1}}.
+$$ {#eq-linear-ucb-validity}
+
+普通 Hoeffding 不等式不足以直接处理这里的自适应设计；自归一化范数正是为了让噪声累计与动作协方差同步缩放。
+
+## LinUCB / OFUL
+
+乐观原则在参数空间中写成
+
+$$
+X_t
+\in
+\operatorname*{argmax}_{x\in\mathcal X}
+\left\{
+x^\top\widehat\theta_{t-1}
++\beta_{t-1}(\delta)
+\|x\|_{V_{t-1}^{-1}}
+\right\}.
+$$ {#eq-linucb-action}
+
+第一项是估计奖励，第二项是方向相关的探索奖励。它等价于在置信集
+
+$$
+\mathcal C_{t-1}
+=
+\left\{
+\theta:
+\|\theta-\widehat\theta_{t-1}\|_{V_{t-1}}
+\le\beta_{t-1}(\delta)
+\right\}
+$$
+
+中选择最乐观的参数—动作对：
+
+$$
+(X_t,\widetilde\theta_t)
+\in
+\operatorname*{argmax}_{x\in\mathcal X,\theta\in\mathcal C_{t-1}}
+x^\top\theta.
+$$
+
+文献中 LinUCB 与 OFUL 的名称和动作集设定略有差别；本书统一指这种“ridge 置信椭球 + 乐观选臂”的模板。
+
+## 遗憾主证明
+
+在置信事件上，令 $x^*\in\arg\max_xx^\top\theta^*$。乐观性给出
+
+$$
+(x^*)^\top\theta^*
+\le
+X_t^\top\widehat\theta_{t-1}
++\beta_{t-1}\|X_t\|_{V_{t-1}^{-1}}.
+$$
+
+再用 @eq-linear-ucb-validity 控制 $X_t$ 的估计误差，得到单轮伪遗憾
+
+$$
+(x^*)^\top\theta^*-X_t^\top\theta^*
+\le
+2\beta_{t-1}\|X_t\|_{V_{t-1}^{-1}}.
+$$ {#eq-linucb-one-step-regret}
+
+对 $t$ 求和并用 Cauchy–Schwarz：
+
+$$
+\overline R_T
+\le
+2\beta_T
+\sqrt{
+T\sum_{t=1}^T
+\|X_t\|_{V_{t-1}^{-1}}^2
+}.
+$$
+
+椭圆势函数引理给出
+
+$$
+\sum_{t=1}^T
+\min\{1,\|X_t\|_{V_{t-1}^{-1}}^2\}
+\le
+2\log\frac{\det V_T}{\det V_0}
+\le
+2d\log\left(1+\frac{TL^2}{\lambda d}\right).
+$$ {#eq-linear-elliptical-potential}
+
+在常见归一化条件下，合并可得以至少 $1-\delta$ 的概率，
+
+$$
+\overline R_T
+=
+\widetilde O(d\sqrt T),
+$$ {#eq-linucb-regret}
+
+其中 $\widetilde O$ 隐藏 $R,S,L,\lambda$ 和对数因子。
 
 ## 复杂度从哪里产生
 
+LinUCB 的 $d\sqrt T$ 可以拆成两部分：
+
+- $\beta_T=\widetilde O(\sqrt d)$：估计一个 $d$ 维参数的统计半径；
+- 椭圆势函数 $\sum_t\|X_t\|_{V_{t-1}^{-1}}^2=\widetilde O(d)$：整个过程中可被反复探索的有效方向总量。
+
+计算代价还取决于动作优化
+
+$$
+\max_{x\in\mathcal X}
+x^\top\widehat\theta+\beta\|x\|_{V^{-1}}.
+$$
+
+有限动作集可枚举；连续或组合动作集可能比统计估计本身更难。
+
 ## 广义线性 Bandit 接口
 
+GLB 把均值模型改为
+
+$$
+\mathbb E[r_t\mid X_t]
+=
+\mu(X_t^\top\theta^*),
+$$
+
+其中 $\mu$ 是已知链接函数，例如 logistic link。此时平方损失 ridge 不再自然，通常使用正则极大似然估计；置信半径还会依赖链接函数斜率下界。
+
+核心困难是：非二次损失不能只靠 $(V_t,b_t)$ 两个充分统计量精确表示，朴素算法可能每轮重新处理全部历史，造成 $O(t)$ 存储和不断增长的计算。如何同时达到近最优遗憾、$O(1)$ 轮均摊历史访问和可控内存，是 one-pass GLB 的研究问题。
+
 ## 重尾、one-pass 与强化学习接口
+
+### 重尾反馈
+
+若噪声只有有限 $(1+\nu)$ 阶矩，次高斯自归一化界失效。需要截断、Catoni/Huber 型鲁棒估计或分块机制。难点不只是替换集中不等式，还要让鲁棒估计支持在线递推。
+
+### 线性 MDP
+
+线性函数逼近把奖励或转移写成已知特征与未知参数的线性组合。每个阶段的乐观 value iteration 都会调用类似的 ridge 估计、置信椭球和椭圆势函数。因此线性 Bandit 是理解带函数逼近 RL 理论的局部模块，而不是完整 MDP。
+
+### One-pass
+
+“单遍”不等于完全不保留历史信息。线性 Bandit 保留 $V_t$ 与 $b_t$ 这类可递推统计量，只是不保存全部原始样本。真正的研究张力是：
+
+- 统计上需要足够精确的置信集；
+- 计算上只能有限次访问数据；
+- 内存上不能随 $T$ 线性增长；
+- 遗憾仍要接近离线或多遍方法。
+
+GLB、重尾线性 Bandit 与 one-pass RLHF 的具体算法进入研究接口附录，不在本章提前复刻报告。
+
+## 使用检查
+
+::: {.callout-warning title="典型误用"}
+- 把自适应选择的 $X_t$ 当作独立固定设计，直接套普通向量 Hoeffding。
+- 只写 Euclidean 参数误差，却用它解释方向相关的探索；正确对象是 $V_t$ 范数置信椭球。
+- 忘记正则偏差项 $\sqrt\lambda S$。
+- 把 $\widetilde O(d\sqrt T)$ 理解为每轮计算只需 $O(d)$。
+- 把线性 Bandit 结论直接当成线性 MDP 的完整遗憾证明。
+:::
+
+至此，主线从全信息 OCO 经过自适应几何与 optimism，进入了部分反馈、统计置信和函数逼近。后续研究接口都应明确自己相对于这条基线新增了哪一种困难。

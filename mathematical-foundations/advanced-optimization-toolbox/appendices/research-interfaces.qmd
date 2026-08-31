@@ -8,25 +8,52 @@
 
 ## Universal gradient-variation online learning
 
+基础 OOMD 需要预先知道曲率类型、光滑常数或合适学习率。Universal gradient-variation online learning 试图用一个算法同时竞争于多种曲率和变化尺度，并保持与相应专用算法接近的遗憾。
+
 ### 未知曲率与多层 ensemble
 
+典型结构是两层或多层学习器：底层覆盖不同曲率、步长或正则配置，元学习器根据在线表现聚合。真正困难不是“多跑几个参数”，而是控制元遗憾、底层相关性和 gradient-variation 量，使聚合开销不吞掉自适应收益。
+
 ### Hölder 光滑与通用离线加速
+
+Hölder 光滑在 Lipschitz 与梯度 Lipschitz 之间插值。AOPT_Holder 通过 stabilized online-to-batch 把 universal gradient-variation 遗憾转成离线收敛率，使同一算法适应未知 Hölder 指数。主线只保留第 @sec-online-to-offline-acceleration 章的转换机制；完整多层 ensemble 与最优率证明暂不展开。
 
 ## One-pass generalized linear bandits
 
 ### 非线性度带来的统计困难
 
+GLB 的均值为 $\mu(x^\top\theta^*)$。链接函数曲率会进入置信集，若最小导数很小，局部可辨识性变差；直接线性化可能引入额外非线性度惩罚。
+
 ### 最大似然带来的计算与存储困难
 
+线性 ridge 估计可由 $(V_t,b_t)$ 精确递推；一般 GLB 的最大似然目标是非二次的，朴素更新需反复访问全部历史。one-pass 方法必须用在线二阶近似、OMD/FTRL 或可递推 surrogate 压缩历史。
+
 ### 联合统计—计算效率
+
+目标不是只降低每轮时间，而是在近最优遗憾、$O(1)$ 次数据访问、次线性/常数历史存储和稳定数值更新之间同时成立。AOPT_GLB 作为该问题的专题入口。
 
 ## Heavy-tailed linear bandits
 
 ### 重尾噪声与鲁棒估计
 
+只有有限 $(1+\nu)$ 阶矩时，样本均值和平方损失容易被极端值主导，次高斯置信椭球失效。需要重新设计估计误差界，而不是只把 $R$ 换成更大的常数。
+
 ### Huber 回归
 
+Huber 损失在中心区域保持二次，在尾部转为线性，以降低异常值影响。阈值决定偏差—鲁棒性平衡，并通常随时间、矩尺度和置信水平变化。
+
 ### OMD 作为 one-pass 估计器
+
+AOPT_HvtLB 的关键接口是用在线镜像/梯度更新近似鲁棒回归解，使每个样本只处理一次；随后再把估计误差嵌入 OFUL 型乐观选择。完整重尾自归一化分析保留为 P2。
+
+## 四份研究材料的定位
+
+| 材料 | 基础模块 | 新困难 | 当前处理 |
+|---|---|---|---|
+| AOPT_Universal | OOMD、gradient variation | 未知曲率与多算法聚合 | 只记研究问题与架构 |
+| AOPT_Holder | stabilized O2B | 未知 Hölder 光滑度 | 只记 universality 接口 |
+| AOPT_GLB | LinUCB/GLM-UCB | 非线性估计的 one-pass 效率 | 只记统计—计算张力 |
+| AOPT_HvtLB | 线性 Bandit | 重尾噪声与鲁棒单遍估计 | 只记 Huber + OMD 骨架 |
 
 ## 待添加研究方向
 
@@ -35,3 +62,5 @@
 - Bayesian optimization；
 - 线性与广义线性 MDP；
 - 在线博弈和均衡收敛。
+
+这些方向只有在进入单独研究专题时再扩写假设、算法和完整定理，避免附录变成论文摘要合集。

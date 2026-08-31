@@ -1,25 +1,268 @@
 # 自适应与乐观在线优化 {#sec-adaptive-optimistic-online}
 
-最坏情形遗憾只描述问题最困难时的表现。本章研究算法如何自动利用小损失、低变化和可预测性。
+最坏情形界回答“环境最难时会多差”，却不能区分一个平稳、低损失序列与真正对抗的序列。本章研究第二层目标：在不牺牲最坏情形保证的前提下，让遗憾自动缩放到数据实际呈现的小损失、低方差或低变化。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 8–9。由于这部分直接衔接在线学习、Bandit 与组内研究主线，small-loss、Optimistic OMD 和 gradient variation 均作为 P0 主线，而不是边角扩展。
+本章对应 Lecture 8–9。small-loss、self-confident tuning、Optimistic OMD、gradient variance 与 gradient variation 均为主线；AdaGrad、coin-betting 和完整 parameter-free 理论只保留接口。
 :::
 
 ## 从 minimax 到 problem-dependent
 
-## Small-loss 与 self-bounding
+普通 OMD 给出
+
+$$
+\operatorname{Reg}_T(u)
+\lesssim
+\frac{B}{\eta}
++\eta\sum_{t=1}^T\|g_t\|_*^2.
+$$
+
+若直接用 $\|g_t\|_*\le G$，便得到 $O(G\sqrt{BT})$。这一步把实际序列压缩成最坏上界 $G^2T$，丢掉了所有“容易性”。自适应分析的核心是保留更细的二阶量，并让学习率由已经观察到的量调节。
+
+一个合格的 problem-dependent 界通常同时满足：
+
+- **自适应性**：容易序列上明显小于 $\sqrt T$；
+- **鲁棒性**：最坏情况下退化回 minimax 阶，而不是变成线性遗憾；
+- **可实现性**：调参只依赖当前和过去信息，不能偷看 $T$、最佳专家损失或未来变化量。
+
+## 专家问题中的 small-loss
+
+对 $\ell_{t,i}\in[0,1]$，记最佳专家累计损失
+
+$$
+L_T^*=\min_{i\in[N]}\sum_{t=1}^T\ell_{t,i}.
+$$
+
+Hedge 的精细势函数界 @eq-hedge-second-order-bound 保留了
+
+$$
+\sum_{t=1}^T\sum_{i=1}^Np_{t,i}\ell_{t,i}^2.
+$$
+
+由于 $\ell_{t,i}^2\le\ell_{t,i}$，该项至多为学习器累计损失 $L_T=L_T^*+\operatorname{Reg}_T$。代回并解这个自指不等式，可得到
+
+$$
+\operatorname{Reg}_T
+=O\!\left(
+\sqrt{(L_T^*+1)\log N}+\log N
+\right).
+$$ {#eq-hedge-small-loss}
+
+若最佳专家几乎不犯错，遗憾只随 $L_T^*$ 增长；最坏情况下 $L_T^*\le T$，又恢复 $O(\sqrt{T\log N})$。
 
 ## Self-confident 学习率
 
+若直接把最优学习率写成 $\eta^*\asymp\sqrt{\log N/L_T^*}$，算法会非法依赖未来。self-confident tuning 用学习器已经发生的累计损失估计尺度，例如
+
+$$
+\eta_t
+\asymp
+\min\left\{1,
+\sqrt{\frac{\log N}{1+L_{t-1}}}
+\right\},
+\qquad
+L_{t-1}=\sum_{s=1}^{t-1}\langle p_s,\ell_s\rangle.
+$$ {#eq-self-confident-eta}
+
+分析依赖一类自归一化求和：对 $a_t\ge0$，
+
+$$
+\sum_{t=1}^T
+\frac{a_t}{\sqrt{1+\sum_{s=1}^ta_s}}
+\le
+2\sqrt{1+\sum_{t=1}^Ta_t}.
+$$ {#eq-self-confident-sum}
+
+它把“事后最优固定学习率”改造成合法的逐轮学习率。实践中还要明确采用哪一种时变 Hedge 更新，因为 lazy 与 greedy 形式此时不再等价。
+
+## 一般 OCO 的 self-bounding
+
+small-loss 不只属于专家问题。若 $f:\mathbb R^d\to\mathbb R_+$ 是非负且 $L$-光滑的，则
+
+$$
+\|\nabla f(x)\|_2^2
+\le
+2L f(x).
+$$ {#eq-smooth-self-bounding}
+
+证明只需在下降引理中取 $y=x-\nabla f(x)/L$，再用 $f(y)\ge0$。它把梯度二阶量转成函数值，因此称为 self-bounding。
+
+在有界凸域上，令
+
+$$
+G_t=\sum_{s=1}^t\|\nabla f_s(x_s)\|_2^2,
+\qquad
+\eta_t\asymp\frac1{\sqrt{1+G_t}},
+$$
+
+把 @eq-smooth-self-bounding 代入 OGD 的二阶界并处理自指项，可得
+
+$$
+\operatorname{Reg}_T(u)
+=O\!\left(\sqrt{1+\sum_{t=1}^Tf_t(u)}\right),
+$$ {#eq-oco-small-loss}
+
+其中大 $O$ 隐藏域直径、光滑常数和低阶常数项。非负性不能静默删掉；若损失可平移，需要把界写成相对某个已知下界的形式。
+
 ## Optimistic Online Mirror Descent
 
-## 预测误差依赖的遗憾界
+small-loss 利用结果值小；optimism 利用下一轮梯度可以预测。设 $M_t$ 是在观察 $g_t$ 前构造的预测向量，Optimistic OMD 维护辅助点 $\widehat x_t$：
 
-## Gradient variance
+$$
+x_t
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\{
+\eta_t\langle M_t,x\rangle
++D_\psi(x,\widehat x_t)
+\right\},
+$$ {#eq-oomd-predict}
 
-## Gradient variation
+$$
+\widehat x_{t+1}
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\{
+\eta_t\langle g_t,x\rangle
++D_\psi(x,\widehat x_t)
+\right\}.
+$$ {#eq-oomd-correct}
 
-## Stochastic–adversarial 连续视角
+第一步用预测 $M_t$ 产生真正提交的决策 $x_t$；第二步看到实际梯度后校正基准点。若 $M_t=0$，退化为普通 OMD；若 $M_t=g_t$，预测完全准确，理想情况下每轮只付常数级稳定代价。
+
+## 预测误差主不等式
+
+若 $\psi$ 关于 $\|\cdot\|$ 为 1-强凸，则对任意 $u\in\mathcal X$，Optimistic OMD 满足
+
+$$
+\begin{aligned}
+\operatorname{Reg}_T(u)
+\le{}&
+\sum_{t=1}^T\eta_t\|g_t-M_t\|_*^2\\
+&+\sum_{t=1}^T\frac1{\eta_t}
+\bigl[D_\psi(u,\widehat x_t)-D_\psi(u,\widehat x_{t+1})\bigr]\\
+&-\sum_{t=1}^T\frac1{\eta_t}
+\bigl[D_\psi(\widehat x_{t+1},x_t)+D_\psi(x_t,\widehat x_t)\bigr].
+\end{aligned}
+$$ {#eq-oomd-master}
+
+三部分分别是：
+
+- 预测误差 $\|g_t-M_t\|_*^2$；
+- 可望远镜求和的比较器势能；
+- 由两次近端更新产生的非正稳定项。
+
+最坏情形分析常丢掉第三项；problem-dependent 分析中，它往往恰好抵消由光滑性带来的决策移动量。
+
+在 Euclidean 几何、域直径 $D$ 下，取自适应学习率
+
+$$
+\eta_t
+\asymp
+\frac{D}{\sqrt{1+\sum_{s=1}^{t-1}\|g_s-M_s\|_2^2}},
+$$
+
+可得到
+
+$$
+\operatorname{Reg}_T(u)
+=O\!\left(
+D\sqrt{1+\sum_{t=1}^T\|g_t-M_t\|_2^2}
+\right),
+$$ {#eq-oomd-prediction-bound}
+
+同时保留 $O(DG\sqrt T)$ 的最坏情形保证。
+
+## 三种 optimism 设计
+
+Optimistic OMD 本身只说明“预测准则越准，遗憾越小”。真正的算法设计问题是如何选择合法的 $M_t$。
+
+### 小损失
+
+取 $M_t=0$。若损失非负且光滑，@eq-smooth-self-bounding 将
+
+$$
+\sum_t\|g_t-M_t\|^2=\sum_t\|g_t\|^2
+$$
+
+连接到累计损失，恢复 @eq-oco-small-loss。
+
+### 梯度方差
+
+对一条决策序列，令梯度均值
+
+$$
+\mu_T=\frac1T\sum_{t=1}^T\nabla f_t(x_t),
+$$
+
+并定义梯度方差尺度
+
+$$
+\operatorname{Var}_T
+=
+\sup_{x_1,\ldots,x_T\in\mathcal X}
+\sum_{t=1}^T
+\|\nabla f_t(x_t)-\mu_T\|_2^2.
+$$ {#eq-gradient-variance}
+
+使用过去梯度的运行均值作为 $M_t$，配合 self-confident 学习率，可得
+
+$$
+\operatorname{Reg}_T
+=\widetilde O\!\left(\sqrt{1+\operatorname{Var}_T}\right).
+$$ {#eq-gradient-variance-regret}
+
+若梯度围绕稳定均值波动，方差远小于 $G^2T$；对抗序列上它仍至多退化到最坏阶。
+
+### 梯度变化
+
+定义
+
+$$
+V_T
+=
+\sum_{t=2}^T
+\sup_{x\in\mathcal X}
+\|\nabla f_t(x)-\nabla f_{t-1}(x)\|_2^2.
+$$ {#eq-gradient-variation}
+
+取上一轮梯度
+
+$$
+M_t=\nabla f_{t-1}(x_{t-1}),
+$$
+
+则预测误差同时包含函数随时间的漂移和决策点移动。若各 $f_t$ 为 $L$-光滑函数，后者可由 @eq-oomd-master 的稳定负项抵消，最终得到
+
+$$
+\operatorname{Reg}_T
+=O\!\left(\sqrt{1+V_T}\right),
+$$ {#eq-gradient-variation-regret}
+
+其中常数依赖 $D,L,G$。缓慢变化时 $V_T\ll G^2T$；最坏情况下 $V_T=O(G^2T)$，仍恢复 $O(\sqrt T)$。
+
+## 随机—对抗连续视角
+
+随机环境与对抗环境不必视为完全分离的两端。若 $f_t$ 来自随时间变化的分布 $\mathcal D_t$，可把梯度不可预测性分解为：
+
+- 分布内部的随机方差；
+- 均值梯度随 $t$ 的漂移；
+- 算法移动造成的梯度变化。
+
+variance 型 optimism 适合均值稳定但样本有噪声的环境；variation 型 optimism 适合损失缓慢漂移的环境；最坏情形界负责兜底。这一视角是后续 SEA、自适应 Bandit 和非平稳学习的共同入口。
 
 ## 与 AdaGrad 和 parameter-free 方法的接口
+
+AdaGrad 同样根据累计梯度二阶量调节步长，但它主要适应坐标/方向尺度；Optimistic OMD 适应的是预测误差。两者可以结合，但需重新检查正则变化产生的额外项。
+
+parameter-free 方法进一步尝试去除 $D$、$G$、$T$ 等先验。它们不是简单把学习率设为“自动”，而是通过多学习率聚合、coin-betting 势函数或动态尺度估计保证与事后最佳参数竞争。本书主线只保留这一接口。
+
+## 使用检查
+
+1. 容易性量 $L_T^*$、$\operatorname{Var}_T$ 或 $V_T$ 是否由合法历史信息估计？
+2. 自适应界是否仍保留 minimax 最坏情形保证？
+3. small-loss 是否真的具备非负与光滑条件？
+4. $M_t$ 是否在观察 $g_t$ 前产生？
+5. 推导是否保留并正确使用了 OOMD 的稳定负项？
+
+下一章将把 variation 型在线遗憾与稳定 online-to-batch 组合起来，解释 optimism 如何重新导出光滑离线优化的 $O(1/T^2)$ 加速率。

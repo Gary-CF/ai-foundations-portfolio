@@ -1,27 +1,283 @@
 # 镜像下降与 FTRL {#sec-omd-ftrl}
 
-本章研究如何用正则函数选择问题几何，并统一 OMD、FTRL 和对偶平均。
+OGD 默认用 Euclidean 距离衡量移动代价，但“距离近”应由问题结构决定：概率分布适合 KL 散度，椭球域适合 Mahalanobis 范数。Online Mirror Descent（OMD）用一个强凸正则函数把几何写进更新和证明。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 7。全章只建立一套可复用的镜像下降主不等式，再将 Euclidean、负熵与 Mahalanobis 几何作为实例。
+本章对应 Lecture 7。只完整建立 Bregman 三点结构与 OMD 主不等式，再把 OGD、Hedge、ONS、FTRL 和 dual averaging 放入同一坐标系；不并列重复前两章已经完成的具体遗憾证明。
 :::
 
-## Euclidean 几何为什么会失配
+## 为什么 Euclidean 几何会失配
+
+在专家问题中，$p\in\Delta_N$ 是概率分布。若用 $\ell_2$ 几何分析线性损失，梯度 $\ell_t\in[0,1]^N$ 的范数可达 $\sqrt N$，从而得到 $O(\sqrt{NT})$；Hedge 却能达到 $O(\sqrt{T\log N})$。
+
+差距不来自更精巧的常数，而来自几何：单纯形上自然的距离是 KL 散度，配套范数是 $\ell_1/\ell_\infty$，此时 $\|\ell_t\|_\infty\le1$ 与维数无关。
 
 ## 强凸正则与对偶范数
 
+给定范数 $\|\cdot\|$，其对偶范数为
+
+$$
+\|g\|_*
+=
+\sup_{\|x\|\le1}\langle g,x\rangle.
+$$
+
+Hölder 不等式写成
+
+$$
+\langle g,x\rangle\le\|g\|_*\|x\|.
+$$
+
+若可微函数 $\psi$ 满足
+
+$$
+\psi(x)
+\ge
+\psi(y)+\langle\nabla\psi(y),x-y\rangle
++\frac\lambda2\|x-y\|^2,
+$$ {#eq-regularizer-strong-convexity}
+
+则称 $\psi$ 关于 $\|\cdot\|$ 为 $\lambda$-强凸。这里的范数必须写出；同一 $\psi$ 对不同范数的强凸参数可以完全不同。
+
 ## Bregman 散度
+
+$\psi$ 诱导的 Bregman 散度定义为
+
+$$
+D_\psi(x,y)
+=
+\psi(x)-\psi(y)-\langle\nabla\psi(y),x-y\rangle.
+$$ {#eq-bregman-divergence}
+
+它衡量函数值与在 $y$ 处线性近似之间的差。若 $\psi$ 关于 $\|\cdot\|$ 是 $\lambda$-强凸的，则
+
+$$
+D_\psi(x,y)\ge\frac\lambda2\|x-y\|^2.
+$$
+
+Bregman 散度通常不对称，也不满足三角不等式，因此不是度量。真正用于证明的是三点恒等式
+
+$$
+\langle\nabla\psi(x)-\nabla\psi(y),z-x\rangle
+=
+D_\psi(z,y)-D_\psi(z,x)-D_\psi(x,y).
+$$ {#eq-bregman-three-point}
 
 ## Online Mirror Descent
 
-## 镜像下降主不等式
+第 $t$ 轮取得 $g_t\in\partial f_t(x_t)$ 后，OMD 更新为
+
+$$
+x_{t+1}
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\{
+\eta_t\langle g_t,x\rangle+D_\psi(x,x_t)
+\right\}.
+$$ {#eq-omd-update}
+
+第一项推动损失下降，第二项惩罚在 $\psi$ 几何下移动过远。若 $\psi$ 是 Legendre 型正则或对子问题施加合适条件，更新存在且位于可行域内。
+
+### Bregman 近端不等式
+
+更一般地，若
+
+$$
+x^+
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\{\langle g,x\rangle+D_\psi(x,y)\},
+$$
+
+则对任意 $u\in\mathcal X$，一阶最优性与 @eq-bregman-three-point 给出
+
+$$
+\langle g,x^+-u\rangle
+\le
+D_\psi(u,y)-D_\psi(u,x^+)-D_\psi(x^+,y).
+$$ {#eq-bregman-proximal-inequality}
+
+这是 Euclidean 投影勾股不等式在一般几何中的替代品。
+
+## OMD 主不等式
+
+由凸性，
+
+$$
+f_t(x_t)-f_t(u)
+\le
+\langle g_t,x_t-u\rangle.
+$$
+
+把右侧拆成
+
+$$
+\langle g_t,x_t-x_{t+1}\rangle
++\langle g_t,x_{t+1}-u\rangle,
+$$
+
+第二项使用 @eq-bregman-proximal-inequality，得到
+
+$$
+\begin{aligned}
+f_t(x_t)-f_t(u)
+\le{}&
+\frac{D_\psi(u,x_t)-D_\psi(u,x_{t+1})}{\eta_t}\\
+&+\langle g_t,x_t-x_{t+1}\rangle
+-\frac1{\eta_t}D_\psi(x_{t+1},x_t).
+\end{aligned}
+$$ {#eq-omd-exact-one-step}
+
+由强凸性和 Young 不等式，后两项满足
+
+$$
+\langle g_t,x_t-x_{t+1}\rangle
+-\frac1{\eta_t}D_\psi(x_{t+1},x_t)
+\le
+\frac{\eta_t}{2\lambda}\|g_t\|_*^2.
+$$
+
+于是
+
+$$
+f_t(x_t)-f_t(u)
+\le
+\frac{D_\psi(u,x_t)-D_\psi(u,x_{t+1})}{\eta_t}
++\frac{\eta_t}{2\lambda}\|g_t\|_*^2.
+$$ {#eq-omd-master-inequality}
+
+固定步长 $\eta$ 时求和即得
+
+$$
+\operatorname{Reg}_T(u)
+\le
+\frac{D_\psi(u,x_1)}{\eta}
++\frac\eta{2\lambda}\sum_{t=1}^T\|g_t\|_*^2.
+$$ {#eq-omd-regret}
+
+若 $D_\psi(u,x_1)\le B$ 且 $\|g_t\|_*\le G$，平衡两项得到
+
+$$
+\operatorname{Reg}_T(u)
+\le
+G\sqrt{\frac{2BT}{\lambda}}.
+$$
+
+因此选择几何的目标很明确：让 Bregman 半径 $B$ 与对偶梯度界 $G$ 的乘积尽可能小，同时保证更新可计算。
 
 ## 三种核心几何
 
+| 正则函数 $\psi(x)$ | Bregman 散度 | 原/对偶范数 | 典型算法 |
+|---|---|---|---|
+| $\frac12\|x\|_2^2$ | $\frac12\|x-y\|_2^2$ | $\ell_2/\ell_2$ | OGD |
+| $\sum_i x_i\log x_i$（单纯形） | $\mathrm{KL}(x\|y)$ | $\ell_1/\ell_\infty$ | Hedge |
+| $\frac12\|x\|_A^2$，$A\succ0$ | $\frac12\|x-y\|_A^2$ | $A/A^{-1}$ | ONS、预条件方法 |
+
+### 负熵恢复 Hedge
+
+取 $\psi(p)=\sum_i p_i\log p_i$，它在单纯形上关于 $\ell_1$ 范数为 1-强凸。以均匀分布 $p_1$ 初始化，对任意顶点 $e_i$，
+
+$$
+D_\psi(e_i,p_1)=\log N.
+$$
+
+同时 $\|\ell_t\|_\infty\le1$。代入 @eq-omd-regret 即恢复 $O(\sqrt{T\log N})$，而 @eq-omd-update 的闭式解正是指数权重更新。
+
 ## Mirror map 与 primal-dual 视角
+
+在无约束、内点更新下，对 @eq-omd-update 写一阶条件：
+
+$$
+\nabla\psi(x_{t+1})
+=
+\nabla\psi(x_t)-\eta_tg_t.
+$$ {#eq-mirror-dual-update}
+
+令对偶变量 $y_t=\nabla\psi(x_t)$，则
+
+$$
+y_{t+1}=y_t-\eta_tg_t,
+\qquad
+x_{t+1}=\nabla\psi^*(y_{t+1}),
+$$ {#eq-mirror-map}
+
+其中 $\psi^*$ 是 Fenchel 共轭。梯度自然位于对偶空间：先在对偶空间做线性更新，再经 $\nabla\psi^*$ 映回原空间，这就是“镜像”的含义。
+
+若有约束，可将过程理解为先得到未约束镜像点，再做 Bregman 投影。边界处梯度可能发散并不一定是缺陷；对负熵和障碍函数，它正好阻止迭代离开定义域。
 
 ## Follow-the-Regularized Leader
 
-## Dual averaging
+线性化损失 $\ell_t(x)=\langle g_t,x\rangle$ 后，FTRL 更新为
 
-## OMD 与 FTRL 的等价边界
+$$
+x_{t+1}
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\{
+\sum_{s=1}^t\langle g_s,x\rangle
++\frac1\eta\psi(x)
+\right\}.
+$$ {#eq-ftrl-update}
+
+它在每轮重新优化“所有历史线性损失 + 正则项”。因为历史只通过累计梯度 $G_t=\sum_{s=1}^tg_s$ 出现，实现时不需要保存全部样本。
+
+FTRL 的遗憾可分为
+
+$$
+\operatorname{Reg}_T(u)
+\le
+\underbrace{\frac{\psi(u)-\min_{x\in\mathcal X}\psi(x)}{\eta}}
+_{\text{正则范围}}
++
+\underbrace{\sum_{t=1}^T\langle g_t,x_t-x_{t+1}\rangle}
+_{\text{稳定性}}.
+$$ {#eq-ftrl-decomposition}
+
+若 $\psi$ 关于 $\|\cdot\|$ 为 $\lambda$-强凸，则更新映射稳定，
+
+$$
+\langle g_t,x_t-x_{t+1}\rangle
+\le
+\frac{\eta}{2\lambda}\|g_t\|_*^2,
+$$
+
+从而得到与 @eq-omd-regret 同型的界。
+
+## Dual averaging 与等价边界
+
+Dual averaging 维护累计对偶梯度，再通过正则映射输出：
+
+$$
+x_{t+1}
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\{
+\left\langle\sum_{s=1}^tg_s,x\right\rangle
++\frac1{\eta_t}\psi(x)
+\right\}.
+$$
+
+它在形式上就是使用时间变化正则强度的 FTRL。
+
+在线性损失、固定学习率、相同 Legendre 正则和匹配初始化下，OMD 与 FTRL 可以产生相同迭代：
+
+$$
+x_t
+=
+\operatorname*{argmin}_{x\in\mathcal X}
+\left\{
+\eta\left\langle\sum_{s=1}^{t-1}g_s,x\right\rangle+\psi(x)
+\right\}.
+$$
+
+但二者不是无条件等价：非线性损失、约束边界、时变学习率或时变正则都会让动力学分离。OMD 以当前点为中心做局部移动；FTRL 重新平衡全部累计线性损失。
+
+## 使用检查
+
+1. 正则函数相对于哪一个原范数强凸？
+2. 梯度界应使用哪个对偶范数？
+3. $D_\psi(u,x_1)$ 是否有限，初始化是否位于正确的内点？
+4. 镜像/近端子问题是否有闭式解或可高效求解？
+5. 讨论 OMD 与 FTRL 等价时，是否固定了损失线性化、学习率和初始化？
+
+下一章保留 @eq-omd-exact-one-step 中常被丢掉的稳定性负项，并加入对下一轮梯度的预测，从而得到 small-loss、variance 和 variation 依赖的自适应遗憾。

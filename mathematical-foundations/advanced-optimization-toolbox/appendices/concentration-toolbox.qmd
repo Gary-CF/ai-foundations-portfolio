@@ -4,16 +4,129 @@
 
 ## 对偶范数与 Hölder 不等式
 
+对偶范数定义为
+
+$$
+\|y\|_*=\sup_{\|x\|\le1}\langle x,y\rangle,
+$$
+
+并满足
+
+$$
+|\langle x,y\rangle|\le\|x\|\|y\|_*.
+$$
+
+常见配对为 $\ell_2/\ell_2$、$\ell_1/\ell_\infty$，以及矩阵范数 $\|x\|_A/\|y\|_{A^{-1}}$。正文出现“梯度有界”时，应确认使用的是当前原范数对应的对偶范数。
+
 ## 条件期望与 filtration
+
+$\mathcal F_{t-1}$ 表示第 $t$ 轮决策前的全部历史；合法在线决策 $x_t$ 应当对 $\mathcal F_{t-1}$ 可测。记
+
+$$
+\mathbb E_t[Z]=\mathbb E[Z\mid\mathcal F_{t-1}].
+$$
+
+若 $\mathbb E_t[X_t]=0$，则 $(X_t)$ 为鞅差序列。随机梯度的正确无偏性通常写成
+
+$$
+\mathbb E_t[g_t]\in\partial F(x_t),
+$$
+
+而不是忽略自适应历史的无条件等式。
 
 ## 次 Gaussian 随机变量
 
+若对所有 $\lambda\in\mathbb R$，
+
+$$
+\mathbb E_t[e^{\lambda X_t}]
+\le
+e^{\lambda^2\sigma^2/2},
+$$
+
+则称 $X_t$ 给定历史是 $\sigma$-次 Gaussian。它蕴含条件均值为零及尾界
+
+$$
+\Pr(|X_t|\ge u\mid\mathcal F_{t-1})
+\le2e^{-u^2/(2\sigma^2)}.
+$$
+
 ## Hoeffding、Azuma 与 Freedman
+
+| 工具 | 典型条件 | 控制对象 | 何时使用 |
+|---|---|---|---|
+| Hoeffding | 独立有界变量 | 固定样本均值 | ETC、逐臂 UCB |
+| Azuma–Hoeffding | 有界鞅差 | 自适应和 | 粗粒度高概率在线界 |
+| Freedman | 有界鞅差 + 条件方差 | 方差自适应的和 | online-to-batch、高概率遗憾 |
+
+若 $X_t$ 是鞅差、$X_t\le b$，令
+
+$$
+V_T=\sum_{t=1}^T\mathbb E_t[X_t^2].
+$$
+
+Freedman 型结论的典型形式为：以至少 $1-\delta$ 的概率，
+
+$$
+\sum_{t=1}^TX_t
+\le
+\sqrt{2V_T\log(1/\delta)}
++\frac b3\log(1/\delta),
+$$
+
+常数随采用的版本略有变化。使用时必须同时检查单步上界与条件方差，不能只凭二阶矩有限就套用。
 
 ## Union bound 与 anytime 置信事件
 
+固定 $t$ 的概率界不能直接宣称“对所有轮同时成立”。有限时域可将失败概率分配为 $\delta/T$；未知时域可取
+
+$$
+\delta_t=\frac{6\delta}{\pi^2t^2},
+\qquad
+\sum_{t=1}^{\infty}\delta_t=\delta,
+$$
+
+再用 union bound 构造 anytime 事件。更紧的 time-uniform 结果需要 stitching 或置信序列工具。
+
 ## 矩阵集中接口
+
+矩阵 Bernstein/Freedman 用于控制随机自伴矩阵和，例如经验协方差与 Hessian 近似。主线只需要知道：
+
+- 标量方差被矩阵条件方差替代；
+- 结论常包含维数对数项；
+- 非交换矩阵乘积不能逐坐标直接套标量集中。
+
+本书线性 Bandit 主证明使用更贴合自适应设计的自归一化向量鞅，而不是一般矩阵 Bernstein。
 
 ## 自归一化集中
 
+设 $X_t$ 对 $\mathcal F_{t-1}$ 可测，$\eta_t$ 为条件 $R$-次 Gaussian 鞅差，
+
+$$
+S_t=\sum_{s=1}^t\eta_sX_s,
+\qquad
+V_t=V_0+\sum_{s=1}^tX_sX_s^\top,
+\quad V_0\succ0.
+$$
+
+则以至少 $1-\delta$ 的概率，对所有 $t$ 同时有
+
+$$
+\|S_t\|_{V_t^{-1}}
+\le
+R\sqrt{
+2\log\frac1\delta
++\log\frac{\det V_t}{\det V_0}
+}.
+$$
+
+归一化矩阵 $V_t$ 与动作序列一起增长，因此允许 $X_t$ 依赖过去噪声。这是线性 Bandit 置信椭球成立的核心，而不是普通独立样本集中。
+
 ## 使用条件速查
+
+1. 随机量是独立、鞅差，还是仅不相关？
+2. 条件均值是否相对于正确的 $\mathcal F_{t-1}$ 定义？
+3. 结论针对固定时间，还是对所有时间同时成立？
+4. 已知的是几乎处处有界、条件方差、次 Gaussian，还是只有有限高阶矩？
+5. 使用 union bound 后是否同步修改了对数项？
+6. 自适应设计下是否需要自归一化或矩阵型工具？

@@ -1,21 +1,267 @@
 # 迭代复杂度与一阶分析模板 {#sec-first-order-analysis}
 
-本章不重新讲授基础凸优化，而是统一全书后续使用的分析语言。
+高级优化中的算法很多，但证明经常重复同一套动作：选定性能量、写出一步势函数不等式、求和消去中间项，再平衡步长。本章只整理后续会反复调用的分析语言，不重新讲授完整凸优化课程。
 
 ::: {.callout-note title="材料来源与边界"}
-主要对应 Lecture 2–4。Lecture 1 中的基础微积分、线性代数与凸性知识只在附录按需补充；KKT、完整近端算法和重复的 GD 证明不在本章展开。
+本章对应 Lecture 2–4。次梯度、光滑性和强凸性只保留与速率直接相关的形式；KKT、完整近端理论和 Nesterov 加速的长篇代数证明不在此重复。
 :::
 
-## 性能度量与迭代复杂度
+## 先确定测量什么
 
-## 函数结构与可达到速率
+考虑
+
+$$
+\min_{x\in\mathcal X} f(x),
+\qquad
+x^*\in\operatorname*{argmin}_{x\in\mathcal X}f(x).
+$$
+
+常见性能量并不等价于“最后一步是否看起来稳定”。
+
+| 性能量 | 形式 | 适用重点 |
+|---|---|---|
+| 函数值误差 | $f(x_t)-f(x^*)$ | 最常用，直接对应优化目标 |
+| 距最优集距离 | $\operatorname{dist}(x_t,\mathcal X^*)$ | 强凸或误差界条件下尤其有用 |
+| 梯度映射/梯度范数 | $\|\nabla f(x_t)\|$ | 光滑非凸、复合优化的驻点度量 |
+| 累计遗憾 | $\sum_{t=1}^T[f_t(x_t)-f_t(u)]$ | 在线优化 |
+
+若要达到 $f(x_t)-f(x^*)\le\varepsilon$，所需迭代数称为**迭代复杂度**。它只统计 oracle 调用或更新轮数；实际运行时间还要乘上每轮求梯度、投影或解子问题的代价。
+
+::: {.callout-warning title="先分清输出点"}
+结论可能针对最后迭代点 $x_T$、最佳迭代点 $\operatorname*{argmin}_{t\le T}f(x_t)$，也可能针对平均点。三者不能静默互换；非光滑凸优化尤其常依赖平均化。
+:::
+
+## 函数结构决定可达到速率
+
+后续最常用的四类条件为：
+
+1. **凸性**：对 $g\in\partial f(x)$，
+   $$
+   f(y)\ge f(x)+\langle g,y-x\rangle.
+   $$
+2. **$G$-Lipschitz**：$|f(x)-f(y)|\le G\|x-y\|$；在合适的凸域上可由 $\|g\|_*\le G$ 表示。
+3. **$L$-光滑**：
+   $$
+   \|\nabla f(x)-\nabla f(y)\|_*
+   \le L\|x-y\|.
+   $$
+4. **$\mu$-强凸**：
+   $$
+   f(y)\ge f(x)+\langle g,y-x\rangle
+   +\frac\mu2\|y-x\|^2.
+   $$
+
+Lipschitz 性控制一阶信息的幅度；光滑性控制梯度变化；强凸性提供全局二次曲率。不能因为函数可微就默认光滑，也不能把严格凸当作具有统一参数 $\mu>0$ 的强凸。
+
+对 Euclidean 范数，可微凸函数的 $L$-光滑性还给出下降引理
+
+$$
+f(y)
+\le
+f(x)+\langle\nabla f(x),y-x\rangle
++\frac L2\|y-x\|_2^2.
+$$ {#eq-smooth-descent-lemma}
+
+若同时凸且 $L$-光滑，则梯度具有共胁性：
+
+$$
+\langle\nabla f(x)-\nabla f(y),x-y\rangle
+\ge
+\frac1L\|\nabla f(x)-\nabla f(y)\|_2^2.
+$$ {#eq-cocoercivity}
 
 ## 一步势函数不等式
 
-## 望远镜求和、平均化与加权平均
+投影次梯度法更新为
 
-## 步长平衡与 Polyak 步长
+$$
+x_{t+1}=\Pi_{\mathcal X}(x_t-\eta_tg_t),
+\qquad g_t\in\partial f(x_t).
+$$
 
-## 离线最优速率速查
+取任意 $u\in\mathcal X$。投影非扩张性与凸性给出
 
-## 与加速和近端方法的接口
+$$
+2\eta_t\bigl(f(x_t)-f(u)\bigr)
+\le
+\|x_t-u\|_2^2-\|x_{t+1}-u\|_2^2
++\eta_t^2\|g_t\|_2^2.
+$$ {#eq-offline-master-inequality}
+
+这就是一阶方法最基本的母不等式。左侧是想控制的误差，右侧由“势函数下降”和“步长代价”组成。
+
+若 $f$ 是 $\mu$-强凸的，凸性线性化会多出
+
+$$
+-\mu\eta_t\|x_t-u\|_2^2,
+$$
+
+它可以抵消后续距离项；在线强凸 OGD 的 $O(\log T)$ 证明正是这一结构。
+
+## 望远镜求和与平均化
+
+假设 $\|g_t\|_2\le G$，令 $R=\|x_1-x^*\|_2$。对 @eq-offline-master-inequality 求和，得到
+
+$$
+\sum_{t=1}^T\eta_t\bigl(f(x_t)-f(x^*)\bigr)
+\le
+\frac{R^2}{2}
++\frac{G^2}{2}\sum_{t=1}^T\eta_t^2.
+$$ {#eq-weighted-subgradient-sum}
+
+定义加权平均点
+
+$$
+\bar x_T
+=
+\frac{\sum_{t=1}^T\eta_tx_t}{\sum_{t=1}^T\eta_t}.
+$$
+
+由 Jensen 不等式，
+
+$$
+f(\bar x_T)-f(x^*)
+\le
+\frac{R^2+G^2\sum_{t=1}^T\eta_t^2}
+{2\sum_{t=1}^T\eta_t}.
+$$ {#eq-subgradient-average-bound}
+
+这个式子直接暴露步长要求：分母 $\sum_t\eta_t$ 要持续增长，而平方和 $\sum_t\eta_t^2$ 不能增长过快。经典渐近收敛条件
+
+$$
+\sum_{t=1}^{\infty}\eta_t=\infty,
+\qquad
+\sum_{t=1}^{\infty}\eta_t^2<\infty
+$$
+
+保证步长“走得足够远，但噪声累计有限”；它不等于有限时域下的最优调参。
+
+## 步长平衡
+
+若预先知道 $T$，取常数步长
+
+$$
+\eta=\frac{R}{G\sqrt T},
+$$
+
+代入 @eq-subgradient-average-bound 可得
+
+$$
+f(\bar x_T)-f(x^*)\le\frac{RG}{\sqrt T}.
+$$ {#eq-offline-nonsmooth-rate}
+
+因此一般 Lipschitz 凸优化的一阶 oracle 复杂度为 $O(1/\varepsilon^2)$。当 $R$ 未知时，不能假装上述步长可直接使用；需要 doubling、coin-betting、DoG 等自适应机制，或改用可估计的尺度上界。
+
+### Polyak 步长
+
+若最优值 $f^*=f(x^*)$ 已知，可取
+
+$$
+\eta_t
+=
+\frac{f(x_t)-f^*}{\|g_t\|_2^2}.
+$$ {#eq-polyak-step}
+
+把它代入 @eq-offline-master-inequality 得
+
+$$
+\|x_{t+1}-x^*\|_2^2
+\le
+\|x_t-x^*\|_2^2
+-\frac{(f(x_t)-f^*)^2}{\|g_t\|_2^2}.
+$$
+
+几何上，步长正好最小化一步距离上界；分析上，它把未知的最佳固定步长转成当前误差与梯度范数的比值。缺点同样明确：精确的 $f^*$ 往往未知，错误下界还可能导致过大步长。
+
+## 光滑目标：下降转化为最后迭代点速率
+
+在无约束情形，取
+
+$$
+x_{t+1}=x_t-\frac1L\nabla f(x_t).
+$$
+
+由 @eq-smooth-descent-lemma，
+
+$$
+f(x_{t+1})
+\le
+f(x_t)-\frac1{2L}\|\nabla f(x_t)\|_2^2.
+$$ {#eq-smooth-one-step-improvement}
+
+这一步不需要凸性；凸性用于把梯度下降量进一步连接到最优性间隙。若 $f$ 凸且 $L$-光滑，则
+
+$$
+f(x_T)-f(x^*)
+\le
+\frac{L\|x_1-x^*\|_2^2}{2(T-1)},
+\qquad T\ge2.
+$$ {#eq-gd-smooth-rate}
+
+与非光滑情形相比，速率从 $O(T^{-1/2})$ 提升到 $O(T^{-1})$，而且可以控制最后迭代点。
+
+若再有 $\mu$-强凸性，取步长 $1/L$ 可得线性收敛
+
+$$
+f(x_t)-f(x^*)
+\le
+\left(1-\frac\mu L\right)^{t-1}
+\bigl(f(x_1)-f(x^*)\bigr).
+$$ {#eq-gd-linear-rate}
+
+条件数 $\kappa=L/\mu$ 决定收缩速度。这里“线性”指误差按几何级数衰减，对应迭代复杂度 $O(\kappa\log(1/\varepsilon))$。
+
+## 速率速查
+
+令 $R=\|x_1-x^*\|_2$。忽略绝对常数后，典型一阶速率为：
+
+| 结构 | 代表方法 | 函数值误差 | 达到 $\varepsilon$ 的迭代数 |
+|---|---|---:|---:|
+| 凸、$G$-Lipschitz | 次梯度法 + 平均 | $O(RG/\sqrt T)$ | $O(R^2G^2/\varepsilon^2)$ |
+| $\mu$-强凸、$G$-Lipschitz | 递减步长 + 加权平均 | $O(G^2/(\mu T))$ | $O(G^2/(\mu\varepsilon))$ |
+| 凸、$L$-光滑 | GD | $O(LR^2/T)$ | $O(LR^2/\varepsilon)$ |
+| 凸、$L$-光滑 | Nesterov AGD | $O(LR^2/T^2)$ | $O(\sqrt{LR^2/\varepsilon})$ |
+| $\mu$-强凸、$L$-光滑 | GD | $O(e^{-T/\kappa})$ | $O(\kappa\log(1/\varepsilon))$ |
+| $\mu$-强凸、$L$-光滑 | 加速方法 | $O(e^{-T/\sqrt\kappa})$ | $O(\sqrt\kappa\log(1/\varepsilon))$ |
+
+这些是不同函数类下的结论，不能把更快一行的速率移植到更弱假设上。
+
+## 加速与复合优化接口
+
+Nesterov 加速把“计算梯度的位置”和“携带动量的状态”分开。其 $O(1/T^2)$ 不是单纯把 GD 更新加上惯性项就自动得到，而是通过特定系数使势函数望远镜求和。第 @sec-online-to-offline-acceleration 章会从 optimism 与稳定转换重新解释这一结构。
+
+复合目标写成
+
+$$
+F(x)=f(x)+h(x),
+$$
+
+其中 $f$ 凸且 $L$-光滑，$h$ 凸但可非光滑，并且近端映射易算：
+
+$$
+\operatorname{prox}_{\eta h}(z)
+=
+\operatorname*{argmin}_{x}
+\left\{h(x)+\frac1{2\eta}\|x-z\|_2^2\right\}.
+$$
+
+近端梯度更新为
+
+$$
+x_{t+1}
+=
+\operatorname{prox}_{h/L}
+\left(x_t-\frac1L\nabla f(x_t)\right).
+$$ {#eq-proximal-gradient-interface}
+
+它不是“先做梯度下降再随意截断”，而是精确最小化光滑上界与非光滑项组成的局部代理目标。ISTA 达到 $O(1/T)$，FISTA 达到 $O(1/T^2)$；完整证明留在《凸优化工具箱》，本书只把近端更新作为后续 OMD、FTRL 与约束算法的接口。
+
+## 使用检查
+
+1. 结论控制的是最后点、最佳点还是平均点？
+2. $G$、$L$、$\mu$ 和距离尺度是否确实已知或可上界？
+3. 投影/近端子问题是否真的比原问题容易？
+4. 证明中的期望来自随机 oracle，还是算法随机化？
+5. 更快速率究竟用了光滑、强凸，还是额外的可预测结构？
+
+后续章节会反复复用 @eq-offline-master-inequality 的“势函数下降 + 稳定性代价”结构，只是把 Euclidean 距离替换为更合适的几何。
