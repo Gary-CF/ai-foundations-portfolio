@@ -1,0 +1,37 @@
+# 研究接口：通用性、one-pass 与鲁棒 Bandit {#sec-research-interfaces .appendix}
+
+本附录面向后续研究阅读。每个专题只保留问题、关键困难、算法骨架、主结论和阅读入口，不复刻论文级证明。
+
+::: {.callout-warning title="扩写边界"}
+以下内容当前均为 P2。未经确认，不将技术细节大规模扩写进正文。
+:::
+
+## Universal gradient-variation online learning
+
+### 未知曲率与多层 ensemble
+
+### Hölder 光滑与通用离线加速
+
+## One-pass generalized linear bandits
+
+### 非线性度带来的统计困难
+
+### 最大似然带来的计算与存储困难
+
+### 联合统计—计算效率
+
+## Heavy-tailed linear bandits
+
+### 重尾噪声与鲁棒估计
+
+### Huber 回归
+
+### OMD 作为 one-pass 估计器
+
+## 待添加研究方向
+
+- dynamic regret 与 non-stationarity；
+- delayed feedback 与 memory；
+- Bayesian optimization；
+- 线性与广义线性 MDP；
+- 在线博弈和均衡收敛。

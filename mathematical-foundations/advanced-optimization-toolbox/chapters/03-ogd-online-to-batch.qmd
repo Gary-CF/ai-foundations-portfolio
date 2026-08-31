@@ -1,0 +1,504 @@
+# OGD、强凸遗憾与 online-to-batch {#sec-ogd-online-to-batch}
+
+Online Gradient Descent（OGD）只做两件事：沿当轮次梯度下降，再投影回可行域。它的全部分析建立在一个平方距离势函数上。本章先把这条母不等式证明清楚，再分别代入一般凸性、强凸性和随机梯度条件。
+
+::: {.callout-note title="材料来源与边界"}
+本章以 Lecture 5 为主，并用 Lecture 3 的下降法分析补足步长选择。只保留 OGD 与 online-to-batch 的主证明链；高概率转换需要鞅集中工具，不由期望分析自动推出，留到集中不等式附录处理。
+:::
+
+## Online Gradient Descent
+
+设 $\mathcal X\subseteq\mathbb R^d$ 非空、闭且凸。Euclidean 投影定义为
+
+$$
+\Pi_{\mathcal X}(z)
+=
+\operatorname*{argmin}_{x\in\mathcal X}\|x-z\|_2.
+$$
+
+闭凸性保证投影存在且唯一。对任意 $u\in\mathcal X$，投影满足
+
+$$
+\|\Pi_{\mathcal X}(z)-u\|_2^2
+\le
+\|z-u\|_2^2
+-\|z-\Pi_{\mathcal X}(z)\|_2^2
+\le
+\|z-u\|_2^2.
+$$ {#eq-projection-pythagorean}
+
+这说明投影不会增大到任意可行比较点的距离。
+
+给定步长 $\eta_t>0$ 和当轮次梯度 $g_t\in\partial f_t(x_t)$，OGD 更新为
+
+$$
+x_{t+1}
+=
+\Pi_{\mathcal X}\bigl(x_t-\eta_t g_t\bigr).
+$$ {#eq-ogd-update}
+
+::: {.callout-note title="OGD 算法模板"}
+初始化 $x_1\in\mathcal X$。第 $t$ 轮先输出 $x_t$，收到 $g_t\in\partial f_t(x_t)$ 后，再按 @eq-ogd-update 更新。若 $\mathcal X=\mathbb R^d$，投影为恒等映射，OGD 就退化为普通次梯度下降。
+:::
+
+## 母不等式：一步距离如何变化
+
+取任意固定比较点 $u\in\mathcal X$。由 @eq-projection-pythagorean，
+
+$$
+\begin{aligned}
+\|x_{t+1}-u\|_2^2
+&\le
+\|x_t-\eta_tg_t-u\|_2^2\\
+&=
+\|x_t-u\|_2^2
+-2\eta_t\langle g_t,x_t-u\rangle
++\eta_t^2\|g_t\|_2^2.
+\end{aligned}
+$$ {#eq-ogd-distance-expansion}
+
+整理得
+
+$$
+\langle g_t,x_t-u\rangle
+\le
+\frac{\|x_t-u\|_2^2-\|x_{t+1}-u\|_2^2}{2\eta_t}
++\frac{\eta_t}{2}\|g_t\|_2^2.
+$$ {#eq-ogd-inner-product-bound}
+
+再用凸性 @eq-oco-linearization，得到 OGD 的核心一步不等式：
+
+$$
+f_t(x_t)-f_t(u)
+\le
+\frac{\|x_t-u\|_2^2-\|x_{t+1}-u\|_2^2}{2\eta_t}
++\frac{\eta_t}{2}\|g_t\|_2^2.
+$$ {#eq-ogd-master-inequality}
+
+它把单轮损失差拆成两部分：
+
+- **势函数下降**：比较距离的差分，求和时可以望远镜消去；
+- **移动代价**：$\eta_t\|g_t\|_2^2/2$，步长越大，单轮代价越高。
+
+后面的速率差异主要来自两件事：凸性还能提供多少负项，以及如何选择 $\eta_t$ 让两部分平衡。
+
+## 一般凸损失：$O(\sqrt T)$ 遗憾
+
+假设每个 $f_t$ 凸，且沿算法轨迹取得的次梯度满足 $\|g_t\|_2\le G$。再假设可行域直径至多为 $D$：
+
+$$
+\sup_{x,y\in\mathcal X}\|x-y\|_2\le D.
+$$
+
+若步长正且不增，即 $\eta_{t+1}\le\eta_t$，对 @eq-ogd-master-inequality 求和得到
+
+$$
+\begin{aligned}
+\operatorname{Reg}_T(u)
+&\le
+\frac12\sum_{t=1}^T
+\frac{\|x_t-u\|_2^2-\|x_{t+1}-u\|_2^2}{\eta_t}
++\frac{G^2}{2}\sum_{t=1}^T\eta_t\\
+&\le
+\frac{D^2}{2\eta_T}
++\frac{G^2}{2}\sum_{t=1}^T\eta_t.
+\end{aligned}
+$$ {#eq-ogd-general-regret}
+
+第二个不等式不是直接望远镜，因为分母随 $t$ 变化。令 $a_t=\|x_t-u\|_2^2$，则
+
+$$
+\begin{aligned}
+\sum_{t=1}^T\frac{a_t-a_{t+1}}{\eta_t}
+&=
+\frac{a_1}{\eta_1}
++\sum_{t=2}^T a_t
+\left(\frac1{\eta_t}-\frac1{\eta_{t-1}}\right)
+-\frac{a_{T+1}}{\eta_T}\\
+&\le
+D^2\left[
+\frac1{\eta_1}
++\sum_{t=2}^T\left(\frac1{\eta_t}-\frac1{\eta_{t-1}}\right)
+\right]
+=\frac{D^2}{\eta_T}.
+\end{aligned}
+$$
+
+这里同时用到了 $a_t\le D^2$、$a_{T+1}\ge0$ 和 $1/\eta_t$ 单调不减。
+
+::: {.callout-note title="定理：未知时域的 OGD 遗憾界"}
+在上述凸性、有界梯度和有界直径条件下，取
+
+$$
+\eta_t=\frac{D}{G\sqrt t},
+$$
+
+则对任意 $u\in\mathcal X$，
+
+$$
+\operatorname{Reg}_T(u)
+\le
+\frac32DG\sqrt T.
+$$ {#eq-ogd-sqrt-regret}
+:::
+
+证明只需把步长代入 @eq-ogd-general-regret，并使用
+
+$$
+\sum_{t=1}^T\frac1{\sqrt t}\le 2\sqrt T.
+$$
+
+于是
+
+$$
+\frac{D^2}{2\eta_T}
++\frac{G^2}{2}\sum_{t=1}^T\eta_t
+\le
+\frac12DG\sqrt T+DG\sqrt T.
+$$
+
+若预先知道 $T$，使用常数步长
+
+$$
+\eta=\frac{D}{G\sqrt T}
+$$
+
+可以由
+
+$$
+\operatorname{Reg}_T(u)
+\le
+\frac{D^2}{2\eta}+\frac{\eta G^2T}{2}
+$$
+
+得到更整齐的 $DG\sqrt T$。两者阶数相同；递减步长不需要预先知道终止轮数。
+
+## 强凸损失：曲率产生对数遗憾 {#sec-ogd-strongly-convex}
+
+若 $f_t$ 关于 $\ell_2$ 范数是 $\sigma$-强凸的，则对任意 $x,y\in\mathcal X$ 和 $g\in\partial f_t(x)$，
+
+$$
+f_t(y)
+\ge
+f_t(x)+\langle g,y-x\rangle
++\frac{\sigma}{2}\|y-x\|_2^2.
+$$ {#eq-online-strong-convexity}
+
+取 $x=x_t$、$y=u$ 并移项，得到比普通凸性更强的上界：
+
+$$
+f_t(x_t)-f_t(u)
+\le
+\langle g_t,x_t-u\rangle
+-\frac{\sigma}{2}\|x_t-u\|_2^2.
+$$ {#eq-strong-convex-linearization}
+
+将 @eq-ogd-inner-product-bound 代入，
+
+$$
+\begin{aligned}
+f_t(x_t)-f_t(u)
+\le{}&
+\frac{\eta_t^{-1}-\sigma}{2}\|x_t-u\|_2^2\\
+&-\frac{\eta_t^{-1}}{2}\|x_{t+1}-u\|_2^2
++\frac{\eta_t}{2}\|g_t\|_2^2.
+\end{aligned}
+$$ {#eq-strong-ogd-one-step}
+
+取
+
+$$
+\eta_t=\frac1{\sigma t}.
+$$ {#eq-strong-ogd-step}
+
+此时 $\eta_t^{-1}-\sigma=\sigma(t-1)=\eta_{t-1}^{-1}$。对 @eq-strong-ogd-one-step 求和后，所有中间距离项精确抵消，只剩一个非正的末项。因此，在 $\|g_t\|_2\le G$ 下，
+
+$$
+\begin{aligned}
+\operatorname{Reg}_T(u)
+&\le
+\frac{G^2}{2}\sum_{t=1}^T\eta_t\\
+&=
+\frac{G^2}{2\sigma}\sum_{t=1}^T\frac1t\\
+&\le
+\frac{G^2}{2\sigma}(1+\log T).
+\end{aligned}
+$$ {#eq-strong-ogd-log-regret}
+
+::: {.callout-important title="条件变化"}
+一般凸 OGD 用有限直径 $D$ 控制势函数；强凸 OGD 依靠每轮额外的负二次项完成抵消，因此 @eq-strong-ogd-log-regret 不再需要把域直径 $D$ 放入结论。但仍需 $\mathcal X$ 闭凸、每轮损失具有统一强凸参数 $\sigma$，并控制算法取得的次梯度范数。
+:::
+
+## 上界与下界的量级
+
+在对应的标准有界条件下，最坏情形量级为：
+
+| 损失结构 | OGD 上界 | 一般不可改进的下界 | 平均遗憾 |
+|---|---:|---:|---:|
+| 凸、$G$-Lipschitz、域直径 $D$ | $O(DG\sqrt T)$ | $\Omega(DG\sqrt T)$ | $O(T^{-1/2})$ |
+| $\sigma$-强凸、梯度有界 | $O((G^2/\sigma)\log T)$ | $\Omega((G^2/\sigma)\log T)$ | $O((\log T)/T)$ |
+
+这张表比较的是对抗式在线问题。它不能直接当作随机离线优化的下界：随机结构允许在强凸情形通过更合适的输出平均达到 $O(1/T)$。
+
+## Online-to-batch：把遗憾变成离线误差
+
+考虑随机凸优化问题
+
+$$
+\min_{x\in\mathcal X}F(x),
+\qquad
+F(x)=\mathbb E_{\xi}[f(x;\xi)].
+$$ {#eq-stochastic-objective}
+
+设 $x^*\in\operatorname*{argmin}_{x\in\mathcal X}F(x)$。第 $t$ 轮，算法根据历史选择 $x_t$，随机一阶 oracle 返回 $g_t$。记 $\mathcal F_{t-1}$ 为产生 $x_t$ 之前的历史信息，并假设
+
+$$
+\mathbb E[g_t\mid\mathcal F_{t-1}]
+\in\partial F(x_t),
+\qquad
+\mathbb E[\|g_t\|_2^2\mid\mathcal F_{t-1}]
+\le G^2.
+$$ {#eq-stochastic-oracle}
+
+条件无偏性很关键：因为 $x_t$ 依赖过去的随机梯度，不能把 $g_t$ 与 $x_t$ 当作彼此独立。
+
+构造线性在线损失
+
+$$
+\ell_t(x)=\langle g_t,x\rangle,
+$$ {#eq-o2b-linear-loss}
+
+并让任意在线算法 $\mathcal A$ 依次处理 $\ell_1,\ldots,\ell_T$。最终输出均匀平均
+
+$$
+\bar x_T=\frac1T\sum_{t=1}^T x_t.
+$$ {#eq-o2b-average}
+
+::: {.callout-note title="定理：基本 online-to-batch 转换"}
+若 $F$ 凸且 @eq-stochastic-oracle 的条件无偏性成立，则
+
+$$
+\mathbb E[F(\bar x_T)]-F(x^*)
+\le
+\frac1T\mathbb E\!\left[
+\operatorname{Reg}^{\mathcal A}_T(x^*)
+\right],
+$$ {#eq-basic-o2b-bound}
+
+其中右侧遗憾针对随机生成的线性损失 @eq-o2b-linear-loss。
+:::
+
+证明链只有四步：
+
+$$
+\begin{aligned}
+\mathbb E[F(\bar x_T)]-F(x^*)
+&\le
+\frac1T\sum_{t=1}^T
+\mathbb E\bigl[F(x_t)-F(x^*)\bigr]\\
+&\le
+\frac1T\sum_{t=1}^T
+\mathbb E\left[
+\left\langle
+\mathbb E[g_t\mid\mathcal F_{t-1}],
+x_t-x^*
+\right\rangle
+\right]\\
+&=
+\frac1T\sum_{t=1}^T
+\mathbb E\bigl[\langle g_t,x_t-x^*\rangle\bigr]\\
+&=
+\frac1T\mathbb E\!\left[
+\sum_{t=1}^T\bigl(\ell_t(x_t)-\ell_t(x^*)\bigr)
+\right].
+\end{aligned}
+$$ {#eq-o2b-proof-chain}
+
+第一步用 Jensen 不等式，第二步用凸性，第三步用条件期望，最后一步识别出在线遗憾。
+
+::: {.callout-important title="自适应损失为什么不破坏证明"}
+$\ell_t$ 由在 $x_t$ 处查询得到的 $g_t$ 构造，因此它依赖在线历史。这里需要在线算法的遗憾界对实际生成的损失序列成立；OGD 的确定性母不等式逐路径成立，恰好满足这一要求。随机性只在从线性损失差转换回 $F(x_t)-F(x^*)$ 时使用。
+:::
+
+## 从 OGD 重新理解 SGD
+
+把 OGD 用于线性损失 @eq-o2b-linear-loss，其次梯度就是 $g_t$，更新变为
+
+$$
+x_{t+1}=\Pi_{\mathcal X}(x_t-\eta_tg_t),
+$$
+
+这正是投影随机梯度下降。若 $\mathcal X$ 直径至多为 $D$，结合 OGD 的一般界与 @eq-basic-o2b-bound，可得
+
+$$
+\mathbb E[F(\bar x_T)]-F(x^*)
+\le
+\frac{3DG}{2\sqrt T}
+$$ {#eq-sgd-from-ogd}
+
+对应步长为 $\eta_t=D/(G\sqrt t)$。若只假设条件二阶矩有界，而不是 $\|g_t\|\le G$ 几乎处处成立，则可直接对 @eq-ogd-master-inequality 取条件期望，得到同阶的期望结论；此时不能把中间的在线遗憾界误称为逐路径界。
+
+online-to-batch 的价值不只是重新证明 SGD：任何可控制线性遗憾的在线算法，都能通过合适平均转化为随机凸优化算法。更换在线几何，就会得到非 Euclidean 的随机方法。
+
+## 强凸情形：均匀平均为什么多一个 $\log T$
+
+若 $F$ 是 $\sigma$-强凸的，则
+
+$$
+F(x_t)-F(x^*)
+\le
+\left\langle
+\mathbb E[g_t\mid\mathcal F_{t-1}],x_t-x^*
+\right\rangle
+-\frac{\sigma}{2}\|x_t-x^*\|_2^2.
+$$
+
+因此可构造强凸在线代理损失
+
+$$
+\ell_t(x)
+=
+\langle g_t,x\rangle
++\frac{\sigma}{2}\|x-x_t\|_2^2.
+$$ {#eq-strong-o2b-surrogate}
+
+它在 $x_t$ 处的梯度仍为 $g_t$。把强凸 OGD 的 $O((G^2/\sigma)\log T)$ 遗憾除以 $T$，均匀平均只能得到
+
+$$
+\mathbb E[F(\bar x_T)]-F(x^*)
+=O\!\left(\frac{G^2\log T}{\sigma T}\right).
+$$ {#eq-naive-strong-o2b}
+
+这不是强凸随机优化的最优阶。多出的 $\log T$ 来自等权累计强凸在线遗憾，而不是强凸随机问题本身的统计困难。
+
+## 加权转换：去掉多余的 $\log T$
+
+取权重 $\alpha_t>0$，记
+
+$$
+A_t=\sum_{s=1}^t\alpha_s,
+\qquad
+\bar x_T^{(\alpha)}
+=
+\frac1{A_T}\sum_{t=1}^T\alpha_tx_t.
+$$ {#eq-weighted-average}
+
+使用代理损失
+
+$$
+\ell_t^{(\alpha)}(x)
+=
+\alpha_t\langle g_t,x\rangle
++\frac{\alpha_t\sigma}{2}\|x-x_t\|_2^2.
+$$ {#eq-weighted-surrogate}
+
+加权 Jensen 不等式和强凸性给出
+
+$$
+\mathbb E[F(\bar x_T^{(\alpha)})]-F(x^*)
+\le
+\frac1{A_T}
+\mathbb E\!\left[
+\operatorname{Reg}^{\mathcal A}_T(x^*)
+\right].
+$$ {#eq-weighted-o2b}
+
+对 @eq-weighted-surrogate 运行 OGD。它的强凸参数为 $\alpha_t\sigma$，在当前点的梯度为 $\alpha_tg_t$。取
+
+$$
+\eta_t=\frac1{\sigma A_t},
+$$ {#eq-weighted-o2b-step}
+
+则一步界中的距离系数满足
+
+$$
+\eta_t^{-1}-\alpha_t\sigma
+=
+\sigma A_{t-1}
+=
+\eta_{t-1}^{-1},
+$$
+
+从而再次望远镜消去。若条件二阶矩由 $G^2$ 控制，取期望后得到
+
+$$
+\mathbb E[\operatorname{Reg}^{\mathcal A}_T(x^*)]
+\le
+\frac{G^2}{2\sigma}
+\sum_{t=1}^T\frac{\alpha_t^2}{A_t}.
+$$ {#eq-weighted-regret-bound}
+
+选择线性权重 $\alpha_t=t$，则 $A_t=t(t+1)/2$，且
+
+$$
+\frac{\alpha_t^2}{A_t}
+=
+\frac{2t}{t+1}
+\le2.
+$$
+
+代入 @eq-weighted-o2b 与 @eq-weighted-regret-bound，得到
+
+$$
+\mathbb E[F(\bar x_T^{(\alpha)})]-F(x^*)
+\le
+\frac{2G^2}{\sigma(T+1)}.
+$$ {#eq-optimal-strong-o2b}
+
+此时 OGD 的实际更新为
+
+$$
+x_{t+1}
+=
+\Pi_{\mathcal X}\!\left(
+x_t-\frac{\alpha_t}{\sigma A_t}g_t
+\right)
+=
+\Pi_{\mathcal X}\!\left(
+x_t-\frac{2}{\sigma(t+1)}g_t
+\right).
+$$
+
+因此，$O(1/T)$ 并不是换了一个完全不同的算法，而是让在线代理损失的权重、步长和最终输出平均彼此匹配。
+
+## 期望界与高概率界的边界
+
+@eq-basic-o2b-bound 与 @eq-optimal-strong-o2b 都是期望界。要得到概率至少为 $1-\delta$ 的结论，需要控制鞅差
+
+$$
+\sum_{t=1}^T
+\left\langle
+g_t-\mathbb E[g_t\mid\mathcal F_{t-1}],
+x_t-x^*
+\right\rangle,
+$$
+
+并补充几乎处处有界、条件方差或次高斯等尾部条件。仅有二阶矩有界不足以直接套用 Hoeffding 型界。相关集中工具见附录 @sec-concentration-toolbox；本章不提前展开 Freedman/Bernstein 证明。
+
+## 方法选择
+
+| 目标与信息 | 更新/输出 | 典型结论 |
+|---|---|---|
+| 对抗式一般凸 OCO | OGD，$\eta_t\asymp t^{-1/2}$ | $\operatorname{Reg}_T=O(\sqrt T)$ |
+| 对抗式 $\sigma$-强凸 OCO | OGD，$\eta_t=1/(\sigma t)$ | $\operatorname{Reg}_T=O(\log T)$ |
+| 随机一般凸优化 | 投影 SGD + 均匀平均 | $\mathbb E[F(\bar x_T)]-F(x^*)=O(T^{-1/2})$ |
+| 随机 $\sigma$-强凸优化 | 递减步长 + 线性加权平均 | $\mathbb E[F(\bar x_T)]-F(x^*)=O(T^{-1})$ |
+
+::: {.callout-warning title="典型误用"}
+- 使用 $\eta_t=D/(G\sqrt t)$ 前没有确认有限直径 $D$ 与梯度界 $G$。
+- 把 $\mathbb E[g_t\mid\mathcal F_{t-1}]$ 简写成 $\mathbb E[g_t]$，忽略 $x_t$ 对历史的依赖。
+- 从 $O(\log T)$ 的强凸在线遗憾直接断言随机优化只能达到 $O((\log T)/T)$。
+- 证明在线遗憾时对随机梯度先取期望，却把结果写成对每条样本路径成立。
+- 只改变 SGD 步长，却忘记强凸 $O(1/T)$ 结论还依赖匹配的加权输出。
+- 把期望界直接改写成高概率界，而没有控制相应鞅差。
+:::
+
+## 本章主线
+
+本章只需要反复记住三条结构：
+
+1. **投影展开**产生 @eq-ogd-master-inequality；
+2. **额外曲率**提供负距离项，使 $\eta_t\asymp 1/t$ 时精确抵消；
+3. **online-to-batch** 用平均与条件无偏性，把在线遗憾除以累计权重，转成离线随机优化误差。
+
+下一章将把平方 Euclidean 势函数替换为熵势函数，进入单纯形上的 Hedge 与乘法权重方法。

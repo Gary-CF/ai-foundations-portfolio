@@ -1,0 +1,29 @@
+# 随机多臂 Bandit {#sec-stochastic-bandits}
+
+随机 Bandit 假设每个臂具有固定但未知的奖励分布，使置信区间和后验不确定性能够指导自适应探索。
+
+::: {.callout-note title="材料来源与边界"}
+主要对应 Lecture 11。ETC、UCB、Thompson Sampling 及 gap-dependent/gap-independent 界为 P0；best-of-both-worlds 与 Best Arm Identification 保留为 P1 接口。
+:::
+
+## 随机 MAB 与 gap
+
+## 遗憾分解
+
+## 探索—利用矛盾
+
+## Explore-Then-Commit
+
+## 固定探索率及其局限
+
+## Upper Confidence Bound
+
+## Gap-dependent 遗憾界
+
+## Gap-independent 遗憾界
+
+## Thompson Sampling
+
+## ETC、UCB 与 TS 的选择边界
+
+## 进阶接口

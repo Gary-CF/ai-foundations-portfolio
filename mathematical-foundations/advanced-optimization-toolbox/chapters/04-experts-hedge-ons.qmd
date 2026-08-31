@@ -1,0 +1,21 @@
+# 专家建议、Hedge 与二阶曲率 {#sec-experts-hedge-ons}
+
+本章从有限专家集合出发，建立指数权重方法，并说明 exp-concavity 如何支持二阶在线算法。
+
+::: {.callout-note title="材料来源与边界"}
+主要对应 Lecture 6。Hedge 在本章完整定义和分析；后续章节只将它作为负熵 OMD/FTRL 的实例，不再重复证明。
+:::
+
+## Prediction with Expert Advice
+
+## Hedge 与乘法权重更新
+
+## Log-sum-exp 势函数证明
+
+## 最优维数依赖与下界
+
+## Exp-concavity
+
+## Online Newton Step
+
+## 二阶几何的收益与代价

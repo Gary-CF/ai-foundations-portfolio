@@ -1,0 +1,16 @@
+project:
+  output-dir: _pdf
+
+format:
+  pdf:
+    documentclass: scrreprt
+    pdf-engine: xelatex
+    classoption:
+      - openany
+    toc: true
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{ctex}
+        \usepackage{amsmath,amssymb,mathtools,bm}
+        \usepackage{booktabs}

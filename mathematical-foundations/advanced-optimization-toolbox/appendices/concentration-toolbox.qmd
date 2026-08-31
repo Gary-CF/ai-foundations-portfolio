@@ -1,0 +1,19 @@
+# 概率、范数与集中工具 {#sec-concentration-toolbox .appendix}
+
+本附录只保存正文反复调用的概率与几何工具，不重复《概率论与数理统计工具箱》中的完整理论。
+
+## 对偶范数与 Hölder 不等式
+
+## 条件期望与 filtration
+
+## 次 Gaussian 随机变量
+
+## Hoeffding、Azuma 与 Freedman
+
+## Union bound 与 anytime 置信事件
+
+## 矩阵集中接口
+
+## 自归一化集中
+
+## 使用条件速查

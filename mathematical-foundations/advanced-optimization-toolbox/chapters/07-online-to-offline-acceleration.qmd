@@ -1,0 +1,21 @@
+# 从在线遗憾到离线加速 {#sec-online-to-offline-acceleration}
+
+本章解释在线算法的自适应遗憾如何经过稳定转换，重新产生离线优化中的加速率。
+
+::: {.callout-note title="材料来源与边界"}
+主要对应 Lecture 9，并参考 Lecture 4 与 AOPT_Holder。稳定 online-to-batch 和 optimism design 进入正文；Hölder 光滑下的通用最优率留在研究接口附录。
+:::
+
+## 普通 online-to-batch 的限制
+
+## 稳定 online-to-batch
+
+## Optimism design
+
+## Gradient variation 与光滑加速
+
+## 与 Nesterov 加速的关系
+
+## 未知光滑性与 universality
+
+## 适用条件与方法边界

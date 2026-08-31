@@ -1,0 +1,16 @@
+_book/
+_pdf/
+.quarto/
+*.aux
+*.log
+*.out
+*.toc
+*.tex
+*.synctex.gz
+_draft/render-logs/
+_draft/source/
+.DS_Store
+Thumbs.db
+
+/.quarto/
+**/*.quarto_ipynb

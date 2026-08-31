@@ -1,0 +1,25 @@
+# 自适应与乐观在线优化 {#sec-adaptive-optimistic-online}
+
+最坏情形遗憾只描述问题最困难时的表现。本章研究算法如何自动利用小损失、低变化和可预测性。
+
+::: {.callout-note title="材料来源与边界"}
+主要对应 Lecture 8–9。由于这部分直接衔接在线学习、Bandit 与组内研究主线，small-loss、Optimistic OMD 和 gradient variation 均作为 P0 主线，而不是边角扩展。
+:::
+
+## 从 minimax 到 problem-dependent
+
+## Small-loss 与 self-bounding
+
+## Self-confident 学习率
+
+## Optimistic Online Mirror Descent
+
+## 预测误差依赖的遗憾界
+
+## Gradient variance
+
+## Gradient variation
+
+## Stochastic–adversarial 连续视角
+
+## 与 AdaGrad 和 parameter-free 方法的接口

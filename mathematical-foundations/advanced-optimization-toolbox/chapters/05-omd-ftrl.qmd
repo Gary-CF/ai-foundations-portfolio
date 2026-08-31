@@ -1,0 +1,27 @@
+# 镜像下降与 FTRL {#sec-omd-ftrl}
+
+本章研究如何用正则函数选择问题几何，并统一 OMD、FTRL 和对偶平均。
+
+::: {.callout-note title="材料来源与边界"}
+主要对应 Lecture 7。全章只建立一套可复用的镜像下降主不等式，再将 Euclidean、负熵与 Mahalanobis 几何作为实例。
+:::
+
+## Euclidean 几何为什么会失配
+
+## 强凸正则与对偶范数
+
+## Bregman 散度
+
+## Online Mirror Descent
+
+## 镜像下降主不等式
+
+## 三种核心几何
+
+## Mirror map 与 primal-dual 视角
+
+## Follow-the-Regularized Leader
+
+## Dual averaging
+
+## OMD 与 FTRL 的等价边界

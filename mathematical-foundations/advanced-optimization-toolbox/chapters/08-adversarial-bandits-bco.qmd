@@ -1,0 +1,25 @@
+# 对抗 Bandit 与 Bandit 凸优化 {#sec-adversarial-bandits-bco}
+
+本章进入部分反馈：学习者只观察所选动作的损失，因此探索和估计方差成为新的核心困难。
+
+::: {.callout-note title="材料来源与边界"}
+主要对应 Lecture 10。Exp3、重要性加权估计及其遗憾分析为 P0；Bandit convex optimization、自协调障碍与各向异性探索作为 P1 进阶节。
+:::
+
+## 对抗多臂 Bandit 协议
+
+## 从 Hedge 到 Exp3
+
+## 重要性加权损失估计
+
+## 无偏性、方差与探索概率
+
+## Exp3 的遗憾界
+
+## 对抗 MAB 下界
+
+## Bandit Convex Optimization
+
+## 一点梯度估计与 Bandit GD
+
+## 平滑 BCO 与障碍几何

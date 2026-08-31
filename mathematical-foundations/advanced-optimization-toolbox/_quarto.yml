@@ -1,0 +1,54 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "高级优化工具箱"
+  subtitle: "在线学习、Bandit 与自适应方法"
+  author: "Gary Chen"
+  date: last-modified
+  chapters:
+    - index.qmd
+    - part: "统一分析语言"
+      chapters:
+        - chapters/01-first-order-analysis.qmd
+    - part: "全信息在线优化"
+      chapters:
+        - chapters/02-online-convex-optimization.qmd
+        - chapters/03-ogd-online-to-batch.qmd
+        - chapters/04-experts-hedge-ons.qmd
+        - chapters/05-omd-ftrl.qmd
+        - chapters/06-adaptive-optimistic-online.qmd
+        - chapters/07-online-to-offline-acceleration.qmd
+    - part: "部分反馈与 Bandit"
+      chapters:
+        - chapters/08-adversarial-bandits-bco.qmd
+        - chapters/09-stochastic-bandits.qmd
+        - chapters/10-linear-bandits.qmd
+    - part: "附录"
+      chapters:
+        - appendices/concentration-toolbox.qmd
+        - appendices/proof-templates.qmd
+        - appendices/research-interfaces.qmd
+        - appendices/notation.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+  pdf:
+    documentclass: scrreprt
+    pdf-engine: xelatex
+    toc: true
+    keep-tex: true
+
+number-sections: true
+crossref:
+  chapters: true
+
+execute:
+  freeze: auto
+
+lang: zh
