@@ -1,13 +1,373 @@
 # 梯度方法与无约束优化
 
-纸质笔记将无约束优化算法分为：
+梯度给出函数在当前位置增长最快的方向，因此负梯度是最直接的下降方向。梯度下降的价值不只在于算法简单，更在于它清楚展示了函数结构如何转化为收敛速率：光滑性给出 $O(1/k)$，再加入强凸性便得到线性收敛。
 
-1. 梯度下降法；
-2. 最速下降法；
-3. 坐标轮换法；
-4. Newton／拟 Newton 法。
+## 梯度下降法
 
-其中，Lecture 11–12 可以直接支撑梯度下降、最速下降、精确线搜索、回溯线搜索、收敛分析与条件数讨论。
+考虑无约束问题
 
-坐标轮换法和 Newton／拟 Newton 法没有在现有课件中系统展开，暂列为 P1 内容，不在忠实电子化阶段补写。
+$$
+\min_{x\in\mathbb R^n}f(x),
+$$
 
+其中 $f$ 可微。梯度下降迭代为
+
+$$
+x_{k+1}
+=
+x_k-\eta_k\nabla f(x_k),
+$$ {#eq-gradient-descent}
+
+其中 $\eta_k>0$ 为步长。
+
+算法模板为：
+
+1. 选择初始点 $x_0$；
+2. 计算梯度 $g_k=\nabla f(x_k)$；
+3. 选择步长 $\eta_k$；
+4. 更新 $x_{k+1}=x_k-\eta_k g_k$；
+5. 满足停止条件时退出。
+
+常用停止条件包括
+
+$$
+\lVert\nabla f(x_k)\rVert_2\le\varepsilon_g,
+$$
+
+相邻函数值变化足够小，或达到预设迭代次数。只有在相应凸性与误差界条件下，梯度小才可直接解释为接近全局最优。
+
+## 为什么负梯度是最速下降方向
+
+在 Euclidean 单位球中，一阶近似下降最快的方向由
+
+$$
+\min_{\lVert d\rVert_2\le1}
+\nabla f(x)^\top d
+$$
+
+给出。由 Cauchy–Schwarz 不等式，
+
+$$
+\nabla f(x)^\top d
+\ge
+-\lVert\nabla f(x)\rVert_2\lVert d\rVert_2
+\ge
+-\lVert\nabla f(x)\rVert_2,
+$$
+
+等号在
+
+$$
+d
+=
+-\frac{\nabla f(x)}{\lVert\nabla f(x)\rVert_2}
+$$
+
+处取得。因此负梯度是 Euclidean 几何下的最速下降方向。
+
+### 最速下降依赖所选范数
+
+若单位步长由一般范数 $\lVert\cdot\rVert$ 衡量，则方向变为
+
+$$
+d^\star
+\in
+\operatorname*{argmin}_{\lVert d\rVert\le1}
+\nabla f(x)^\top d.
+$$
+
+最优值是
+
+$$
+-\lVert\nabla f(x)\rVert_\star,
+$$
+
+其中 $\lVert\cdot\rVert_\star$ 是对偶范数。由此可见，“最速”不是坐标无关的绝对概念，而是相对于度量定义的。
+
+## 步长的三种选择
+
+### 固定步长
+
+若 $f$ 为 $L$-光滑函数，最常用的是
+
+$$
+\eta_k=\frac1L.
+$$
+
+更一般地，$0<\eta_k<2/L$ 可在正定二次问题中保证收敛；统一理论通常采用不超过 $1/L$ 的步长，以获得简洁下降界。
+
+### 精确线搜索
+
+精确线搜索选择
+
+$$
+\eta_k
+\in
+\operatorname*{argmin}_{\eta\ge0}
+f\bigl(x_k-\eta\nabla f(x_k)\bigr).
+$$
+
+在凸二次问题中，它常可解析求出；一般问题则需要额外的一维优化。
+
+### 回溯线搜索
+
+若 $L$ 未知，可以从 $\eta=1$ 开始反复缩小，直到
+
+$$
+f\bigl(x_k-\eta\nabla f(x_k)\bigr)
+\le
+f(x_k)-\alpha\eta
+\lVert\nabla f(x_k)\rVert_2^2
+$$
+
+成立，其中 $\alpha\in(0,1/2)$。这是第 6 章 Armijo 条件在负梯度方向上的具体形式。
+
+## 光滑凸函数的 $O(1/k)$ 收敛率
+
+假设：
+
+1. $f$ 为凸函数；
+2. $f$ 为 $L$-光滑函数；
+3. 最优解 $x^\star$ 存在；
+4. 使用固定步长 $\eta=1/L$。
+
+则
+
+$$
+f(x_k)-f(x^\star)
+\le
+\frac{L\lVert x_0-x^\star\rVert_2^2}{2k}.
+$$ {#eq-gd-convex-rate}
+
+### 单步势函数下降
+
+记
+
+$$
+x_{k+1}=x_k-\frac1L\nabla f(x_k).
+$$
+
+光滑性给出
+
+$$
+f(x_{k+1})
+\le
+f(x_k)
++\nabla f(x_k)^\top(x_{k+1}-x_k)
++\frac L2\lVert x_{k+1}-x_k\rVert_2^2.
+$$
+
+凸性给出
+
+$$
+f(x_k)-f(x^\star)
+\le
+\nabla f(x_k)^\top(x_k-x^\star).
+$$
+
+将两式相加并整理：
+
+$$
+\begin{aligned}
+f(x_{k+1})-f(x^\star)
+&\le
+\nabla f(x_k)^\top(x_{k+1}-x^\star)
++\frac L2\lVert x_{k+1}-x_k\rVert_2^2.
+\end{aligned}
+$$
+
+由
+
+$$
+\nabla f(x_k)=L(x_k-x_{k+1}),
+$$
+
+右侧变为
+
+$$
+\frac L2
+\left(
+\lVert x_k-x^\star\rVert_2^2
+-\lVert x_{k+1}-x^\star\rVert_2^2
+\right).
+$$ {#eq-gd-telescoping-step}
+
+### 求和
+
+对 $i=0,\ldots,k-1$ 求和，距离项望远镜消去：
+
+$$
+\sum_{i=0}^{k-1}
+\bigl(f(x_{i+1})-f(x^\star)\bigr)
+\le
+\frac L2\lVert x_0-x^\star\rVert_2^2.
+$$
+
+梯度下降在步长 $1/L$ 下使函数值单调不增，因此
+
+$$
+k\bigl(f(x_k)-f(x^\star)\bigr)
+\le
+\sum_{i=0}^{k-1}
+\bigl(f(x_{i+1})-f(x^\star)\bigr).
+$$
+
+两式结合即得式 @eq-gd-convex-rate。
+
+::: {.callout-note title="如何读懂 $O(1/k)$"}
+若希望函数误差不超过 $\varepsilon$，迭代次数满足
+
+$$
+k
+\ge
+\frac{L\lVert x_0-x^\star\rVert_2^2}{2\varepsilon}.
+$$
+
+因此精度要求缩小十倍，理论迭代次数大约增加十倍。
+:::
+
+## 强凸光滑函数的线性收敛
+
+进一步假设 $f$ 为 $\mu$-强凸函数。第 6 章给出
+
+$$
+\lVert\nabla f(x_k)\rVert_2^2
+\ge
+2\mu\bigl(f(x_k)-p^\star\bigr).
+$$
+
+光滑下降界给出
+
+$$
+f(x_{k+1})
+\le
+f(x_k)-\frac{1}{2L}
+\lVert\nabla f(x_k)\rVert_2^2.
+$$
+
+合并得到
+
+$$
+f(x_{k+1})-p^\star
+\le
+\left(1-\frac\mu L\right)
+\bigl(f(x_k)-p^\star\bigr).
+$$
+
+递推可得
+
+$$
+f(x_k)-p^\star
+\le
+\left(1-\frac1\kappa\right)^k
+\bigl(f(x_0)-p^\star\bigr),
+$$ {#eq-gd-linear-rate}
+
+其中 $\kappa=L/\mu$。
+
+由于
+
+$$
+\left(1-\frac1\kappa\right)^k
+\le
+e^{-k/\kappa},
+$$
+
+达到误差 $\varepsilon$ 所需迭代次数为
+
+$$
+k
+=
+O\left(
+\kappa
+\log\frac{f(x_0)-p^\star}{\varepsilon}
+\right).
+$$
+
+这里“线性收敛”指误差按固定比例缩小，也称几何收敛；它并不是说误差随 $k$ 线性下降。
+
+## 二次函数中的谱视角
+
+考虑
+
+$$
+f(x)=\frac12x^\top Px-q^\top x,
+\qquad P\succ0.
+$$
+
+最优点满足 $Px^\star=q$。固定步长梯度下降为
+
+$$
+x_{k+1}=x_k-\eta(Px_k-q).
+$$
+
+令误差 $e_k=x_k-x^\star$，则
+
+$$
+e_{k+1}=(I-\eta P)e_k.
+$$
+
+沿 $P$ 的第 $i$ 个特征向量方向，误差乘以
+
+$$
+1-\eta\lambda_i(P).
+$$
+
+因此收敛要求
+
+$$
+|1-\eta\lambda_i(P)|<1
+$$
+
+对所有特征值成立，也就是
+
+$$
+0<\eta<\frac{2}{L}.
+$$
+
+选择
+
+$$
+\eta=\frac{2}{L+\mu}
+$$
+
+可以平衡最陡与最平方向，其距离收缩因子为
+
+$$
+\frac{\kappa-1}{\kappa+1}.
+$$
+
+这个谱分解清楚解释了病态问题中的“之”字形轨迹：同一个步长必须同时照顾大特征值方向的稳定性和小特征值方向的推进速度。
+
+## 线搜索与固定步长如何选择
+
+| 情形 | 常用选择 | 主要理由 |
+|---|---|---|
+| 已知可靠的 $L$ | 固定步长 $1/L$ | 理论清楚，单步成本低 |
+| $L$ 未知但函数值可计算 | 回溯线搜索 | 自适应寻找充分下降步长 |
+| 射线极小值易求 | 精确线搜索 | 可利用特殊结构 |
+| 单步计算非常昂贵 | 固定或复用步长 | 避免重复函数评估 |
+
+实践中还应关注梯度计算成本、稀疏结构、数值尺度与停止准则，而不只比较理论迭代次数。
+
+## 纸质主线中其余无约束方法的边界
+
+纸质笔记还列出：
+
+- 坐标轮换法；
+- Newton 法；
+- 拟 Newton 法。
+
+这些方法在当前课件中没有得到与梯度下降同等完整的推导，因此本版不在主线中扩写。它们保留在进阶算法附录的 P1 清单中；后续补入时将重点说明坐标选择、二阶局部模型、Hessian 可逆性和全局化线搜索条件。
+
+## 典型误区
+
+1. **负梯度在任何度量下都是最速方向。** 它只在 Euclidean 范数下成立。
+2. **步长越大下降越快。** 超过稳定范围会振荡甚至发散。
+3. **函数值单调下降就一定收敛到最优点。** 还需要凸性、光滑性、解存在等条件。
+4. **线性收敛表示误差每次减去固定常数。** 实际上是每次乘以固定比例。
+5. **梯度很小总能证明接近最优。** 需要凸性及强凸性等误差界条件；非凸问题可能停在鞍点附近。
+
+## 本章小结
+
+梯度下降由下降方向和步长共同决定。对 $L$-光滑凸函数，步长 $1/L$ 给出 $O(1/k)$ 函数误差；再加入 $\mu$-强凸性，速率提升为依赖条件数 $\kappa=L/\mu$ 的线性收敛。二次函数的谱分解进一步说明，不同方向曲率不均衡正是梯度法变慢的根源。

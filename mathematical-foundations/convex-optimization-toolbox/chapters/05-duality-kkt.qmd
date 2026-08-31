@@ -1,8 +1,161 @@
 # 共轭函数、Lagrange 对偶与 KKT
 
+对偶理论从原问题构造一个新的优化问题。对偶可行点给出原问题最优值的下界；当强对偶成立时，这个下界可以达到原问题最优值，并由此产生可检验的最优性证书。共轭函数、Lagrangian、Slater 条件和 KKT 条件是这套语言的核心部件。
+
+## 共轭函数
+
+设 $f:\mathbb R^n\to\mathbb R\cup\{+\infty\}$。其 Fenchel 共轭定义为
+
+$$
+f^\star(y)
+=
+\sup_{x\in\operatorname{dom}f}
+\bigl(y^\top x-f(x)\bigr).
+$$ {#eq-fenchel-conjugate}
+
+对固定的 $y$，共轭函数寻找斜率为 $y$ 的仿射函数
+
+$$
+x\mapsto y^\top x-f^\star(y)
+$$
+
+在不超过 $f$ 的条件下能够达到的最大截距。
+
+::: {.callout-tip title="几何视角：从点值转向斜率"}
+原函数用输入 $x$ 索引函数值，共轭函数则用斜率 $y$ 索引支撑超平面。它把“函数在什么位置取什么值”转换为“函数允许哪些线性下界”，因此天然适合对偶化。
+:::
+
+### 基本性质
+
+无论 $f$ 本身是否凸，$f^\star$ 都是凸函数。原因是
+
+$$
+f^\star(y)
+=
+\sup_x\bigl(x^\top y-f(x)\bigr)
+$$
+
+是关于 $y$ 的一族仿射函数的逐点上确界。
+
+若 $f\le g$，则共轭会反转不等式：
+
+$$
+f^\star\ge g^\star.
+$$
+
+若 $f$ 是闭、正常的凸函数，则双共轭恢复原函数：
+
+$$
+f^{\star\star}=f.
+$$
+
+这里“正常”表示 $f$ 不恒为 $+\infty$，且从不取 $-\infty$。双共轭结论说明闭凸函数可以完全由其仿射下界重建。
+
+### 常用例子
+
+#### 二次函数
+
+若
+
+$$
+f(x)=\frac12\lVert x\rVert_2^2,
+$$
+
+则
+
+$$
+\begin{aligned}
+f^\star(y)
+&=
+\sup_x\left(y^\top x-\frac12\lVert x\rVert_2^2\right).
+\end{aligned}
+$$
+
+对 $x$ 求一阶条件得到 $x=y$，因此
+
+$$
+f^\star(y)=\frac12\lVert y\rVert_2^2.
+$$
+
+#### 仿射函数
+
+若 $f(x)=a^\top x+b$，则
+
+$$
+f^\star(y)
+=
+\begin{cases}
+-b, & y=a,\\
++\infty, & y\ne a.
+\end{cases}
+$$
+
+当 $y\ne a$ 时，线性项 $(y-a)^\top x$ 可以沿某个方向趋于 $+\infty$。
+
+#### 范数
+
+设 $f(x)=\lVert x\rVert$，对应的对偶范数为 $\lVert\cdot\rVert_\star$。由 Hölder 不等式，
+
+$$
+y^\top x\le\lVert y\rVert_\star\lVert x\rVert.
+$$
+
+因此
+
+$$
+f^\star(y)
+=
+\begin{cases}
+0, & \lVert y\rVert_\star\le1,\\
++\infty, & \lVert y\rVert_\star>1.
+\end{cases}
+$$
+
+也就是说，范数的共轭是对偶范数单位球的指示函数。
+
+## Fenchel–Young 不等式
+
+由共轭函数定义，对任意 $x,y$，
+
+$$
+f^\star(y)
+\ge
+y^\top x-f(x).
+$$
+
+移项得到
+
+$$
+f(x)+f^\star(y)\ge x^\top y.
+$$ {#eq-fenchel-young}
+
+这就是 Fenchel–Young 不等式。
+
+若 $f$ 可微且凸，则等号成立当且仅当
+
+$$
+y=\nabla f(x).
+$$
+
+证明来自凸函数的一阶下界：
+
+$$
+f(z)\ge f(x)+\nabla f(x)^\top(z-x).
+$$
+
+令 $y=\nabla f(x)$，可得
+
+$$
+y^\top z-f(z)
+\le
+y^\top x-f(x),
+$$
+
+所以共轭定义中的上确界在 $z=x$ 处取得。不可微情形需要用次梯度描述等号条件，留到进阶算法附录。
+
 ## Lagrangian
 
-对问题
+考虑原问题
 
 $$
 \begin{aligned}
@@ -11,9 +164,9 @@ $$
 & f_i(x)\le 0,
 \quad i=1,\ldots,m,\\
 & h_j(x)=0,
-\quad j=1,\ldots,p,
+\quad j=1,\ldots,p.
 \end{aligned}
-$$
+$$ {#eq-primal-problem}
 
 定义 Lagrangian
 
@@ -23,11 +176,21 @@ L(x,\lambda,\nu)
 f_0(x)
 +\sum_{i=1}^m\lambda_i f_i(x)
 +\sum_{j=1}^p\nu_j h_j(x),
+$$ {#eq-lagrangian}
+
+其中 $\lambda\succeq0$，而 $\nu\in\mathbb R^p$ 不受符号限制。
+
+不等式乘子必须非负。若 $x$ 可行，则 $f_i(x)\le0$，所以
+
+$$
+L(x,\lambda,\nu)
+\le
+f_0(x)
 $$
 
-其中 $\lambda\succeq 0$，$\nu\in\mathbb R^p$。
+在等式约束满足时成立。这个方向正是对偶下界的来源。
 
-## 原问题与对偶问题
+## 原问题的极大表示
 
 对固定的 $x$，定义
 
@@ -37,100 +200,265 @@ $$
 \sup_{\lambda\succeq0,\,\nu}L(x,\lambda,\nu).
 $$
 
-原问题可以写成
+若 $x$ 可行，则约束项的上确界为 $0$，所以 $\Theta_P(x)=f_0(x)$。若某个约束违反：
+
+- 当 $f_i(x)>0$ 时，可令 $\lambda_i\to+\infty$；
+- 当 $h_j(x)\ne0$ 时，可选择 $\nu_j$ 的符号并令其绝对值趋于无穷。
+
+因此
+
+$$
+\Theta_P(x)
+=
+\begin{cases}
+f_0(x), & x\text{ 可行},\\
++\infty, & x\text{ 不可行}.
+\end{cases}
+$$
+
+原问题可以写为
 
 $$
 p^\star
 =
-\inf_x\Theta_P(x)
-=
-\inf_x\sup_{\lambda\succeq0,\,\nu}L(x,\lambda,\nu).
-$$
+\inf_x\sup_{\lambda\succeq0,\,\nu}
+L(x,\lambda,\nu).
+$$ {#eq-primal-minmax}
+
+## 对偶函数与对偶问题
 
 对固定的 $(\lambda,\nu)$，定义对偶函数
 
 $$
-\Theta_D(\lambda,\nu)
+g(\lambda,\nu)
 =
-\inf_x L(x,\lambda,\nu).
-$$
+\inf_xL(x,\lambda,\nu).
+$$ {#eq-dual-function}
 
-对偶问题为
+即使原问题不是凸问题，$g$ 关于 $(\lambda,\nu)$ 仍是凹函数。因为对每个固定的 $x$，$L(x,\lambda,\nu)$ 关于乘子是仿射函数，而一族仿射函数的逐点下确界为凹函数。
+
+Lagrange 对偶问题为
+
+$$
+\begin{aligned}
+\operatorname{maximize}\quad & g(\lambda,\nu)\\
+\operatorname{subject\ to}\quad & \lambda\succeq0.
+\end{aligned}
+$$ {#eq-dual-problem}
+
+其最优值记为
 
 $$
 d^\star
 =
-\sup_{\lambda\succeq0,\,\nu}
-\Theta_D(\lambda,\nu)
-=
-\sup_{\lambda\succeq0,\,\nu}
-\inf_xL(x,\lambda,\nu).
+\sup_{\lambda\succeq0,\,\nu}g(\lambda,\nu).
 $$
+
+如果某些乘子使 $g(\lambda,\nu)=-\infty$，可以把
+
+$$
+g(\lambda,\nu)>-\infty
+$$
+
+显式写成对偶可行性约束。
 
 ## 弱对偶
 
-对任意 $\tilde x$、$\tilde\lambda\succeq0$ 和 $\tilde\nu$，都有
+取任意原始可行点 $x$ 和对偶可行点 $(\lambda,\nu)$。由对偶函数定义，
 
 $$
-\Theta_D(\tilde\lambda,\tilde\nu)
-=
-\inf_xL(x,\tilde\lambda,\tilde\nu)
+g(\lambda,\nu)
 \le
-L(\tilde x,\tilde\lambda,\tilde\nu)
-\le
-\sup_{\lambda\succeq0,\,\nu}L(\tilde x,\lambda,\nu)
-=
-\Theta_P(\tilde x).
+L(x,\lambda,\nu).
 $$
 
-因此，只要原问题与对偶问题的最优值有意义，就有
+又因为 $x$ 可行且 $\lambda\succeq0$，
+
+$$
+L(x,\lambda,\nu)
+\le
+f_0(x).
+$$
+
+所以
+
+$$
+g(\lambda,\nu)\le f_0(x).
+$$ {#eq-weak-duality-pointwise}
+
+对两侧分别取最优，得到
 
 $$
 d^\star\le p^\star.
+$$ {#eq-weak-duality}
+
+弱对偶不要求原问题凸，也不要求最优解存在。
+
+::: {.callout-tip title="对偶可行点就是下界证书"}
+只要找到一个 $\lambda\succeq0$ 和 $\nu$ 使 $g(\lambda,\nu)$ 有限，就立刻得到 $p^\star\ge g(\lambda,\nu)$。这个数不仅是估计，更附带一份可以检查的证明。
+:::
+
+## 对偶函数的一个推导例子
+
+考虑等式约束凸二次问题
+
 $$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \frac12x^\top Px+q^\top x\\
+\operatorname{subject\ to}\quad
+& Ax=b,
+\end{aligned}
+$$
+
+其中 $P\succ0$。Lagrangian 为
+
+$$
+L(x,\nu)
+=
+\frac12x^\top Px+q^\top x+\nu^\top(Ax-b).
+$$
+
+固定 $\nu$，对 $x$ 求极小。一阶条件为
+
+$$
+Px+q+A^\top\nu=0,
+$$
+
+因此
+
+$$
+x(\nu)=-P^{-1}(q+A^\top\nu).
+$$
+
+代回得到
+
+$$
+g(\nu)
+=
+-\frac12(q+A^\top\nu)^\top
+P^{-1}(q+A^\top\nu)
+-b^\top\nu.
+$$
+
+对偶问题就是最大化这个关于 $\nu$ 的凹二次函数。这个例子展示了构造对偶的基本动作：写出 Lagrangian，对原变量取下确界，再保留乘子优化。
 
 ## 对偶间隙与强对偶
 
-定义最优对偶间隙
+对一组原始可行点 $x$ 和对偶可行点 $(\lambda,\nu)$，定义可计算的对偶间隙
 
 $$
-\operatorname{gap}=p^\star-d^\star.
+\eta(x,\lambda,\nu)
+=
+f_0(x)-g(\lambda,\nu)
+\ge0.
 $$
 
-当
+它同时控制两侧误差：
 
 $$
-p^\star=d^\star
+f_0(x)-p^\star\le\eta,
+\qquad
+p^\star-g(\lambda,\nu)\le\eta.
 $$
 
-时，称强对偶成立。
+最优对偶间隙为
+
+$$
+p^\star-d^\star.
+$$
+
+若
+
+$$
+p^\star=d^\star,
+$$
+
+则称强对偶成立。强对偶不是弱对偶的自动加强；它需要问题结构和约束资格条件。
 
 ## Slater 条件
 
-考虑凸优化问题，其中等式约束写为 $Ax=b$。如果存在
+考虑标准凸优化问题，并记所有函数的公共定义域为
 
 $$
-\tilde x\in\operatorname{relint}\mathcal D
+\mathcal D
+=
+\bigcap_{i=0}^m\operatorname{dom}f_i.
 $$
 
-使得
+若存在
 
 $$
-f_i(\tilde x)<0,
+\widetilde x\in\operatorname{relint}\mathcal D
+$$
+
+使
+
+$$
+f_i(\widetilde x)<0,
 \qquad i=1,\ldots,m,
 $$
 
-并且
+且
 
 $$
-A\tilde x=b,
+A\widetilde x=b,
 $$
 
-则称 Slater 条件成立，$\tilde x$ 称为严格可行点。
+则称 Slater 条件成立。
+
+对凸问题，Slater 条件是保证强对偶成立的常用充分条件；在原问题最优值有限时，它通常还保证对偶最优乘子能够取到。
+
+Slater 条件要求不等式严格可行，但等式只能精确满足。使用 $\operatorname{relint}\mathcal D$，是为了允许定义域位于低维仿射空间。
+
+::: {.callout-warning title="Slater 条件不是所有强对偶问题的必要条件"}
+不满足 Slater 条件并不等于强对偶必然失败。它是一条容易检查、适用广泛的充分条件，而不是强对偶的定义。
+:::
+
+## 互补松弛
+
+假设原始最优点 $x^\star$ 和对偶最优点 $(\lambda^\star,\nu^\star)$ 存在，且强对偶成立。由
+
+$$
+g(\lambda^\star,\nu^\star)
+\le
+L(x^\star,\lambda^\star,\nu^\star)
+\le
+f_0(x^\star)
+$$
+
+以及两端同为 $p^\star$，中间所有不等式必须取等号。因此
+
+$$
+\sum_{i=1}^m
+\lambda_i^\star f_i(x^\star)=0.
+$$
+
+每一项都满足
+
+$$
+\lambda_i^\star\ge0,
+\qquad
+f_i(x^\star)\le0,
+$$
+
+所以每一项都必须为零：
+
+$$
+\lambda_i^\star f_i(x^\star)=0,
+\qquad i=1,\ldots,m.
+$$ {#eq-complementary-slackness}
+
+这意味着：
+
+- 若约束严格松弛，即 $f_i(x^\star)<0$，则 $\lambda_i^\star=0$；
+- 若 $\lambda_i^\star>0$，则对应约束必然活跃，即 $f_i(x^\star)=0$。
+
+乘子只会给真正限制最优解的约束赋予正权重。
 
 ## KKT 条件
 
-对候选点 $(x^\star,\lambda^\star,\nu^\star)$，KKT 条件包括：
+假设目标与约束函数可微。候选点 $(x^\star,\lambda^\star,\nu^\star)$ 的 KKT 条件包括：
 
 1. **原始可行性**
 
@@ -154,8 +482,6 @@ $$
 
 4. **驻点条件**
 
-   如果目标函数和约束函数可微，则
-
    $$
    \nabla_xL(x^\star,\lambda^\star,\nu^\star)=0,
    $$
@@ -167,18 +493,116 @@ $$
    +\sum_{i=1}^m\lambda_i^\star\nabla f_i(x^\star)
    +\sum_{j=1}^p\nu_j^\star\nabla h_j(x^\star)
    =0.
-   $$
+   $$ {#eq-kkt-stationarity}
 
-   若函数不可微，应使用次梯度形式替代梯度形式。
+### KKT 的充分性
 
-## Slater 条件与 KKT 的逻辑关系
+对可微凸优化问题，只要一组点满足 KKT 条件，就能推出原始与对偶最优，不需要额外使用 Slater 条件。
 
-1. 对凸优化问题，Slater 条件推出强对偶；
-2. 在适当的最优解存在性条件下，原始最优与 Slater 条件保证存在对偶乘子，使 KKT 条件成立；
-3. 对凸优化问题，任何满足 KKT 条件的点都是全局最优解，并与对应的对偶点具有零对偶间隙；
-4. 对满足 Slater 条件的可微凸优化问题，$x^\star$ 最优，当且仅当存在 $\lambda^\star,\nu^\star$，使三者共同满足 KKT 条件。
+原因是：$L(\cdot,\lambda^\star,\nu^\star)$ 关于 $x$ 凸，而驻点条件说明 $x^\star$ 将其全局最小化。对任意原始可行点 $x$，
 
-::: {.callout-note title="后续补全"}
-共轭函数、Fenchel 不等式、对偶函数为何总是凹函数，以及鞍点解释将在 P0 阶段结合 Lecture 5、8、9 补入。
+$$
+\begin{aligned}
+f_0(x)
+&\ge L(x,\lambda^\star,\nu^\star)\\
+&\ge L(x^\star,\lambda^\star,\nu^\star)\\
+&=f_0(x^\star),
+\end{aligned}
+$$
+
+最后一个等号使用了原始可行性和互补松弛。
+
+### KKT 的必要性
+
+对一般非凸问题，局部最优点只有在相应约束资格条件下才必须满足 KKT，而且满足 KKT 也未必是全局最优。
+
+对凸问题，若 Slater 条件成立、原始最优解存在且最优值有限，则存在对偶最优乘子，使原始最优点与这些乘子共同满足 KKT。
+
+因此，Slater 条件主要负责保证“最优解能够配上合适的乘子”；凸性主要负责保证“满足 KKT 就是全局最优”。
+
+## 一个一维 KKT 例子
+
+考虑
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & x^2\\
+\operatorname{subject\ to}\quad & 1-x\le0.
+\end{aligned}
+$$
+
+Lagrangian 为
+
+$$
+L(x,\lambda)=x^2+\lambda(1-x),
+\qquad \lambda\ge0.
+$$
+
+KKT 条件是
+
+$$
+x\ge1,
+\qquad
+\lambda\ge0,
+\qquad
+\lambda(1-x)=0,
+\qquad
+2x-\lambda=0.
+$$
+
+若约束不活跃，则 $\lambda=0$，驻点条件给出 $x=0$，与可行性矛盾。因此约束活跃，$x^\star=1$，再由驻点条件得到
+
+$$
+\lambda^\star=2.
+$$
+
+乘子 $\lambda^\star$ 可以解释为放松约束边界时最优值的一阶敏感度。
+
+## 鞍点解释
+
+若 $(x^\star,\lambda^\star,\nu^\star)$ 为原始—对偶最优点且强对偶成立，则
+
+$$
+L(x^\star,\lambda,\nu)
+\le
+L(x^\star,\lambda^\star,\nu^\star)
+\le
+L(x,\lambda^\star,\nu^\star)
+$$ {#eq-lagrangian-saddle}
+
+对所有 $x$、$\lambda\succeq0$ 和 $\nu$ 成立。
+
+这说明：
+
+- 固定最优乘子时，$x^\star$ 最小化 Lagrangian；
+- 固定最优原变量时，$(\lambda^\star,\nu^\star)$ 最大化 Lagrangian。
+
+原问题的“先对乘子取上确界，再对 $x$ 取下确界”与对偶问题的相反顺序，在鞍点处交换而不改变结果。
+
+## Slater、强对偶与 KKT 的关系
+
+| 条件 | 可以推出 |
+|---|---|
+| 任意原问题与其 Lagrange 对偶 | 弱对偶 $d^\star\le p^\star$ |
+| 凸问题 + Slater 条件 | 强对偶；在常用有限性条件下对偶最优可取 |
+| 可微凸问题 + KKT | 原始点与对偶点均最优 |
+| 可微凸问题 + Slater + 原始最优解存在 | 最优当且仅当存在乘子使 KKT 成立 |
+| 一般非凸问题 + KKT | 通常只是一阶候选条件 |
+
+::: {.callout-note title="使用顺序"}
+实际分析时通常先写 Lagrangian 和对偶函数，再检查 Slater 条件，最后使用 KKT 求候选解并验证。不要先机械罗列 KKT，再倒推问题是否满足凸性和约束资格条件。
 :::
 
+## 典型误区
+
+1. **对偶函数只有在原问题凸时才凹。** 错；它始终是乘子的凹函数。
+2. **弱对偶需要 Slater 条件。** 错；弱对偶几乎无条件成立。
+3. **强对偶等于对偶最优解一定存在。** 最优值相等与上确界是否取到是两个问题。
+4. **KKT 对所有问题都是充要条件。** 非凸问题中通常不是。
+5. **互补松弛表示 $\lambda_i^\star=0$ 或 $f_i(x^\star)=0$ 二者只能成立一个。** 两者可以同时为零。
+6. **等式乘子也必须非负。** 等式乘子 $\nu$ 不受符号约束。
+7. **驻点公式中的不等式乘子项带负号。** 符号由 Lagrangian 定义决定；本书采用 $L=f_0+\sum_i\lambda_i f_i+\sum_j\nu_jh_j$。
+
+## 本章小结
+
+共轭函数把函数表示为仿射下界的集合，Fenchel–Young 不等式则连接原变量与斜率。Lagrange 对偶通过对原变量取下确界构造原问题的全局下界。弱对偶始终成立；凸性与 Slater 条件把它加强为强对偶；KKT 条件最终把原始可行性、对偶可行性、互补松弛和驻点条件组合成可检验的全局最优性证书。

@@ -1,13 +1,373 @@
-# 约束优化与复合方法
+# 约束优化与复合结构
 
-纸质笔记列出的有约束优化算法包括：
+约束改变了无约束梯度法的基本动作：沿负梯度移动后，新点可能不再可行。最直接的修正是把更新点投影回可行集。对结构简单的闭凸集，这一操作既保持可行性，又能延续无约束梯度法的收敛分析。
 
-1. Newton／拟 Newton 法；
-2. Lagrangian 法；
-3. 增广 Lagrangian 法；
-4. 交替方向法。
+本章只展开现有课件完整支撑的投影梯度、等式约束 KKT 系统和约束处理框架。近端梯度、增广 Lagrangian 与 ADMM 仍保留为 P1 内容。
 
-现有课件可以直接支撑的内容主要是投影梯度法，以及通过对偶和 KKT 理解约束问题。
+## Euclidean 投影
 
-Newton／拟 Newton、增广 Lagrangian 与交替方向法缺少课件推导，将作为 P1／进阶附录内容，在确认来源与篇幅后再补入。
+设 $C\subseteq\mathbb R^n$ 为非空闭凸集。点 $x$ 到 $C$ 的 Euclidean 投影定义为
 
+$$
+\Pi_C(x)
+=
+\operatorname*{argmin}_{z\in C}
+\frac12\lVert z-x\rVert_2^2.
+$$ {#eq-euclidean-projection}
+
+由于目标函数关于 $z$ 强凸，且 $C$ 非空闭，投影存在且唯一。
+
+若集合不是凸的，最近点可能不唯一；若集合不闭，距离下确界可能无法取到。因此“非空、闭、凸”三个条件各有作用。
+
+### 常见投影
+
+#### 区间盒
+
+对
+
+$$
+C=\{x\mid \ell_i\le x_i\le u_i\},
+$$
+
+投影逐坐标截断：
+
+$$
+[\Pi_C(x)]_i
+=
+\min\{u_i,\max\{\ell_i,x_i\}\}.
+$$
+
+#### 非负正交锥
+
+对 $C=\mathbb R_+^n$，
+
+$$
+[\Pi_C(x)]_i=\max\{x_i,0\}.
+$$
+
+#### Euclidean 球
+
+对
+
+$$
+C=\{x\mid\lVert x\rVert_2\le r\},
+$$
+
+有
+
+$$
+\Pi_C(x)
+=
+\begin{cases}
+x, & \lVert x\rVert_2\le r,\\
+\displaystyle r\frac{x}{\lVert x\rVert_2},
+& \lVert x\rVert_2>r.
+\end{cases}
+$$
+
+## 投影的变分刻画
+
+令 $p=\Pi_C(x)$。则
+
+$$
+(x-p)^\top(z-p)\le0,
+\qquad \forall z\in C.
+$$ {#eq-projection-variational}
+
+证明只需对投影问题使用一阶最优性条件。目标函数
+
+$$
+\phi(z)=\frac12\lVert z-x\rVert_2^2
+$$
+
+的梯度为 $\nabla\phi(z)=z-x$，所以
+
+$$
+(p-x)^\top(z-p)\ge0,
+$$
+
+等价于式 @eq-projection-variational。
+
+几何上，$x-p$ 与从 $p$ 指向任意可行点 $z$ 的方向形成钝角。若某个方向形成锐角，沿该方向移动就能进一步靠近 $x$，与 $p$ 是最近点矛盾。
+
+### Pythagorean 不等式
+
+展开平方距离：
+
+$$
+\begin{aligned}
+\lVert x-z\rVert_2^2
+&=
+\lVert x-p\rVert_2^2
++\lVert p-z\rVert_2^2
++2(x-p)^\top(p-z).
+\end{aligned}
+$$
+
+由式 @eq-projection-variational，
+
+$$
+(x-p)^\top(p-z)\ge0,
+$$
+
+因此
+
+$$
+\lVert x-z\rVert_2^2
+\ge
+\lVert x-p\rVert_2^2
++\lVert p-z\rVert_2^2.
+$$ {#eq-projection-pythagorean}
+
+当 $C$ 是仿射子空间时，相关方向正交，上式取等号；一般凸集只保证不等式。
+
+### 非扩张性
+
+对任意 $x,y$，
+
+$$
+\lVert\Pi_C(x)-\Pi_C(y)\rVert_2
+\le
+\lVert x-y\rVert_2.
+$$ {#eq-projection-nonexpansive}
+
+投影不会放大两点之间的距离。收敛分析正是利用这一性质，保证“投影回去”不会破坏与最优点之间的距离递推。
+
+## 投影梯度法
+
+考虑
+
+$$
+\min_{x\in C}f(x),
+$$
+
+其中 $C$ 非空闭凸，$f$ 可微且凸。投影梯度更新为
+
+$$
+x_{k+1}
+=
+\Pi_C\bigl(x_k-\eta_k\nabla f(x_k)\bigr).
+$$ {#eq-projected-gradient}
+
+初始点取 $x_0\in C$，此后每次投影都保证 $x_k\in C$。
+
+这个更新分成两步：
+
+1. 忽略约束，沿负梯度移动；
+2. 将结果投影回 $C$。
+
+若 $C=\mathbb R^n$，投影是恒等映射，算法退化为普通梯度下降。
+
+### 二次模型解释
+
+式 @eq-projected-gradient 等价于
+
+$$
+x_{k+1}
+=
+\operatorname*{argmin}_{z\in C}
+\left\{
+\nabla f(x_k)^\top(z-x_k)
++\frac{1}{2\eta_k}\lVert z-x_k\rVert_2^2
+\right\}.
+$$ {#eq-projected-quadratic-model}
+
+第一项希望沿一阶近似降低目标，第二项限制更新不要离当前位置过远。投影梯度并非先随意走一步再“补救”，而是在可行域上直接最小化一个局部二次模型。
+
+## 光滑凸情形的 $O(1/k)$ 速率
+
+假设：
+
+1. $f$ 为凸且 $L$-光滑；
+2. $C$ 非空闭凸；
+3. 最优解 $x^\star\in C$ 存在；
+4. 使用步长 $\eta=1/L$。
+
+则
+
+$$
+f(x_k)-f(x^\star)
+\le
+\frac{L\lVert x_0-x^\star\rVert_2^2}{2k}.
+$$ {#eq-projected-gradient-smooth-rate}
+
+记 $x^+=x_{k+1}$、$x=x_k$。由式 @eq-projected-quadratic-model 的最优性条件，对任意 $z\in C$，
+
+$$
+\bigl(
+\nabla f(x)+L(x^+-x)
+\bigr)^\top(z-x^+)\ge0.
+$$
+
+结合光滑上界与凸性下界，可得
+
+$$
+f(x^+)-f(z)
+\le
+\frac L2
+\left(
+\lVert x-z\rVert_2^2
+-\lVert x^+-z\rVert_2^2
+\right).
+$$ {#eq-projected-gradient-telescope}
+
+令 $z=x^\star$ 并对迭代求和，距离项望远镜消去；再利用函数值单调不增，即得式 @eq-projected-gradient-smooth-rate。
+
+## 仅有梯度界时的 $O(1/\sqrt K)$ 速率
+
+若不使用光滑性，只假设
+
+$$
+\lVert\nabla f(x)\rVert_2\le G,
+\qquad \forall x\in C,
+$$
+
+并记
+
+$$
+D=\lVert x_0-x^\star\rVert_2,
+$$
+
+则常步长投影梯度满足另一类速率。
+
+由投影非扩张性，
+
+$$
+\begin{aligned}
+\lVert x_{k+1}-x^\star\rVert_2^2
+&\le
+\lVert x_k-\eta\nabla f(x_k)-x^\star\rVert_2^2\\
+&=
+\lVert x_k-x^\star\rVert_2^2
+-2\eta\nabla f(x_k)^\top(x_k-x^\star)
++\eta^2\lVert\nabla f(x_k)\rVert_2^2.
+\end{aligned}
+$$
+
+由凸性，
+
+$$
+\nabla f(x_k)^\top(x_k-x^\star)
+\ge
+f(x_k)-f(x^\star).
+$$
+
+因此
+
+$$
+2\eta\bigl(f(x_k)-f(x^\star)\bigr)
+\le
+\lVert x_k-x^\star\rVert_2^2
+-\lVert x_{k+1}-x^\star\rVert_2^2
++\eta^2G^2.
+$$
+
+对 $k=0,\ldots,K-1$ 求和，并定义平均点
+
+$$
+\bar x_K=\frac1K\sum_{k=0}^{K-1}x_k,
+$$
+
+由 Jensen 不等式得到
+
+$$
+f(\bar x_K)-f(x^\star)
+\le
+\frac{D^2}{2\eta K}
++\frac{\eta G^2}{2}.
+$$ {#eq-projected-gradient-bounded-rate}
+
+选择
+
+$$
+\eta=\frac{D}{G\sqrt K},
+$$
+
+可得
+
+$$
+f(\bar x_K)-f(x^\star)
+\le
+\frac{DG}{\sqrt K}.
+$$
+
+这里输出平均点而不是最后一个迭代点，是因为证明控制的是各轮函数误差之和。若进一步允许不可微函数并用次梯度替代梯度，就得到投影次梯度法；该推广列为 P1。
+
+## 等式约束与 KKT 线性系统
+
+对等式约束二次问题
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \frac12x^\top Px+q^\top x\\
+\operatorname{subject\ to}\quad
+& Ax=b,
+\end{aligned}
+$$
+
+其中 $P\succ0$，KKT 条件为
+
+$$
+Px+q+A^\top\nu=0,
+\qquad
+Ax=b.
+$$
+
+可以合并为线性系统
+
+$$
+\begin{bmatrix}
+P & A^\top\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+x^\star\\
+\nu^\star
+\end{bmatrix}
+=
+\begin{bmatrix}
+-q\\
+b
+\end{bmatrix}.
+$$ {#eq-equality-kkt-system}
+
+这体现了约束优化的另一条路线：不反复投影，而是直接联立原变量与乘子的一阶条件。对一般凸问题，KKT 系统通常是非线性的，需要专门算法求解。
+
+## 三种约束处理路线
+
+| 路线 | 适用结构 | 核心动作 |
+|---|---|---|
+| 消去约束 | 线性等式易参数化 | 在零空间坐标中优化 |
+| 投影方法 | $\Pi_C$ 易计算 | 梯度更新后保持可行 |
+| 对偶与 KKT | 乘子结构清晰 | 联立或转到对偶问题 |
+
+选择方法时，关键问题不是约束有多少，而是投影、参数化或对偶下确界哪一个最容易计算。
+
+## 复合结构的边界
+
+许多机器学习目标写为
+
+$$
+F(x)=g(x)+h(x),
+$$
+
+其中 $g$ 光滑凸，而 $h$ 凸但可能不可微。集合约束是特殊情形：
+
+$$
+h(x)=I_C(x).
+$$
+
+投影梯度正是在处理这一特殊复合结构。若 $h$ 是 $\ell_1$ 范数等一般正则项，需要近端算子与近端梯度；这些内容与增广 Lagrangian、ADMM 一同保留在进阶算法附录，待 P1 阶段系统补入。
+
+## 典型误区
+
+1. **投影只要求集合非空。** 唯一投影需要闭凸结构。
+2. **先梯度下降再投影一定等于约束问题的精确最优步。** 它只是局部二次模型的精确解。
+3. **投影会增加到最优点的距离。** 对凸集的 Euclidean 投影具有非扩张性。
+4. **有界梯度与光滑性相同。** 前者控制梯度大小，后者控制梯度变化。
+5. **任何约束都适合投影法。** 如果投影本身比原问题还难，就应考虑消元、对偶或其他结构化方法。
+
+## 本章小结
+
+Euclidean 投影把不可行更新拉回非空闭凸集，并通过变分刻画、Pythagorean 不等式和非扩张性支持收敛分析。光滑凸情形下，投影梯度保持 $O(1/k)$ 速率；只有梯度有界时，平均迭代点获得 $O(1/\sqrt K)$ 速率。等式约束 KKT 系统展示了乘子路线，而指示函数则把投影方法连接到更一般的复合优化框架。

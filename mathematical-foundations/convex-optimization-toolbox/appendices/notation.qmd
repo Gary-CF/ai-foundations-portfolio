@@ -4,14 +4,22 @@
 |---|---|
 | $\operatorname{dom}f$ | 函数 $f$ 的定义域 |
 | $\operatorname{relint}C$ | 集合 $C$ 的相对内部 |
+| $\operatorname{aff}C$ | 集合 $C$ 的仿射包 |
 | $\operatorname{conv}C$ | 集合 $C$ 的凸包 |
+| $I_C$ | 集合 $C$ 的扩展值指示函数 |
+| $\Pi_C(x)$ | 点 $x$ 到闭凸集 $C$ 的 Euclidean 投影 |
 | $\langle x,y\rangle=x^\top y$ | Euclidean 内积 |
+| $\lVert\cdot\rVert_\star$ | 给定范数的对偶范数 |
 | $\nabla f(x)$ | 标量函数的梯度，按列向量记 |
 | $\nabla^2f(x)$ | 函数的 Hessian 矩阵 |
 | $A\succeq0$ | 对称矩阵 $A$ 半正定 |
 | $x\succeq_K y$ | $x-y\in K$ 所定义的广义不等式 |
+| $f^\star$ | 函数 $f$ 的 Fenchel 共轭 |
 | $p^\star,d^\star$ | 原问题与对偶问题的最优值 |
 | $\lambda,\nu$ | 不等式与等式约束的 Lagrange 乘子 |
+| $\mu$ | 强凸参数 |
+| $L$ | 梯度 Lipschitz 常数 |
+| $\kappa=L/\mu$ | 强凸光滑问题的条件数 |
+| $\eta_k$ | 第 $k$ 次迭代的步长 |
 
 全书约定：向量使用小写字母，矩阵使用大写字母，梯度使用列向量；最优点写作 $x^\star$，最优值写作 $p^\star$。
-

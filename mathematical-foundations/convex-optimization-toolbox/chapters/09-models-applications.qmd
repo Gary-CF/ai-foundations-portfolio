@@ -1,12 +1,468 @@
 # 典型凸模型与机器学习应用
 
-本章将在 P0 阶段从 Lecture 7 与 Lecture 10 中选择性整理：
+凸优化工具真正发挥作用的地方，是把具体任务识别为少数可复用模型。本章不追求罗列应用，而是提炼六类高频结构：线性规划、二次与最小二乘、范数逼近、正则化、投影和线性分类。
 
-- 线性规划与二次规划；
-- 范数逼近与最小范数问题；
-- 正则化；
-- 凸集投影；
-- 线性分类与支持向量机。
+## 线性规划
 
-只保留能够揭示建模方式或复用优化工具的例子，不收录重复计算练习。
+线性规划的一般形式是
 
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & c^\top x\\
+\operatorname{subject\ to}\quad
+& Ax\le b,\\
+& Cx=d.
+\end{aligned}
+$$
+
+目标和所有约束都是仿射函数，因此线性规划是凸优化问题。
+
+常见标准形式为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & c^\top x\\
+\operatorname{subject\ to}\quad
+& Ax=b,\\
+& x\succeq0.
+\end{aligned}
+$$ {#eq-lp-standard}
+
+一般线性规划可以通过以下操作转为标准形式：
+
+- 对 $a_i^\top x\le b_i$ 引入松弛变量 $s_i\ge0$；
+- 将自由变量写成 $x_j=x_j^+-x_j^-$，其中 $x_j^+,x_j^-\ge0$；
+- 通过乘以 $-1$ 调整不等式方向。
+
+### Chebyshev 逼近
+
+最小化最大绝对误差：
+
+$$
+\min_x\lVert Ax-b\rVert_\infty
+$$
+
+表面上含有范数与最大值，引入变量 $t$ 后变为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & t\\
+\operatorname{subject\ to}\quad
+& -t\mathbf1\le Ax-b\le t\mathbf1.
+\end{aligned}
+$$
+
+这就是线性规划。识别动作是把
+
+$$
+\max_i|a_i^\top x-b_i|
+$$
+
+改写为对所有分量同时成立的线性上下界。
+
+## 二次规划与最小二乘
+
+凸二次规划的一般形式为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \frac12x^\top Px+q^\top x+r\\
+\operatorname{subject\ to}\quad
+& Ax\le b,\\
+& Cx=d,
+\end{aligned}
+$$ {#eq-convex-qp}
+
+其中 $P\succeq0$。若 $P\succ0$ 且可行集非空，则最优解唯一。
+
+### 最小二乘
+
+基本最小二乘问题为
+
+$$
+\min_x\frac12\lVert Ax-b\rVert_2^2.
+$$
+
+展开后，
+
+$$
+\frac12\lVert Ax-b\rVert_2^2
+=
+\frac12x^\top A^\top Ax-b^\top Ax+\frac12\lVert b\rVert_2^2,
+$$
+
+其 Hessian 为
+
+$$
+A^\top A\succeq0.
+$$
+
+正规方程为
+
+$$
+A^\top Ax=A^\top b.
+$$
+
+若 $A$ 列满秩，则目标强凸，解唯一。
+
+### 加权最小二乘
+
+若不同观测具有不同可靠性，可使用
+
+$$
+\min_x
+\frac12(Ax-b)^\top W(Ax-b),
+\qquad W\succeq0.
+$$
+
+若 $W$ 是对角矩阵，其对角元素就是各观测残差的权重。
+
+### Ridge 回归
+
+加入二次正则项：
+
+$$
+\min_x
+\frac12\lVert Ax-b\rVert_2^2
++\frac\lambda2\lVert x\rVert_2^2,
+\qquad \lambda>0.
+$$ {#eq-ridge}
+
+其一阶条件为
+
+$$
+(A^\top A+\lambda I)x=A^\top b,
+$$
+
+所以
+
+$$
+x^\star
+=(A^\top A+\lambda I)^{-1}A^\top b.
+$$
+
+即使 $A$ 不列满秩，$A^\top A+\lambda I\succ0$，解仍然唯一。正则化不仅限制参数大小，也改善了线性系统的条件数。
+
+## 范数逼近
+
+统一模型为
+
+$$
+\min_x\lVert Ax-b\rVert,
+$$ {#eq-norm-approximation}
+
+其中范数选择表达了对误差的不同偏好。
+
+| 损失 | 几何与统计倾向 | 常见标准形式 |
+|---|---|---|
+| $\ell_2$ | 强调平方能量，解析结构好 | 二次规划 |
+| $\ell_1$ | 对少量大残差更稳健 | 线性规划 |
+| $\ell_\infty$ | 控制最坏分量误差 | 线性规划 |
+
+### $\ell_1$ 逼近的线性规划形式
+
+引入 $u\succeq0$：
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & \mathbf1^\top u\\
+\operatorname{subject\ to}\quad
+& -u\le Ax-b\le u.
+\end{aligned}
+$$
+
+在最优点，$u_i=|(Ax-b)_i|$。
+
+### 带约束的逼近
+
+先验知识可以直接进入可行域：
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \lVert Ax-b\rVert\\
+\operatorname{subject\ to}\quad
+& Fx\le g.
+\end{aligned}
+$$
+
+只要使用凸范数且约束集凸，问题仍然是凸的。约束表达必须满足的结构，正则化则表达软偏好。
+
+## 正则化与约束形式
+
+正则化问题写为
+
+$$
+\min_x\ell(x)+\lambda R(x),
+\qquad \lambda\ge0,
+$$ {#eq-regularized-form}
+
+其中 $\ell$ 衡量数据拟合，$R$ 衡量模型复杂度。
+
+对应的约束形式是
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & \ell(x)\\
+\operatorname{subject\ to}\quad & R(x)\le\tau.
+\end{aligned}
+$$ {#eq-constrained-regularization}
+
+在凸性、最优解存在和适当约束资格条件下，约束形式的最优乘子可以作为某个正则化权重 $\lambda$，使两种形式共享最优解。但 $\lambda$ 与 $\tau$ 通常没有简单的一一解析关系。
+
+::: {.callout-warning title="正则项不是装饰性的附加项"}
+$\lambda$ 改变的是拟合误差与结构偏好的权衡。它过小会使正则化几乎失效，过大则可能让结构项主导目标。不同特征量纲还会改变同一个 $\lambda$ 的实际含义，因此常需先做尺度标准化。
+:::
+
+### $\ell_1$ 与 $\ell_2$ 正则化
+
+Ridge 使用
+
+$$
+R(x)=\frac12\lVert x\rVert_2^2,
+$$
+
+产生光滑、强凸的惩罚。
+
+Lasso 使用
+
+$$
+R(x)=\lVert x\rVert_1,
+$$
+
+其单位球带有尖角，最优解更容易落在坐标轴或低维面上，从而产生稀疏性。Lasso 是凸问题，但目标在坐标为零处不可微，需要近端或坐标类方法；算法细节留在 P1。
+
+## 最小范数问题
+
+当线性方程
+
+$$
+Ax=b
+$$
+
+存在多个解时，可以选择最小范数解：
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad & \lVert x\rVert\\
+\operatorname{subject\ to}\quad & Ax=b.
+\end{aligned}
+$$
+
+在 Euclidean 范数下，若 $A$ 行满秩，
+
+$$
+x^\star=A^\top(AA^\top)^{-1}b.
+$$
+
+这个解属于 $\operatorname{range}(A^\top)$，并与 $\operatorname{null}(A)$ 正交。任何其他可行解都可写成
+
+$$
+x=x^\star+z,
+\qquad z\in\operatorname{null}(A),
+$$
+
+从而
+
+$$
+\lVert x\rVert_2^2
+=
+\lVert x^\star\rVert_2^2+\lVert z\rVert_2^2.
+$$
+
+这说明最小范数解是线性约束与投影几何的直接结合。
+
+## 凸集投影
+
+投影问题
+
+$$
+\min_{z\in C}\frac12\lVert z-x\rVert_2^2
+$$
+
+既是一个独立模型，也是投影梯度的基本子问题。
+
+### 投影到超平面
+
+对
+
+$$
+C=\{z\mid a^\top z=b\},
+\qquad a\ne0,
+$$
+
+KKT 条件给出
+
+$$
+z-x+\nu a=0,
+\qquad
+a^\top z=b.
+$$
+
+消去 $\nu$ 后得到
+
+$$
+\Pi_C(x)
+=
+x-\frac{a^\top x-b}{\lVert a\rVert_2^2}a.
+$$ {#eq-hyperplane-projection}
+
+修正量沿超平面法向量方向，这与几何直觉一致。
+
+若投影集合由大量线性不等式、范数约束或半正定约束定义，投影本身就是一个凸优化问题，未必有闭式解。
+
+## 线性分类与最大间隔
+
+给定样本
+
+$$
+(x_i,y_i),
+\qquad
+x_i\in\mathbb R^n,quad y_i\in\{-1,+1\},
+$$
+
+仿射分类器为
+
+$$
+\operatorname{sign}(w^\top x+b).
+$$
+
+正确分类要求
+
+$$
+y_i(w^\top x_i+b)>0.
+$$
+
+由于 $(w,b)$ 可以同时缩放，单纯最大化函数间隔没有意义。规定最靠近超平面的样本满足函数间隔 $1$ 后，几何间隔为 $1/\lVert w\rVert_2$。
+
+### 硬间隔 SVM
+
+线性可分时，最大间隔问题为
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \frac12\lVert w\rVert_2^2\\
+\operatorname{subject\ to}\quad
+& 1-y_i(w^\top x_i+b)\le0,
+\quad i=1,\ldots,N.
+\end{aligned}
+$$ {#eq-hard-margin-svm}
+
+这是凸二次规划。Lagrangian 为
+
+$$
+L(w,b,\alpha)
+=
+\frac12\lVert w\rVert_2^2
++\sum_{i=1}^N
+\alpha_i\bigl(1-y_i(w^\top x_i+b)\bigr),
+$$
+
+其中 $\alpha_i\ge0$。
+
+驻点条件给出
+
+$$
+w=\sum_{i=1}^N\alpha_i y_i x_i,
+$$ {#eq-svm-representer}
+
+以及
+
+$$
+\sum_{i=1}^N\alpha_i y_i=0.
+$$
+
+互补松弛为
+
+$$
+\alpha_i
+\bigl(1-y_i(w^\top x_i+b)\bigr)=0.
+$$
+
+所以只有满足 $\alpha_i>0$ 的样本会出现在式 @eq-svm-representer 中，而且它们位于间隔边界上。这些样本就是支持向量。
+
+将 $w$ 消去，得到对偶问题
+
+$$
+\begin{aligned}
+\operatorname{maximize}_{\alpha}\quad
+& \sum_{i=1}^N\alpha_i
+-\frac12
+\sum_{i=1}^N\sum_{j=1}^N
+\alpha_i\alpha_jy_iy_jx_i^\top x_j\\
+\operatorname{subject\ to}\quad
+& \alpha_i\ge0,\\
+& \sum_{i=1}^N\alpha_i y_i=0.
+\end{aligned}
+$$ {#eq-hard-margin-svm-dual}
+
+对偶目标只通过内积 $x_i^\top x_j$ 使用样本，这也是核方法能够替换内积的接口。
+
+### 软间隔 SVM
+
+数据不可完全线性分离时，引入松弛变量 $\xi_i\ge0$：
+
+$$
+\begin{aligned}
+\operatorname{minimize}\quad
+& \frac12\lVert w\rVert_2^2
++C\sum_{i=1}^N\xi_i\\
+\operatorname{subject\ to}\quad
+& y_i(w^\top x_i+b)\ge1-\xi_i,\\
+& \xi_i\ge0.
+\end{aligned}
+$$ {#eq-soft-margin-svm}
+
+$C>0$ 控制间隔宽度与违约惩罚之间的权衡。其对偶仍为式 @eq-hard-margin-svm-dual 的目标，但增加盒约束
+
+$$
+0\le\alpha_i\le C.
+$$
+
+这正是软间隔中每个样本乘子上界的来源。
+
+::: {.callout-tip title="支持向量决定分隔超平面"}
+由式 @eq-svm-representer，$\alpha_i=0$ 的样本不直接参与 $w$ 的表示。只要数据变化没有改变支持向量集合及其最优乘子，分隔超平面就不会改变；但移动非支持向量也可能让它们进入间隔，从而改变支持向量集合。
+:::
+
+## Logistic 回归
+
+二分类 Logistic 回归可写为
+
+$$
+\min_w
+\frac1N\sum_{i=1}^N
+\log\bigl(1+e^{-y_iw^\top x_i}\bigr)
++\frac\lambda2\lVert w\rVert_2^2.
+$$ {#eq-logistic-regression}
+
+函数 $u\mapsto\log(1+e^u)$ 凸且单调递增，而 $-y_iw^\top x_i$ 关于 $w$ 仿射，因此每个样本损失凸；非负加权和与二次正则化保持凸性。
+
+当 $\lambda>0$ 时，正则项使目标强凸，但若模型中存在未正则化的截距或特征矩阵退化，仍需检查整体变量上的强凸性。
+
+## 模型识别速查
+
+| 任务结构 | 常见凸模型 | 关键变换 |
+|---|---|---|
+| 控制最坏误差 | 线性规划 | $\ell_\infty$ 上境图 |
+| 平方拟合 | 最小二乘 / QP | 展开二次型 |
+| 鲁棒绝对误差 | 线性规划 | 引入绝对值上界变量 |
+| 参数收缩 | Ridge | 加 $\ell_2^2$ 正则 |
+| 稀疏参数 | Lasso | 加 $\ell_1$ 正则 |
+| 最近可行点 | 投影问题 | 二次目标 + 凸约束 |
+| 最大间隔分类 | SVM / QP | 归一化函数间隔 |
+| 概率分类 | Logistic 回归 | log-sum-exp 原子 |
+
+## 典型误区
+
+1. **使用范数的模型一定是二次规划。** $\ell_1$、$\ell_\infty$ 常转为线性规划，$\ell_2$ 范数约束常对应二阶锥结构。
+2. **正则化形式与约束形式对任意 $\lambda,\tau$ 都等价。** 两者参数需要通过最优乘子或解路径对应。
+3. **Ridge 的闭式表达意味着应显式求逆。** 数值计算通常应解线性系统。
+4. **所有训练样本都同等决定 SVM 超平面。** KKT 表明只有正乘子的支持向量直接进入 $w$。
+5. **加上二次正则项必然让所有变量强凸。** 未正则化方向仍可能破坏强凸性。
+
+## 本章小结
+
+线性规划、二次规划和范数逼近是许多应用的标准骨架；辅助变量可以把最大值和绝对值转为线性约束；正则化与约束形式表达拟合和复杂度之间的权衡；投影把几何最近点问题变成强凸优化；SVM 的 KKT 与对偶则说明支持向量为何足以决定分隔超平面。实际建模时，优先识别这些结构，而不是从零开始设计新问题。

@@ -1,11 +1,417 @@
 # 数学预备工具箱 {.appendix}
 
-本附录计划从 Lecture 2 中选择性整理：
+本附录只收录正文反复使用的线性代数与微分工具。它的作用是统一记号和维度，而不是替代完整的线性代数或矩阵微积分课程。
 
-- 内积、Cauchy–Schwarz 不等式与几何解释；
-- 常用向量范数、矩阵范数、算子范数与对偶范数；
-- 梯度、Jacobian 与 Hessian；
-- 正定矩阵、特征值与 Schur 补。
+## 内积与 Cauchy–Schwarz 不等式
 
-只补充正文反复依赖的工具，不复刻整份数学背景课件。
+Euclidean 内积定义为
 
+$$
+\langle x,y\rangle=x^\top y.
+$$
+
+对应范数为
+
+$$
+\lVert x\rVert_2=\sqrt{x^\top x}.
+$$
+
+Cauchy–Schwarz 不等式为
+
+$$
+|x^\top y|
+\le
+\lVert x\rVert_2\lVert y\rVert_2.
+$$ {#eq-cauchy-schwarz-appendix}
+
+等号成立当且仅当 $x,y$ 线性相关。对非零向量，
+
+$$
+\cos\theta
+=
+\frac{x^\top y}{\lVert x\rVert_2\lVert y\rVert_2},
+$$
+
+所以内积符号描述方向关系：
+
+- $x^\top y>0$：夹角为锐角；
+- $x^\top y=0$：两向量正交；
+- $x^\top y<0$：夹角为钝角。
+
+下降方向条件 $\nabla f(x)^\top d<0$ 正是说搜索方向与梯度形成钝角。
+
+### 矩阵内积
+
+对同型矩阵 $X,Y$，Frobenius 内积为
+
+$$
+\langle X,Y\rangle
+=
+\operatorname{tr}(X^\top Y).
+$$
+
+对应范数为
+
+$$
+\lVert X\rVert_F
+=
+\sqrt{\operatorname{tr}(X^\top X)}
+=
+\sqrt{\sum_{i,j}X_{ij}^2}.
+$$
+
+这相当于把矩阵按元素展开成向量后使用 Euclidean 内积与范数。
+
+## 向量范数
+
+范数 $\lVert\cdot\rVert$ 满足：
+
+1. 非负与正定：$\lVert x\rVert\ge0$，且等号仅当 $x=0$；
+2. 绝对齐次：$\lVert\alpha x\rVert=|\alpha|\lVert x\rVert$；
+3. 三角不等式：$\lVert x+y\rVert\le\lVert x\rVert+\lVert y\rVert$。
+
+常用 $\ell_p$ 范数为
+
+$$
+\lVert x\rVert_p
+=
+\left(\sum_{i=1}^n|x_i|^p\right)^{1/p},
+\qquad p\ge1.
+$$
+
+特别地，
+
+$$
+\lVert x\rVert_1=\sum_i|x_i|,
+\qquad
+\lVert x\rVert_2=\sqrt{\sum_i x_i^2},
+\qquad
+\lVert x\rVert_\infty=\max_i|x_i|.
+$$
+
+有限维空间中的任意两个范数等价：存在常数 $c,C>0$ 使
+
+$$
+c\lVert x\rVert_a
+\le
+\lVert x\rVert_b
+\le
+C\lVert x\rVert_a.
+$$
+
+这里“等价”表示它们产生相同的收敛与连续性概念，并不表示数值相同。
+
+## 对偶范数与 Hölder 不等式
+
+范数 $\lVert\cdot\rVert$ 的对偶范数定义为
+
+$$
+\lVert y\rVert_\star
+=
+\sup_{\lVert x\rVert\le1}y^\top x.
+$$
+
+由缩放可得广义 Hölder 不等式
+
+$$
+|x^\top y|
+\le
+\lVert x\rVert\lVert y\rVert_\star.
+$$ {#eq-holder-dual}
+
+$\ell_p$ 范数的对偶是 $\ell_q$ 范数，其中
+
+$$
+\frac1p+\frac1q=1.
+$$
+
+因此：
+
+$$
+(\ell_1)^\star=\ell_\infty,
+\qquad
+(\ell_2)^\star=\ell_2,
+\qquad
+(\ell_\infty)^\star=\ell_1.
+$$
+
+对偶范数在最速下降、鲁棒优化和范数共轭中反复出现。
+
+## 矩阵算子范数
+
+由向量范数诱导的算子范数定义为
+
+$$
+\lVert A\rVert
+=
+\sup_{x\ne0}
+\frac{\lVert Ax\rVert}{\lVert x\rVert}.
+$$
+
+它给出线性映射放大向量的最大倍数，因此
+
+$$
+\lVert Ax\rVert
+\le
+\lVert A\rVert\lVert x\rVert.
+$$
+
+常用情形为
+
+$$
+\lVert A\rVert_2=\sigma_{\max}(A),
+$$
+
+$$
+\lVert A\rVert_1
+=
+\max_j\sum_i|A_{ij}|,
+$$
+
+$$
+\lVert A\rVert_\infty
+=
+\max_i\sum_j|A_{ij}|.
+$$
+
+$\lVert A\rVert_2$ 是谱范数，不要与 Frobenius 范数混淆。
+
+## 导数、Jacobian 与梯度
+
+设
+
+$$
+f:\mathbb R^n\to\mathbb R^m.
+$$
+
+若存在矩阵 $Df(x)\in\mathbb R^{m\times n}$ 使
+
+$$
+f(x+h)
+=
+f(x)+Df(x)h+o(\lVert h\rVert_2),
+$$
+
+则 $Df(x)$ 为 $f$ 在 $x$ 处的导数矩阵，也称 Jacobian：
+
+$$
+[Df(x)]_{ij}
+=
+\frac{\partial f_i(x)}{\partial x_j}.
+$$
+
+当 $m=1$ 时，$Df(x)$ 是 $1\times n$ 行向量。本书把梯度定义为列向量：
+
+$$
+\nabla f(x)=Df(x)^\top\in\mathbb R^n.
+$$
+
+因此一阶展开写为
+
+$$
+f(x+h)
+=
+f(x)+\nabla f(x)^\top h+o(\lVert h\rVert_2).
+$$
+
+### 链式法则
+
+若 $g:\mathbb R^n\to\mathbb R^m$，$f:\mathbb R^m\to\mathbb R^p$，则
+
+$$
+D(f\circ g)(x)
+=
+Df(g(x))Dg(x).
+$$
+
+对标量函数
+
+$$
+h(x)=f(Ax+b),
+$$
+
+其中 $f:\mathbb R^m\to\mathbb R$，有
+
+$$
+\nabla h(x)
+=
+A^\top\nabla f(Ax+b).
+$$
+
+维度检查为
+
+$$
+A^\top\in\mathbb R^{n\times m},
+\qquad
+\nabla f(Ax+b)\in\mathbb R^m,
+$$
+
+所以结果属于 $\mathbb R^n$。
+
+## Hessian
+
+对二阶可微标量函数 $f:\mathbb R^n\to\mathbb R$，Hessian 定义为
+
+$$
+[\nabla^2f(x)]_{ij}
+=
+\frac{\partial^2 f(x)}
+{\partial x_i\partial x_j}.
+$$
+
+在二阶连续可微条件下，Hessian 对称。二阶展开为
+
+$$
+f(x+h)
+=
+f(x)
++\nabla f(x)^\top h
++\frac12h^\top\nabla^2f(x)h
++o(\lVert h\rVert_2^2).
+$$
+
+若 $h(x)=f(Ax+b)$，则
+
+$$
+\nabla^2h(x)
+=
+A^\top\nabla^2f(Ax+b)A.
+$$
+
+这个公式同时解释了为什么仿射复合保持 Hessian 半正定。
+
+## 正定与半正定矩阵
+
+对称矩阵 $P\in\mathbb S^n$：
+
+$$
+P\succeq0
+\quad\Longleftrightarrow\quad
+x^\top Px\ge0,
+\quad \forall x,
+$$
+
+$$
+P\succ0
+\quad\Longleftrightarrow\quad
+x^\top Px>0,
+\quad \forall x\ne0.
+$$
+
+等价地：
+
+- $P\succeq0$ 当且仅当所有特征值非负；
+- $P\succ0$ 当且仅当所有特征值为正。
+
+若 $P\succeq0$，则存在平方根 $P^{1/2}\succeq0$，并且
+
+$$
+x^\top Px
+=
+\lVert P^{1/2}x\rVert_2^2.
+$$
+
+若
+
+$$
+\mu I\preceq P\preceq LI,
+$$
+
+则
+
+$$
+\mu\lVert x\rVert_2^2
+\le
+x^\top Px
+\le
+L\lVert x\rVert_2^2.
+$$
+
+## 特征值分解、SVD 与伪逆
+
+实对称矩阵可分解为
+
+$$
+P=Q\Lambda Q^\top,
+$$
+
+其中 $Q$ 正交，$\Lambda$ 为实对角矩阵。
+
+任意矩阵 $A\in\mathbb R^{m\times n}$ 都有奇异值分解
+
+$$
+A=U\Sigma V^\top.
+$$
+
+若非零奇异值为 $\sigma_1,\ldots,\sigma_r$，则 Moore–Penrose 伪逆为
+
+$$
+A^\dagger
+=
+V\Sigma^\dagger U^\top,
+$$
+
+其中 $\Sigma^\dagger$ 将非零奇异值取倒数。
+
+最小二乘的最小范数解可以统一写为
+
+$$
+x^\star=A^\dagger b.
+$$
+
+伪逆表达揭示了解的几何结构；数值计算仍应使用稳定的分解算法。
+
+## Schur 补
+
+考虑对称分块矩阵
+
+$$
+M
+=
+\begin{bmatrix}
+A & B\\
+B^\top & C
+\end{bmatrix}.
+$$
+
+若 $A\succ0$，则
+
+$$
+M\succeq0
+\quad\Longleftrightarrow\quad
+C-B^\top A^{-1}B\succeq0.
+$$ {#eq-schur-complement}
+
+$C-B^\top A^{-1}B$ 称为关于 $A$ 的 Schur 补。
+
+例如，对 $t>0$，
+
+$$
+x^\top A^{-1}x\le t
+$$
+
+等价于线性矩阵不等式
+
+$$
+\begin{bmatrix}
+A & x\\
+x^\top & t
+\end{bmatrix}
+\succeq0,
+\qquad A\succ0.
+$$
+
+Schur 补常用于把含逆矩阵的约束改写为半正定约束。
+
+## 维度检查清单
+
+1. 梯度 $\nabla f(x)$ 与变量 $x$ 维度相同，均按列向量记；
+2. 标量一阶项写成 $\nabla f(x)^\top(y-x)$；
+3. Hessian 是 $n\times n$ 矩阵；
+4. 若 $A\in\mathbb R^{m\times n}$，则 $Ax\in\mathbb R^m$；
+5. $\nabla_x f(Ax+b)=A^\top\nabla f(Ax+b)$；
+6. 二次型 $x^\top Px$ 要求 $P$ 的尺寸与 $x$ 匹配，且只需考虑其对称部分。
+
+## 本附录小结
+
+内积与对偶范数控制线性项，Jacobian、梯度和 Hessian 描述局部变化，正定矩阵与特征值描述二次曲率，SVD 和伪逆处理退化线性系统，Schur 补则在二次形式与矩阵不等式之间转换。这些工具贯穿凸性判定、对偶推导与算法收敛分析。
