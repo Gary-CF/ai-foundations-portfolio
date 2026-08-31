@@ -176,7 +176,11 @@ $$
 
 $\lVert A\rVert_2$ 是谱范数，不要与 Frobenius 范数混淆。
 
-## 导数、Jacobian 与梯度
+## 向量、矩阵与张量求导 {#sec-matrix-calculus}
+
+优化问题最终通常以标量目标为中心，但中间计算可能在向量、矩阵甚至更高阶张量之间传递。本节统一三件事：导数表示什么线性映射，梯度为什么与变量同形，以及链式法则如何在不显式构造高阶导数张量的情况下完成反向传播。
+
+### Jacobian、梯度与方向导数
 
 设
 
@@ -192,21 +196,48 @@ f(x+h)
 f(x)+Df(x)h+o(\lVert h\rVert_2),
 $$
 
-则 $Df(x)$ 为 $f$ 在 $x$ 处的导数矩阵，也称 Jacobian：
+则 $Df(x)$ 是 $f$ 在 $x$ 处的导数，也称 Jacobian：
 
 $$
 [Df(x)]_{ij}
 =
 \frac{\partial f_i(x)}{\partial x_j}.
+$$ {#eq-jacobian-convention}
+
+本书固定采用“输出维度为行、输入维度为列”的约定，因此
+
+$$
+Df(x)\in\mathbb R^{m\times n}.
 $$
 
-当 $m=1$ 时，$Df(x)$ 是 $1\times n$ 行向量。本书把梯度定义为列向量：
+不同资料可能使用转置约定，引用公式前必须先检查维度，不能只凭符号名称判断。
+
+沿方向 $v\in\mathbb R^n$ 的方向导数为
 
 $$
-\nabla f(x)=Df(x)^\top\in\mathbb R^n.
+Df(x)[v]
+=
+\lim_{t\to0}
+\frac{f(x+tv)-f(x)}{t}
+=
+Df(x)v.
 $$
 
-因此一阶展开写为
+当 $m=1$ 时，$Df(x)$ 是 $1\times n$ 行向量。本书把梯度定义为列向量
+
+$$
+\nabla f(x)=Df(x)^\top\in\mathbb R^n,
+$$
+
+于是
+
+$$
+Df(x)[v]
+=
+\nabla f(x)^\top v,
+$$ {#eq-directional-gradient-pairing}
+
+并且一阶展开写为
 
 $$
 f(x+h)
@@ -214,7 +245,209 @@ f(x+h)
 f(x)+\nabla f(x)^\top h+o(\lVert h\rVert_2).
 $$
 
-### 链式法则
+这里梯度不是抽象导数本身，而是借助 Euclidean 内积表示标量导数这个线性泛函后得到的向量。这一区分在换用非 Euclidean 几何时尤其重要。
+
+### 矩阵变量与 Frobenius 配对
+
+设
+
+$$
+f:\mathbb R^{m\times n}\to\mathbb R.
+$$
+
+矩阵梯度 $\nabla_Xf(X)\in\mathbb R^{m\times n}$ 由下式定义：
+
+$$
+f(X+H)
+=
+f(X)
++\langle\nabla_Xf(X),H\rangle_F
++o(\lVert H\rVert_F),
+$$ {#eq-matrix-gradient-definition}
+
+其中
+
+$$
+\langle A,B\rangle_F
+=
+\operatorname{tr}(A^\top B).
+$$
+
+在标准坐标下，这一定义等价于
+
+$$
+[\nabla_Xf(X)]_{ij}
+=
+\frac{\partial f(X)}{\partial X_{ij}}.
+$$
+
+等价地，微分满足
+
+$$
+df(X)[H]
+=
+\operatorname{tr}
+\left(
+[\nabla_Xf(X)]^\top H
+\right).
+$$ {#eq-matrix-differential-pairing}
+
+这解释了“梯度与参数同形”：导数 $df(X)$ 是作用在扰动 $H$ 上的线性泛函，而 Frobenius 内积把这个线性泛函唯一表示为一个与 $X$ 同型的矩阵。
+
+### 用微分计算矩阵梯度
+
+逐元素求偏导通常容易丢失转置。更稳健的方法是：
+
+1. 先计算标量目标的微分 $df$；
+2. 利用迹的恒等式把它整理成 $\operatorname{tr}(G^\top dX)$；
+3. 由式 @eq-matrix-differential-pairing 读出 $\nabla_Xf=G$。
+
+常用微分规则为
+
+$$
+d(A+B)=dA+dB,
+$$
+
+$$
+d(AB)=(dA)B+A(dB),
+$$
+
+$$
+d(X^\top)=(dX)^\top,
+$$
+
+$$
+d\operatorname{tr}(X)
+=
+\operatorname{tr}(dX).
+$$
+
+若 $X$ 可逆，则
+
+$$
+d(X^{-1})
+=
+-X^{-1}(dX)X^{-1}.
+$$ {#eq-differential-inverse}
+
+该式可由 $XX^{-1}=I$ 直接推出：
+
+$$
+0
+=
+d(XX^{-1})
+=
+(dX)X^{-1}+X\,d(X^{-1}).
+$$
+
+迹的循环不变性
+
+$$
+\operatorname{tr}(ABC)
+=
+\operatorname{tr}(BCA)
+=
+\operatorname{tr}(CAB)
+$$
+
+允许把 $dX$ 移到便于识别梯度的位置，但只能循环换位，不能任意交换矩阵顺序。
+
+### 高频向量梯度
+
+设 $x\in\mathbb R^n$。以下公式应当能够从微分或一阶展开独立推出，而不只是背诵。
+
+| 标量函数 | 梯度 | 条件或说明 |
+|---|---|---|
+| $a^\top x$ | $a$ | $a\in\mathbb R^n$ |
+| $\frac12\lVert x\rVert_2^2$ | $x$ | Euclidean 几何 |
+| $\frac12x^\top Qx$ | $\frac12(Q+Q^\top)x$ | 若 $Q$ 对称，则为 $Qx$ |
+| $\frac12\lVert Ax-b\rVert_2^2$ | $A^\top(Ax-b)$ | Hessian 为 $A^\top A$ |
+| $\log\sum_i e^{x_i}$ | $p$ | $p_i=e^{x_i}/\sum_j e^{x_j}$ |
+
+以最小二乘为例，令 $r=Ax-b$，则
+
+$$
+df
+=
+r^\top dr
+=
+r^\top A\,dx
+=
+[A^\top(Ax-b)]^\top dx,
+$$
+
+所以
+
+$$
+\nabla_x
+\frac12\lVert Ax-b\rVert_2^2
+=
+A^\top(Ax-b).
+$$ {#eq-least-squares-gradient-toolbox}
+
+### 高频矩阵梯度
+
+设 $X\in\mathbb R^{m\times n}$。常用公式包括：
+
+$$
+\nabla_X\langle C,X\rangle_F=C,
+$$
+
+$$
+\nabla_X\frac12\lVert X\rVert_F^2=X,
+$$
+
+$$
+\nabla_X
+\frac12\lVert AX-B\rVert_F^2
+=
+A^\top(AX-B),
+$$ {#eq-left-matrix-least-squares}
+
+其中 $A\in\mathbb R^{p\times m}$、$B\in\mathbb R^{p\times n}$。类似地，若 $A\in\mathbb R^{n\times q}$、$B\in\mathbb R^{m\times q}$，则
+
+$$
+\nabla_X
+\frac12\lVert XA-B\rVert_F^2
+=
+(XA-B)A^\top.
+$$ {#eq-right-matrix-least-squares}
+
+例如，对式 @eq-left-matrix-least-squares，令 $R=AX-B$，则
+
+$$
+\begin{aligned}
+df
+&=\langle R,dR\rangle_F\\
+&=\operatorname{tr}(R^\top A\,dX)\\
+&=\operatorname{tr}
+\left(
+[A^\top R]^\top dX
+\right),
+\end{aligned}
+$$
+
+从而读出 $\nabla_Xf=A^\top R$。
+
+对 $X\in\mathbb S_{++}^n$，还有
+
+$$
+d\log\det X
+=
+\operatorname{tr}(X^{-1}dX),
+$$
+
+因此
+
+$$
+\nabla_X\log\det X
+=
+X^{-1}.
+$$ {#eq-logdet-gradient-toolbox}
+
+若不假设 $X$ 对称，则对应梯度写作 $X^{-\top}$。在凸优化中通常在正定锥 $\mathbb S_{++}^n$ 上使用 $-\log\det X$ 作为障碍函数。
+
+### 链式法则与反向传播
 
 若 $g:\mathbb R^n\to\mathbb R^m$，$f:\mathbb R^m\to\mathbb R^p$，则
 
@@ -222,33 +455,144 @@ $$
 D(f\circ g)(x)
 =
 Df(g(x))Dg(x).
-$$
+$$ {#eq-jacobian-chain-rule}
 
-对标量函数
-
-$$
-h(x)=f(Ax+b),
-$$
-
-其中 $f:\mathbb R^m\to\mathbb R$，有
+若最终输出为标量 $L(x)=\ell(g(x))$，则
 
 $$
-\nabla h(x)
+\nabla_xL(x)
 =
-A^\top\nabla f(Ax+b).
+Dg(x)^\top\nabla\ell(g(x)).
+$$ {#eq-vector-reverse-chain-rule}
+
+这就是反向传播的基本形式：从后续标量损失得到上游梯度，再乘当前映射 Jacobian 的转置。
+
+对矩阵仿射映射
+
+$$
+Y=AXB+C,
 $$
 
-维度检查为
+令
 
 $$
-A^\top\in\mathbb R^{n\times m},
+A\in\mathbb R^{p\times m},
+\quad
+X\in\mathbb R^{m\times n},
+\quad
+B\in\mathbb R^{n\times q},
+\quad
+C,Y\in\mathbb R^{p\times q}.
+$$
+
+设 $G=\nabla_YL\in\mathbb R^{p\times q}$，则
+
+$$
+dL
+=
+\langle G,A(dX)B\rangle_F
+=
+\langle A^\top G B^\top,dX\rangle_F,
+$$
+
+因此
+
+$$
+\nabla_XL
+=
+A^\top G B^\top.
+$$ {#eq-matrix-affine-backprop}
+
+这个公式比显式构造“矩阵对矩阵”的四阶导数更实用。
+
+再看机器学习中的仿射层。设
+
+$$
+y=W^\top x+b,
+$$
+
+其中
+
+$$
+W\in\mathbb R^{n\times m},
 \qquad
-\nabla f(Ax+b)\in\mathbb R^m,
+x\in\mathbb R^n,
+\qquad
+b,y\in\mathbb R^m.
 $$
 
-所以结果属于 $\mathbb R^n$。
+若 $u=\nabla_yL\in\mathbb R^m$，则
 
-## Hessian
+$$
+\nabla_xL=Wu,
+\qquad
+\nabla_WL=xu^\top,
+\qquad
+\nabla_bL=u.
+$$ {#eq-affine-layer-backprop}
+
+严格来说，$y$ 对 $W$ 的导数是三阶张量；但标量损失传回的 $u$ 会与该张量缩并，直接得到同形矩阵 $\nabla_WL$。实际计算通常只需要这个向量—Jacobian 乘积。
+
+### 向量、矩阵与张量输出
+
+若
+
+$$
+F:\mathbb R^{m\times n}\to\mathbb R^{p\times q},
+$$
+
+逐元素记录导数需要四阶数组
+
+$$
+[D_XF(X)]_{ij,kl}
+=
+\frac{\partial F_{ij}(X)}{\partial X_{kl}}.
+$$ {#eq-matrix-output-derivative-tensor}
+
+更一般地，$k$ 阶张量输入到 $l$ 阶张量输出的逐元素导数具有 $k+l$ 个指标。这里更适合称它为导数张量或 Jacobian 张量；“梯度与变量同形”只针对标量输出。
+
+也可以先向量化：
+
+$$
+\operatorname{vec}(F(X))
+\in\mathbb R^{pq},
+\qquad
+\operatorname{vec}(X)
+\in\mathbb R^{mn},
+$$
+
+于是普通 Jacobian 的尺寸为
+
+$$
+\frac{\partial\operatorname{vec}(F(X))}
+{\partial\operatorname{vec}(X)}
+\in
+\mathbb R^{pq\times mn}.
+$$
+
+向量化顺序必须预先约定，否则同一个导数会得到不同的矩阵排列。理论推导中，直接把 $DF(X)$ 看作从扰动 $H$ 到输出扰动 $DF(X)[H]$ 的线性映射，通常更不容易混淆。
+
+自动微分也很少显式生成完整 Jacobian，而是计算：
+
+$$
+\underbrace{Df(x)v}_{\text{Jacobian--vector product, JVP}},
+\qquad
+\underbrace{Df(x)^\top u}_{\text{vector--Jacobian product, VJP}}.
+$$
+
+前向模式自然计算 JVP，反向模式自然计算 VJP。标量损失对大量参数求梯度时，反向模式避免了存储巨大的高阶导数张量。
+
+### 求导检查清单
+
+1. 先写清输入、输出与每个矩阵的尺寸；
+2. 标量对向量或矩阵求导才称为梯度，并与变量同形；
+3. 向量输出对应 Jacobian，矩阵或张量输出对应线性映射或高阶导数张量；
+4. 矩阵微分最终应整理成 $df=\operatorname{tr}(G^\top dX)$；
+5. 迹只能循环换位，矩阵乘积不能随意交换；
+6. 链式法则中最常见的错误是漏掉转置；
+7. 涉及逆矩阵、对数行列式时，必须同时写明可逆性或正定性条件。
+
+## Hessian 与二阶方向信息
 
 对二阶可微标量函数 $f:\mathbb R^n\to\mathbb R$，Hessian 定义为
 
@@ -270,6 +614,27 @@ f(x)
 +o(\lVert h\rVert_2^2).
 $$
 
+沿方向 $v$ 的二阶方向导数为
+
+$$
+D^2f(x)[v,v]
+=
+v^\top\nabla^2f(x)v.
+$$
+
+许多二阶算法只需要 Hessian--vector product
+
+$$
+\nabla^2f(x)v
+=
+\left.
+\frac{d}{dt}
+\nabla f(x+tv)
+\right|_{t=0},
+$$ {#eq-hessian-vector-product}
+
+而不必显式存储整个 Hessian。
+
 若 $h(x)=f(Ax+b)$，则
 
 $$
@@ -279,6 +644,23 @@ A^\top\nabla^2f(Ax+b)A.
 $$
 
 这个公式同时解释了为什么仿射复合保持 Hessian 半正定。
+
+对 log-sum-exp 函数
+
+$$
+f(x)=\log\sum_{i=1}^n e^{x_i},
+$$
+
+记 $p=\nabla f(x)$，即 $p$ 为 softmax 向量，则
+
+$$
+\nabla^2f(x)
+=
+\operatorname{Diag}(p)-pp^\top
+\succeq0.
+$$ {#eq-logsumexp-hessian-toolbox}
+
+该矩阵可以解释为类别指标向量的协方差矩阵，因此天然半正定。实际使用时应理解它的结构与半正定性，不必背诵更高阶张量形式或 $\log\det$ 的完整 Hessian。
 
 ## 正定与半正定矩阵
 
@@ -405,13 +787,15 @@ Schur 补常用于把含逆矩阵的约束改写为半正定约束。
 
 ## 维度检查清单
 
-1. 梯度 $\nabla f(x)$ 与变量 $x$ 维度相同，均按列向量记；
-2. 标量一阶项写成 $\nabla f(x)^\top(y-x)$；
-3. Hessian 是 $n\times n$ 矩阵；
-4. 若 $A\in\mathbb R^{m\times n}$，则 $Ax\in\mathbb R^m$；
-5. $\nabla_x f(Ax+b)=A^\top\nabla f(Ax+b)$；
-6. 二次型 $x^\top Px$ 要求 $P$ 的尺寸与 $x$ 匹配，且只需考虑其对称部分。
+1. 若 $f:\mathbb R^n\to\mathbb R^m$，则 $Df(x)\in\mathbb R^{m\times n}$；
+2. 标量梯度 $\nabla f(x)$ 与变量 $x$ 同维，且按列向量记；
+3. 矩阵梯度 $\nabla_Xf(X)$ 与矩阵变量 $X$ 同形；
+4. 标量一阶项分别写成 $\nabla f(x)^\top(y-x)$ 或 $\langle\nabla_Xf(X),Y-X\rangle_F$；
+5. 若 $f:\mathbb R^n\to\mathbb R$，则 Hessian 是 $n\times n$ 矩阵；
+6. 若 $A\in\mathbb R^{m\times n}$，则 $Ax\in\mathbb R^m$，反向链式法则会出现 $A^\top$；
+7. 二次型 $x^\top Px$ 要求 $P$ 的尺寸与 $x$ 匹配，且只需考虑其对称部分；
+8. 任何包含逆矩阵或 $\log\det$ 的公式都必须同时检查定义域。
 
 ## 本附录小结
 
-内积与对偶范数控制线性项，Jacobian、梯度和 Hessian 描述局部变化，正定矩阵与特征值描述二次曲率，SVD 和伪逆处理退化线性系统，Schur 补则在二次形式与矩阵不等式之间转换。这些工具贯穿凸性判定、对偶推导与算法收敛分析。
+内积与对偶范数控制线性项，Jacobian、梯度和 Hessian 描述局部变化，矩阵微分与 Frobenius 配对把高阶求导转化为可读的同形梯度，JVP、VJP 和 Hessian--vector product 则避免显式存储巨大的导数张量。正定矩阵与特征值描述二次曲率，SVD 和伪逆处理退化线性系统，Schur 补在二次形式与矩阵不等式之间转换。这些工具贯穿凸性判定、对偶推导、反向传播与算法收敛分析。

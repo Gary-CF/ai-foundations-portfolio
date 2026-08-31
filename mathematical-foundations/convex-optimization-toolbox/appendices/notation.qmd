@@ -10,8 +10,12 @@
 | $\Pi_C(x)$ | 点 $x$ 到闭凸集 $C$ 的 Euclidean 投影 |
 | $\langle x,y\rangle=x^\top y$ | Euclidean 内积 |
 | $\lVert\cdot\rVert_\star$ | 给定范数的对偶范数 |
+| $Df(x)$ 或 $J_f(x)$ | Jacobian；行对应输出维度，列对应输入维度 |
 | $\nabla f(x)$ | 标量函数的梯度，按列向量记 |
+| $\nabla_X f(X)$ | 标量函数关于矩阵变量 $X$ 的梯度，与 $X$ 同形 |
+| $df(X)[H]$ | $f$ 在 $X$ 处沿矩阵方向 $H$ 的一阶微分 |
 | $\nabla^2f(x)$ | 函数的 Hessian 矩阵 |
+| $\operatorname{vec}(X)$ | 按约定顺序把矩阵 $X$ 展开为向量 |
 | $A\succeq0$ | 对称矩阵 $A$ 半正定 |
 | $x\succeq_K y$ | $x-y\in K$ 所定义的广义不等式 |
 | $f^\star$ | 函数 $f$ 的 Fenchel 共轭 |
