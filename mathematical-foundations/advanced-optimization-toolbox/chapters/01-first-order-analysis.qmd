@@ -3,6 +3,8 @@
 高级优化中的算法很多，但证明经常重复同一套动作：选定性能量、写出一步势函数不等式、求和消去中间项，再平衡步长。本章只整理后续会反复调用的分析语言，不重新讲授完整凸优化课程。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 2–4。次梯度、光滑性和强凸性只保留与速率直接相关的形式；KKT、完整近端理论和 Nesterov 加速的长篇代数证明不在此重复。
 :::
 

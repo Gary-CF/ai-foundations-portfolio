@@ -3,16 +3,20 @@
 全信息在线学习能看到整条损失向量；Bandit 只能看到自己所选动作的损失。此时算法必须同时完成两件事：选择当前看起来好的动作，并主动收集足以估计其他动作的信息。探索与估计方差由此成为主导项。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 10。Exp3 的重要性加权估计和遗憾证明为主线；一点 Bandit Gradient Descent 保留完整估计器与误差分解；自协调障碍只解释几何作用，不展开全部高级 BCO 证明。
 :::
 
 ## 对抗多臂 Bandit 协议
 
-有 $K$ 个动作。第 $t$ 轮：
+本章 Exp3 定理与证明针对 **oblivious adversary**：环境在交互开始前固定整个损失序列 $\ell_1,\ldots,\ell_T\in[0,1]^K$，其中 $K\ge2$、$T\ge1$。损失不依赖学习器随后产生的随机动作。第 $t$ 轮：
 
-1. 学习器选择分布 $p_t\in\Delta_K$，采样 $a_t\sim p_t$；
-2. 环境给出损失向量 $\ell_t\in[0,1]^K$；
-3. 学习器只观察 $\ell_{t,a_t}$。
+1. 学习器根据过去观测选择分布 $p_t\in\Delta_K$；
+2. 在已经固定的 $\ell_t$ 下，用本轮新随机性采样 $a_t\sim p_t$；
+3. 学习器只观察 $\ell_{t,a_t}$，再更新权重。
+
+$\mathcal F_{t-1}$ 包含前 $t-1$ 轮历史，$p_t$ 对它可测；采样动作 $a_t$ 通常不对它可测。下文 $\mathbb E_t$ 表示给定 $\mathcal F_{t-1}$ 后对本轮采样取条件期望。
 
 期望静态遗憾为
 
@@ -25,7 +29,7 @@ $$
 \right].
 $$ {#eq-adversarial-mab-regret}
 
-期望针对算法采样随机性。默认环境不能利用当轮尚未实现的随机动作；若损失序列预先固定，就是 oblivious adversary。
+期望针对算法采样随机性。损失可以随轮次任意变化，但本节不允许其依赖已实现的随机历史。
 
 Hedge 无法直接使用，因为它需要整个 $\ell_t$。Bandit 方法的基本套路是：先从单点反馈构造一条完整的随机估计向量，再把它交给全信息算法。
 
@@ -109,7 +113,7 @@ $$
 \sum_{j=1}^Kp_{t,j}\widehat\ell_{t,j}^2.
 $$
 
-取期望，使用 @eq-iw-unbiased、@eq-iw-loss-identity 和 @eq-exp3-variance-cancellation，得到
+先选定 $a^*\in\arg\min_{a\in[K]}\sum_{t=1}^T\ell_{t,a}$（并列时用固定规则）。由于整个损失序列预先固定，$a^*$ 不依赖算法随机性，虽然学习器事先不知道它，分析时仍可把它作为固定比较臂。将上式中的 $a$ 取为 $a^*$，再取期望，便能逐项使用 @eq-iw-unbiased；结合 @eq-iw-loss-identity 和 @eq-exp3-variance-cancellation，得到
 
 $$
 \mathbb E[\operatorname{Reg}_T]
@@ -133,14 +137,27 @@ $$ {#eq-exp3-regret}
 
 与 Hedge 的 $O(\sqrt{T\log K})$ 相比，多出的 $\sqrt K$ 是部分反馈造成的估计方差代价。
 
+::: {.callout-warning title="自适应对手的边界"}
+若损失允许依赖过去历史，但在本轮动作采样前确定，同样的无偏性和二阶矩计算仍可控制相对于每个预先固定比较臂 $a$ 的期望差
+
+$$
+\mathbb E\!\left[\sum_{t=1}^T(\ell_{t,a_t}-\ell_{t,a})\right]
+\le \frac{\log K}{\eta}+\eta KT.
+$$
+
+但此时事后最优臂本身依赖随机历史，不能将这个固定比较臂界直接换成含随机最小值的期望遗憾界，也不能交换最大值与期望。自适应对手下的事后最优臂保证需要额外分析，本节证明未覆盖。参见 Lattimore 与 Szepesvári 的 [Bandit Algorithms，§28.5 Notes，第 9 点](https://tor-lattimore.com/downloads/book/book.pdf)。
+:::
+
 ## 下界与探索边界
 
-对任意 Bandit 算法，都存在损失序列使
+当 $2\le K\le T$ 时，对任意 Bandit 算法，都存在损失序列使
 
 $$
 \mathbb E[\operatorname{Reg}_T]
 =\Omega(\left.\sqrt{KT}\right.).
 $$ {#eq-adversarial-mab-lower}
+
+此处的 $K\le T$ 不能省略：有界损失下遗憾至多为 $T$，所以 $K$ 远大于 $T$ 时不能声称同一 $\sqrt{KT}$ 下界。参见 [Bandit Algorithms，Exercise 15.4](https://tor-lattimore.com/downloads/book/book.pdf) 的 Bernoulli 构造。
 
 下界甚至可以在随机 Bandit 子类中构造：设置多个均值极其接近的环境，使有限样本不足以可靠识别最优臂。因随机环境比对抗环境更容易，该下界也适用于对抗 MAB。
 
@@ -269,6 +286,7 @@ FTRL 使用障碍正则保持点位于内部，局部范数又让估计方差与
 ::: {.callout-warning title="典型误用"}
 - 用 $\ell_{t,a_t}$ 直接填入被选坐标，却忘记除以 $p_{t,a_t}$。
 - 只验证估计器无偏，不检查二阶矩是否可控。
+- 在自适应对手下把固定比较臂的期望界直接当作事后最优臂的期望遗憾界；本章 Exp3 结论限定于 oblivious adversary。
 - 把一点估计器称为 $\nabla f_t(y_t)$ 的无偏估计；它对应的是平滑函数。
 - 随机扰动后没有收缩可行域，导致查询点离开 $\mathcal X$。
 - 把 BGD 的 $T^{3/4}$ 当作所有 BCO 模型的最终下界。

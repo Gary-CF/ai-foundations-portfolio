@@ -1,0 +1,193 @@
+# 鞅的收敛 {#sec-martingales-convergence}
+
+鞅的当前条件均值不变，并不意味着路径不波动。最大不等式控制一段时间内的大偏离，收敛定理控制无限时间内的振荡；要再把路径极限放进期望，还需额外的可积性控制。
+
+## 非负下鞅的最大不等式
+
+设 $(X_k,\mathcal F_k)$ 为非负下鞅，固定 $n\ge0,a>0$。令
+$$
+T=\min\bigl(\inf\{k\ge0:X_k\ge a\},n\bigr),\qquad
+A=\{\max_{0\le k\le n}X_k\ge a\}.
+$$
+这是有界停时。更精确地按首次越界时刻分解 $A$，事件 $A\cap\{T=k\}$ 属于 $\mathcal F_k$；多步下鞅关系给出
+$$
+\begin{aligned}
+a\mathbb P(A)
+&\le\sum_{k=0}^n\mathbb E[X_k\mathbf1_{A\cap\{T=k\}}]\\
+&\le\sum_{k=0}^n\mathbb E[X_n\mathbf1_{A\cap\{T=k\}}]
+=\mathbb E[X_n\mathbf1_A]\le\mathbb EX_n.
+\end{aligned}
+$$
+最后一步需要非负性。因此
+$$
+\boxed{\quad\mathbb P\!\left(\max_{0\le k\le n}X_k\ge a\right)
+\le\frac{\mathbb EX_n}{a}.\quad}
+$$
+它把“任一时刻曾经越界”的概率，归结为一个终端期望，并不需要对每个时间点分别用概率界再相加。
+
+若 $M$ 是平方可积鞅，$M_k^2$ 为非负下鞅，故
+$$
+\mathbb P\!\left(\max_{0\le k\le n}|M_k|\ge a\right)
+\le\frac{\mathbb E M_n^2}{a^2}.
+$$
+特别地，对独立均值零、方差有限的增量和 $S_k$，右侧为 $\sum_{j=1}^n\operatorname{Var}(\xi_j)/a^2$，这给出 Kolmogorov 最大不等式的鞅证明。
+
+## 从最大不等式到强大数定律
+
+设 $\xi_1,\xi_2,\ldots$ 独立同分布，$\mathbb E\xi_1=0$，$\operatorname{Var}(\xi_1)=\sigma^2<\infty$，$S_n=\sum_{j=1}^n\xi_j$。目标是证明 $S_n/n\to0$ a.s.。
+
+只对单个 $n$ 用 Chebyshev 得到 $\sigma^2/(\varepsilon^2n)$，概率上界不可求和，不能直接用第一 Borel–Cantelli 引理。课程的关键做法是改用二进制时间块。最大不等式给出
+$$
+\mathbb P\!\left(\max_{1\le j\le2^k}|S_j|>\varepsilon2^k\right)
+\le\frac{\sigma^2}{\varepsilon^2 2^k}.
+$$
+右侧对 $k$ 可求和，因此几乎必然存在随机的 $k_0$，使 $k\ge k_0$ 时 $\max_{j\le2^k}|S_j|\le\varepsilon2^k$。若 $2^{k-1}<n\le2^k$，则
+$$
+\frac{|S_n|}{n}\le\frac{\varepsilon2^k}{2^{k-1}}=2\varepsilon.
+$$
+先对可数个 $\varepsilon=1,1/2,1/3,\ldots$ 取概率一事件的交，再令 $\varepsilon\downarrow0$，就得到所有整数时刻上的几乎处处收敛。
+
+对均值 $\mu$ 的变量先中心化，得 $n^{-1}\sum_{j=1}^n\xi_j\to\mu$ a.s.。这里证明的是**有限方差版本**；一般只要求 $\mathbb E|\xi_1|<\infty$ 的独立同分布强大数定律需要额外截断论证，不由上述方差计算直接得到。
+
+## L1 有界鞅的路径收敛
+
+若 $(M_n)$ 是鞅，且
+$$
+\sup_{n\ge0}\mathbb E|M_n|<\infty,
+$$
+则存在可积随机变量 $M_\infty$，使 $M_n\to M_\infty$ a.s.，并有
+$$
+\mathbb E|M_\infty|\le\liminf_n\mathbb E|M_n|.
+$$
+条件中的绝对值不能丢。任何鞅都有 $\mathbb EM_n=\mathbb EM_0$，所以“$\sup_n\mathbb EM_n<\infty$”对一般鞅没有提供所需的控制。
+
+证明的结构是控制**上穿次数**：若路径不断从 $a$ 以下涨到 $b$ 以上，按“低位持有、高位退出”构造的可预测策略每完成一次上穿就取得至少 $b-a$ 的收益。鞅策略的期望收益为零，而最后一段未完成持仓的损失受 $\mathbb E|M_n|$ 控制，因此上穿次数的期望一致有界。对所有有理数 $a<b$ 使用这一结论，排除持续振荡；再由 Fatou 排除无穷极限。完整短证明见 @sec-upcrossing-proof。
+
+非负鞅自动满足 $\sup_n\mathbb E|M_n|=\mathbb EM_0$，因而几乎处处收敛。**结论尚未包含 $L^1$ 收敛或期望保持。**
+
+## 路径极限为何可以损失期望
+
+回到乘积鞅
+$$
+M_n=2^n\mathbf1_{\{\text{前 }n\text{ 次公平硬币全为正面}\}}.
+$$
+全正面无限持续的概率为 $\lim_n2^{-n}=0$，所以 $M_n\to0$ a.s.，但
+$$
+\mathbb EM_n=1,\qquad\mathbb E|M_n-0|=1.
+$$
+它满足 $L^1$ 有界条件，却不在 $L^1$ 中收敛。期望被越来越稀少、数值越来越大的路径维持，几乎处处极限看不到这部分尾部贡献。
+
+这也解释了上一章加倍下注的问题：每个截断时刻的期望等式正确，错误发生在缺乏尾部控制却令截断趋于无穷。
+
+## 一致可积：补足期望极限交换
+
+随机变量族 $(Y_n)$ 称为一致可积，如果
+$$
+\lim_{K\to\infty}\sup_n
+\mathbb E\bigl[|Y_n|\mathbf1_{\{|Y_n|>K\}}\bigr]=0.
+$$
+这控制的是所有变量的大值部分对期望的贡献。它比 $\sup_n\mathbb E|Y_n|<\infty$ 强；上面的乘积鞅对任意固定 $K$ 都能选 $2^n>K$，使尾部期望仍为 $1$。
+
+若 $Y_n\to Y$ a.s. 且 $(Y_n)$ 一致可积，则 $Y_n\to Y$ 于 $L^1$。证明可以截断在 $[-K,K]$：截断部分用控制收敛，未截断尾部用一致可积性，极限变量的尾部用其可积性；先令 $n\to\infty$，再令 $K\to\infty$。细节见 @sec-ui-proof。
+
+两个实用充分条件是：存在可积 $Z$ 使 $|Y_n|\le Z$；或存在 $p>1$ 使 $\sup_n\mathbb E|Y_n|^p<\infty$。后者来自
+$$
+\mathbb E[|Y_n|\mathbf1_{\{|Y_n|>K\}}]
+\le K^{1-p}\mathbb E|Y_n|^p.
+$$
+因此一致可积鞅不仅几乎处处收敛，也在 $L^1$ 中收敛，并保持 $\mathbb EM_\infty=\mathbb EM_0$。对固定 $n$ 还有
+$$
+M_n=\mathbb E[M_\infty\mid\mathcal F_n].
+$$
+因为 $m\ge n$ 时 $\mathbb E[M_m\mid\mathcal F_n]=M_n$，而条件期望是 $L^1$ 压缩：$\mathbb E|\mathbb E[M_m-M_\infty\mid\mathcal F_n]|\le\mathbb E|M_m-M_\infty|\to0$。
+
+可选停止也由同一机制获得：若 $T<\infty$ a.s. 且 $\{M_{T\wedge n}:n\ge0\}$ 一致可积，则其路径极限 $M_T$ 同时为 $L^1$ 极限，因此 $\mathbb EM_T=\mathbb EM_0$。要核对的是**停止变量族**的可积性控制。
+
+## L2 有界鞅：用正交性证明更强收敛
+
+若 $\sup_n\mathbb EM_n^2<\infty$，对 $m\ge n$，鞅性质给出
+$$
+\mathbb E[M_mM_n]=\mathbb E[M_n\mathbb E(M_m\mid\mathcal F_n)]
+=\mathbb EM_n^2.
+$$
+因此
+$$
+\mathbb E(M_m-M_n)^2=\mathbb EM_m^2-\mathbb EM_n^2.
+$$
+二阶矩序列非减且有界，故收敛，右侧随 $m,n\to\infty$ 趋零。由 $L^2$ 空间的完备性，$M_n$ 有 $L^2$ 极限；同时它是 $L^1$ 有界鞅，有几乎处处极限，两者由依概率极限的唯一性相同。于是
+$$
+M_n\to M_\infty\quad\text{a.s.、于 }L^2\text{，也于 }L^1.
+$$
+这个证明展示了鞅差正交性的用途：后续增量的二阶能量等于二阶矩增长量，二阶矩总量有界就使剩余能量消失。
+
+|可检查条件|保证的结论|仍需注意|
+|---|---|---|
+|鞅，$\sup_n\mathbb E|M_n|<\infty$|几乎处处收敛，极限可积|不能自动交换期望|
+|非负鞅|满足上一行|极限期望可能变小|
+|一致可积鞅|几乎处处与 $L^1$ 收敛|期望保持|
+|鞅，$\sup_n\mathbb EM_n^2<\infty$|另有 $L^2$ 收敛|用二阶矩正交恒等式验证|
+
+## 分枝过程：先消去平均增长率 {#sec-branching-martingale}
+
+课程用分枝过程说明：一个不断增长的过程未必直接是鞅，但除去平均增长率后可能得到鞅。
+
+设初代 $Z_0=1$。每个个体独立产生非负整数个后代，所有代、所有个体的后代数 $\xi_{n,k}$ 独立同分布，满足
+$$
+0<m=\mathbb E\xi_{n,k}<\infty,\qquad
+Z_{n+1}=\sum_{k=1}^{Z_n}\xi_{n,k}.
+$$
+空和为零，故灭绝后始终保持零。令 $\mathcal F_n$ 包含产生到第 $n$ 代所用的后代变量，下一代的后代数数组与它独立。给定 $\mathcal F_n$，求和项数 $Z_n$ 已知，所以
+$$
+\mathbb E[Z_{n+1}\mid\mathcal F_n]=mZ_n,\qquad\mathbb EZ_n=m^n.
+$$
+一般 $Z_n$ 不是鞅，归一化后
+$$
+W_n=\frac{Z_n}{m^n},\qquad
+\mathbb E[W_{n+1}\mid\mathcal F_n]=W_n,\qquad\mathbb EW_n=1.
+$$
+$W_n$ 是非负鞅，故存在有限可积的 $W_\infty$，满足
+$$
+W_n\longrightarrow W_\infty\quad\text{a.s.},\qquad
+\mathbb EW_\infty\le1.
+$$
+这控制的是相对于平均尺度 $m^n$ 的比例，不是相邻两代的比值，也没有自动给出 $L^1$ 收敛。在 $W_\infty>0$ 的路径上才可写 $Z_n\sim W_\infty m^n$；若极限为零，结论只说明 $Z_n=o(m^n)$，不能单凭这一点断定已在有限时刻灭绝。
+
+### 灭绝与极限期望是两件事
+
+若 $m<1$，由 $Z_n$ 取非负整数值，
+$$
+\mathbb P(Z_n>0)\le\mathbb EZ_n=m^n\to0.
+$$
+事件 $\{Z_n>0\}$ 随 $n$ 递减，所以永不灭绝的概率为零。于是 $W_n$ 最终为零，$W_\infty=0$ a.s.，但每个 $\mathbb EW_n=1$；这里出现了具体模型中的期望损失。
+
+临界情形 $m=1$ 也要区分退化与非退化。若 $\xi\equiv1$，则 $Z_n\equiv1$，永不灭绝。若后代分布非退化，设生成函数 $f(s)=\mathbb E s^\xi$，$q_n=\mathbb P(Z_n=0)$。由各子树独立且同分布，
+$$
+q_0=0,\qquad q_{n+1}=f(q_n).
+$$
+它单调增加到灭绝概率 $q$，连续性给出 $q=f(q)$。对 $0<s<1$，严格 Jensen 给出 $f(s)>s^{\mathbb E\xi}=s$，且非退化、均值为 $1$ 的整数分布必有 $f(0)>0$。因此唯一可能的固定点是 $q=1$，仍几乎必然灭绝。这里仅证明用来区分边界的临界结论，不展开完整灭绝概率理论。
+
+### 超临界时怎样保证 L2 收敛
+
+进一步假设 $m>1$，且后代方差 $\sigma^2<\infty$。给定 $\mathcal F_n$ 后，独立求和给出
+$$
+\operatorname{Var}(Z_{n+1}\mid\mathcal F_n)=\sigma^2Z_n,\qquad
+\mathbb E[Z_{n+1}^2\mid\mathcal F_n]=m^2Z_n^2+\sigma^2Z_n.
+$$
+除以 $m^{2n+2}$ 再取期望，得到
+$$
+\mathbb EW_{n+1}^2-\mathbb EW_n^2=\frac{\sigma^2}{m^{n+2}}.
+$$
+因 $W_0=1$，几何求和给出
+$$
+\mathbb EW_n^2
+=1+\frac{\sigma^2}{m(m-1)}(1-m^{-n})
+\le1+\frac{\sigma^2}{m(m-1)}.
+$$
+由本章 $L^2$ 有界鞅结论，$W_n\to W_\infty$ 于 $L^2$、$L^1$ 且几乎处处，因而
+$$
+\mathbb EW_\infty=1,\qquad
+\operatorname{Var}(W_\infty)=\frac{\sigma^2}{m(m-1)}.
+$$
+这个例子给出清楚的条件链：有限一阶矩负责构造归一化鞅，非负性负责路径收敛，超临界加有限方差负责二阶有界与期望保持。更弱矩条件下的非退化极限判据不在本轮展开。
+
+**材料依据。** MIT 第24–25讲的最大不等式、分块强大数律与鞅收敛；第24讲约 01:14–01:20 的分枝过程归一化。上穿、一致可积与 L2 基础沿用 P0；分枝部分补明增长参数、退化情形和有限方差条件，不把极限为零直接等同于灭绝。

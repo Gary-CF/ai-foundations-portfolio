@@ -44,19 +44,7 @@ Markov / Chebyshev $\to$ Chernoff / 有界变量指数界 $\to$ 大数定律 $\t
 
 ### Ch8 数理统计基本概念
 
-Population / Sample / Statistic
-
-$\downarrow$
-
-Beta / Gamma / Dirichlet
-
-$\downarrow$
-
-$\chi^2$ / $t$ / $F$
-
-$\downarrow$
-
-Normal Sampling Theorems
+Population / Sample / Statistic $\to$ Beta / Gamma / Dirichlet $\to$ $\chi^2$ / $t$ / $F$ $\to$ Normal Sampling Theorems
 
 ### Ch9 参数估计
 

@@ -1,0 +1,209 @@
+# 联合高斯与高斯过程 {#sec-gaussian-processes}
+
+高斯模型的优势在于：有限维联合分布由均值和协方差确定，线性运算后仍留在同一个分布族内。使用这一优势前，首先要确认的是**联合高斯**，而不只是每个分量分别正态。
+
+## 从一维正态到联合高斯
+
+随机向量 $X\in\mathbb R^d$ 称为联合高斯，如果对每个确定向量 $a\in\mathbb R^d$，$a^\top X$ 都服从一维正态分布；允许方差为零，此时该变量几乎处处等于一个常数。
+
+记均值 $\mu=\mathbb EX$、协方差 $\Sigma=\mathbb E[(X-\mu)(X-\mu)^\top]$，写作
+$$
+X\sim\mathcal N_d(\mu,\Sigma),\qquad \Sigma\succeq0.
+$$
+半正定性来自 $a^\top\Sigma a=\operatorname{Var}(a^\top X)\ge0$。若 $\Sigma\succ0$，才有相对于 $d$ 维 Lebesgue 测度的密度
+$$
+p_X(x)=\frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}
+\exp\!\left[-\frac12(x-\mu)^\top\Sigma^{-1}(x-\mu)\right].
+$$
+若 $\Sigma$ 奇异，$X$ 集中在较低维仿射子空间上，联合高斯定义仍成立，上面的普通密度公式却不能直接使用。
+
+**边缘正态不够。** 令 $Z\sim\mathcal N(0,1)$，$\varepsilon$ 与 $Z$ 独立且以相同概率取 $\pm1$。$X=Z,Y=\varepsilon Z$ 都是标准正态，而且 $\operatorname{Cov}(X,Y)=0$。但 $|X|=|Y|$ a.s.，二者不独立；$X+Y$ 有概率 $1/2$ 等于零，又并非恒为零，因此不是正态。这个反例同时说明了“任意线性组合”不能换成“每个分量”。
+
+## 特征函数为何封闭了线性计算
+
+对任意随机向量，特征函数定义为 $\varphi_X(u)=\mathbb E e^{\mathrm i u^\top X}$；它对离散、连续和混合分布都适用。
+
+先计算 $Z\sim\mathcal N(0,1)$。由 $\mathbb E|Z|<\infty$ 可以在期望内求导，再对实变量积分分部，得到
+$$
+\varphi_Z'(u)=\mathrm i\mathbb E[Ze^{\mathrm i uZ}]
+=-u\varphi_Z(u),\qquad \varphi_Z(0)=1.
+$$
+边界项因高斯密度的衰减而为零。解得 $\varphi_Z(u)=e^{-u^2/2}$。这一推导避免把复数平移后的积分未经说明地当成概率密度积分。
+
+对联合高斯 $X$，因为 $u^\top X\sim\mathcal N(u^\top\mu,u^\top\Sigma u)$，
+$$
+\boxed{\quad\varphi_X(u)
+=\exp\!\left(\mathrm i u^\top\mu-\tfrac12u^\top\Sigma u\right).\quad}
+$$
+特征函数唯一确定分布，所以 $\mu,\Sigma$ 唯一确定联合高斯分布。反过来，对任意 $\Sigma\succeq0$，取谱分解构造 $A$ 使 $AA^\top=\Sigma$，令 $Z$ 的分量独立标准正态，则 $\mu+AZ$ 的特征函数恰为上式。这也给出了退化情形的构造。
+
+若 $B$ 为确定矩阵、$b$ 为确定向量，则
+$$
+BX+b\sim\mathcal N(B\mu+b,B\Sigma B^\top).
+$$
+理由是 $a^\top(BX+b)=(B^\top a)^\top X+a^\top b$ 仍为一维正态。这里允许 $B$ 不可逆或降维；不必每次重新作密度变量替换。
+
+对**相互独立**的高斯向量求和，特征函数相乘，从而均值、协方差分别相加。若它们相关，则必须先确认合起来联合高斯，并保留交叉协方差。
+
+## 不相关何时足以推出独立
+
+设 $(X^\top,Y^\top)^\top$ 联合高斯，交叉协方差为 $\Sigma_{XY}$。若 $\Sigma_{XY}=0$，联合特征函数分解为
+$$
+\varphi_{X,Y}(u,v)
+=\exp\!\left(\mathrm i u^\top\mu_X-\tfrac12u^\top\Sigma_{XX}u\right)
+\exp\!\left(\mathrm i v^\top\mu_Y-\tfrac12v^\top\Sigma_{YY}v\right)
+=\varphi_X(u)\varphi_Y(v).
+$$
+由特征函数的唯一性，$X,Y$ 独立。反向在二阶矩存在时对一般分布也成立。因此
+$$
+\text{联合高斯时：}\qquad X\perp Y\ \Longleftrightarrow\ \Sigma_{XY}=0.
+$$
+样章中把“线性估计残差与观测不相关”升级为“残差与观测独立”，正是在这里使用了联合高斯性。
+
+一个课程中的典型应用是正态样本的均值与样本方差独立。若 $X_1,\ldots,X_n$ 独立同分布于 $\mathcal N(\mu,\sigma^2)$，$n\ge2$，取第一行为 $n^{-1/2}(1,\ldots,1)$ 的正交矩阵 $Q$。令
+$$
+Z=Q(X-\mu\mathbf1).
+$$
+则 $Z\sim\mathcal N_n(0,\sigma^2I)$，各分量独立，且
+$$
+Z_1=\sqrt n(\bar X-\mu),\qquad
+\sum_{k=2}^nZ_k^2=\sum_{k=1}^n(X_k-\bar X)^2.
+$$
+均值只依赖第一坐标，样本方差只依赖其余坐标，因而独立。证明的结构是“正交分解—协方差对角化—联合高斯下的独立”，不是“两个统计量看起来使用了不同信息”。
+
+## 高斯过程由哪些量确定
+
+过程 $(X_t)_{t\in T}$ 称为高斯过程，如果每个有限维向量 $(X_{t_1},\ldots,X_{t_m})$ 都联合高斯。$T$ 可以离散，也可以连续。它的有限维分布由
+$$
+m(t)=\mathbb EX_t,\qquad
+K(s,t)=\operatorname{Cov}(X_s,X_t)
+$$
+确定。合法协方差核必须对称，并对任意有限个时刻和实数 $a_1,\ldots,a_m$ 满足
+$$
+\sum_{i,j=1}^m a_i a_jK(t_i,t_j)
+=\operatorname{Var}\!\left(\sum_{i=1}^m a_iX_{t_i}\right)\ge0.
+$$
+因此随意给出一个对称函数并不足够；必须核对所有有限 Gram 矩阵半正定。正文只在已有过程或显式构造下使用这项条件，不展开一般过程存在性定理。
+
+对具有有限二阶矩的实过程，**宽平稳**要求 $m(t)$ 为常数，且 $K(s,t)$ 只依赖时间差 $t-s$。严格平稳要求所有有限维分布共同平移不变。严格平稳加有限二阶矩蕴含宽平稳；对高斯过程，宽平稳也蕴含严格平稳，因为平移前后均值向量、协方差矩阵相同，因而有限维联合分布相同。
+
+例如令 $Z,W$ 独立标准正态，
+$$
+X_t=Z\cos t+W\sin t,\qquad t\in\mathbb R.
+$$
+每个有限维向量都是 $(Z,W)$ 的线性变换，所以这是高斯过程；$m(t)=0$，$K(s,t)=\cos(t-s)$，故严格平稳。路径很光滑，但跨时间通常高度相关；平稳性没有给出独立性。
+
+给定若干观测时刻，把目标值和观测值拼成一个联合高斯向量，即可使用 @sec-conditional-gaussian 的分块公式。高斯过程的条件预测在这里首先是有限维线性代数问题，并不需要提前引入随机微积分。
+
+## 高阶矩：把乘积拆成协方差配对 {#sec-gaussian-moments}
+
+非线性变换后，均值与协方差的计算往往需要原变量的高阶矩。例如平方过程的协方差包含 $\mathbb E[X_s^2X_t^2]$，不能在相关的两个时刻之间直接拆成期望的乘积。
+
+设 $X=(X_1,\ldots,X_d)^\top\sim\mathcal N_d(0,\Sigma)$，允许 $\Sigma$ 奇异。由于 $X\overset d=-X$，任意奇数总次数的单项式期望都为零。对四个分量，允许下标重复，有
+$$
+\boxed{\quad
+\mathbb E[X_aX_bX_cX_d]
+=\Sigma_{ab}\Sigma_{cd}
++\Sigma_{ac}\Sigma_{bd}
++\Sigma_{ad}\Sigma_{bc}.\quad}
+$$
+三个加项分别对应四个位置的三种两两配对。这里要求零均值；非零均值时先写 $X=\mu+Z$ 再展开，不能把原始四阶矩直接替换成协方差配对。
+
+沿课程的特征函数路线证明。高斯变量所有绝对矩有限，求导带下来的多项式因子可积，因此可以在期望内反复求导：
+$$
+\varphi(u)=\mathbb E e^{\mathrm i u^\top X}
+=e^{-u^\top\Sigma u/2},\qquad
+\partial_a\varphi(u)=-\sum_j\Sigma_{aj}u_j\varphi(u).
+$$
+再对 $b,c,d$ 求导并令 $u=0$。若没有导数作用到 $u_j$，该项在零处消失；有一个导数作用到它时，留下其余两个导数。因此
+$$
+\begin{aligned}
+\partial_{abcd}\varphi(0)
+&=-\Sigma_{ab}\partial_{cd}\varphi(0)
+-\Sigma_{ac}\partial_{bd}\varphi(0)
+-\Sigma_{ad}\partial_{bc}\varphi(0)\\
+&=\Sigma_{ab}\Sigma_{cd}+\Sigma_{ac}\Sigma_{bd}+\Sigma_{ad}\Sigma_{bc}.
+\end{aligned}
+$$
+又 $\partial_{abcd}\varphi(0)=\mathrm i^4\mathbb E[X_aX_bX_cX_d]$，即得公式。证明没有求逆，因此也覆盖退化联合高斯。
+
+同样的求导递推给出一般偶数阶公式：对 $2m$ 个位置，遍历所有两两配对，把每一对的协方差相乘，再对配对求和。配对数为 $(2m-1)!!$；它计数的是位置，即使变量下标相同也不能少算重数。特别地，$Z\sim\mathcal N(0,\sigma^2)$ 时
+$$
+\mathbb EZ^{2m}=(2m-1)!!\,\sigma^{2m}.
+$$
+查阅时最常用的两个特例是
+$$
+\mathbb EX^4=3\sigma_X^4,\qquad
+\mathbb E[X^2Y^2]=\sigma_X^2\sigma_Y^2+2\operatorname{Cov}(X,Y)^2,
+$$
+其中 $(X,Y)$ 联合高斯且均值为零。于是对零均值高斯过程，令 $Y_t=X_t^2$，
+$$
+\mathbb EY_t=K(t,t),\qquad
+\operatorname{Cov}(Y_s,Y_t)=2K(s,t)^2.
+$$
+平方后的过程一般不再高斯，但它的前两阶矩仍能由原协方差核算出。这里展示的是矩计算的封闭性，不是非线性变换后分布族的封闭性。
+
+## 低维 Price 定理：对相关参数求导 {#sec-price}
+
+如果非线性函数不是低次多项式，逐项展开高阶矩未必方便。Price 定理提供另一条路线：先研究期望怎样随相关系数变化，再从容易计算的独立情形积分回来。
+
+设
+$$
+(X,Y)\sim\mathcal N_2\!\left(0,
+\begin{pmatrix}\sigma_X^2&\rho\sigma_X\sigma_Y\\
+\rho\sigma_X\sigma_Y&\sigma_Y^2\end{pmatrix}\right),
+\qquad \sigma_X,\sigma_Y>0,\quad |\rho|<1.
+$$
+固定两边的方差，只让 $\rho$ 变化。取 $g\in C^2(\mathbb R^2)$，并假设 $g$ 及各阶数不超过二的偏导数至多按多项式增长。这是一组方便检验的充分条件，而非最弱条件。令 $H(\rho)=\mathbb E_\rho g(X,Y)$，则
+$$
+\boxed{\quad H'(\rho)
+=\sigma_X\sigma_Y\,
+\mathbb E_\rho\!\left[\frac{\partial^2g}{\partial x\partial y}(X,Y)\right].\quad}
+$$
+若 $g(x,y)=f(x)h(y)$，右侧变成 $\sigma_X\sigma_Y\mathbb E_\rho[f'(X)h'(Y)]$，往往比原期望容易算。
+
+### 特征函数为什么让求导变简单
+
+记联合密度为 $p_\rho$，其特征函数为
+$$
+\varphi_\rho(u,v)
+=\exp\!\left[-\tfrac12(\sigma_X^2u^2+2\rho\sigma_X\sigma_Yuv+\sigma_Y^2v^2)\right].
+$$
+它对 $\rho$ 求导只产生因子 $-\sigma_X\sigma_Yuv$。反过来，对密度的 Fourier 逆变换先求 $x$ 导数、再求 $y$ 导数，产生的因子是 $(-\mathrm i u)(-\mathrm i v)=-uv$。所以
+$$
+\frac{\partial p_\rho}{\partial\rho}
+=\sigma_X\sigma_Y\frac{\partial^2p_\rho}{\partial x\partial y}.
+$$
+在任意紧区间 $|\rho|\le r<1$ 上，协方差一致正定，相关的特征函数及导数可由可积的高斯衰减控制，因而上述求导与 Fourier 积分可以交换。得到密度恒等式后，再对 $g$ 积分：
+$$
+\begin{aligned}
+H'(\rho)
+&=\sigma_X\sigma_Y\iint g(x,y)\,\partial_{xy}p_\rho(x,y)\,dx\,dy\\
+&=\sigma_X\sigma_Y\iint \partial_{xy}g(x,y)\,p_\rho(x,y)\,dx\,dy.
+\end{aligned}
+$$
+第二步对两个坐标各分部积分一次，两个负号抵消。多项式增长加高斯衰减保证边界项为零，也保证求导与期望的交换。这是课程中“增长不要太快”的一个明确版本。
+
+### 先求导，再补初值
+
+取 $g(x,y)=x^2y^2$，则 $g_{xy}=4xy$，所以
+$$
+H'(\rho)=4\sigma_X\sigma_Y\mathbb E_\rho[XY]
+=4\rho\sigma_X^2\sigma_Y^2.
+$$
+在 $\rho=0$ 时，联合高斯且不相关推出独立，$H(0)=\sigma_X^2\sigma_Y^2$。积分得到
+$$
+H(\rho)=\sigma_X^2\sigma_Y^2(1+2\rho^2),
+$$
+与四阶矩配对公式相互核对。独立情形给出的初值不可漏掉；仅求导并不能确定原期望。
+
+若改用协方差 $c=\rho\sigma_X\sigma_Y$ 作参数，公式变为 $d\mathbb E_cg/dc=\mathbb E_cg_{xy}$，没有额外的 $1/2$。作为对照，一维方差参数 $v>0$ 满足
+$$
+\frac d{dv}\mathbb E f(\sqrt v Z)=\frac12\mathbb E f''(\sqrt v Z),
+\qquad Z\sim\mathcal N(0,1),
+$$
+在相同的光滑、多项式增长条件下成立；密度对应的是 $\partial_vp_v=\tfrac12\partial_{xx}p_v$。不要混淆“对方差求导”和“同时改变两个对称交叉协方差元素”。
+
+本节只证明光滑低维版本。$|\rho|=1$ 的退化端点需要另取极限；ReLU 等非光滑函数需要平滑逼近或弱导数论证，不能直接宣称满足本节的 $C^2$ 条件。更一般版本的条件核验见 [Voigtlaender 的 Price 定理论文](https://arxiv.org/abs/1710.03576)，本书不展开其分布导数框架。
+
+**材料依据。** 张颢 P6–P8 的联合高斯、特征函数与线性变换；P9 约 00:09–00:35 的高阶矩、约 01:45–02:15 的低维 Price 定理。保留特征函数证明路线，补明可积性、参数固定方式和分部积分条件；非光滑推广与扩散方程不展开。

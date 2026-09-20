@@ -3,6 +3,8 @@
 多臂 Bandit 把每个动作当成独立对象；动作很多甚至连续时，逐臂探索不再可行。线性 Bandit 假设奖励通过共享参数生成：观察一个动作，能够同时减少与它方向相近的其他动作的不确定性。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 12。正则最小二乘、条件次高斯噪声、自归一化置信椭球、LinUCB 和椭圆势函数构成主线；GLB、重尾反馈、线性 MDP 与 one-pass 计算问题只建立研究接口。
 :::
 

@@ -1,0 +1,161 @@
+# 条件到达时刻与等待问题 {#sec-conditional-arrivals}
+
+知道一段时间内恰好发生了 $n$ 次事件，事件的位置还有怎样的随机性？在某个时刻加入观察，等到的间隔是否仍是普通指数间隔？两个问题都要求先说清楚条件和抽样方式。
+
+除最后一节的非齐次推广外，本章使用速率 $\lambda>0$、从零时刻开始的齐次泊松过程。
+
+## 给定总数后的联合密度
+
+固定 $t>0$，条件于 $N(t)=n$，其中 $n\ge1$。上一章已得到
+$$
+\mathbb P\bigl(S_1\in ds_1,\ldots,S_n\in ds_n,N(t)=n\bigr)
+=\lambda^ne^{-\lambda t}\,ds_1\cdots ds_n
+$$
+在 $0<s_1<\cdots<s_n<t$ 上成立。除以 $\mathbb P(N(t)=n)=e^{-\lambda t}(\lambda t)^n/n!$，得到
+$$
+\boxed{\quad f_{S_1,\ldots,S_n\mid N(t)=n}(s_1,\ldots,s_n)
+=\frac{n!}{t^n},\qquad 0<s_1<\cdots<s_n<t.\quad}
+$$
+参数 $\lambda$ 消失：已知总数后，区间内位置的条件分布不再依赖到达率。
+
+取 $U_1,\ldots,U_n$ 独立同分布于 $\operatorname{Unif}(0,t)$，将其排序为 $U_{(1)}<\cdots<U_{(n)}$。无并列的每个有序配置对应 $n!$ 种原始排列，因此顺序统计量的密度恰好也是 $n!/t^n$。所以
+$$
+(S_1,\ldots,S_n)\mid\{N(t)=n\}
+\ \overset d=\ (U_{(1)},\ldots,U_{(n)}).
+$$
+**有序到达时刻不独立。** 独立均匀的是排序前的辅助变量。特别地，不能把 $S_1\mid N(t)=n$ 当成均匀变量，除非 $n=1$。
+
+## 三个直接可用的推论
+
+首先，第 $k$ 次到达在 $s$ 附近，意味着有 $k-1$ 个均匀点在其左、$n-k$ 个在其右。因此
+$$
+f_{S_k\mid N(t)=n}(s)
+=\frac{n!}{(k-1)!(n-k)!}
+\frac{s^{k-1}(t-s)^{n-k}}{t^n},\qquad0<s<t.
+$$
+等价地，$S_k/t\mid N(t)=n\sim\operatorname{Beta}(k,n+1-k)$，从而
+$$
+\mathbb E[S_k\mid N(t)=n]=\frac{k}{n+1}t.
+$$
+各有序位置的均值等间隔，不意味着实际点也等间隔。
+
+其次，固定 $0\le s\le t$，排序不改变落入 $[0,s]$ 的点数，所以
+$$
+N(s)\mid N(t)=n\sim\operatorname{Bin}\!\left(n,\frac st\right).
+$$
+这也可由独立泊松增量直接核对：$N(s)$ 和 $N(t)-N(s)$ 独立，条件于二者之和后得到二项分布。
+
+最后，对可积函数 $g$，排序不改变函数值之和，故
+$$
+\mathbb E\!\left[\sum_{k=1}^{N(t)}g(S_k)\,\middle|\,N(t)=n\right]
+=\frac nt\int_0^t g(s)\,ds.
+$$
+对 $g\ge0$，先条件化再用 Tonelli；对 $\int_0^t|g(s)|ds<\infty$，用绝对可积性，均可得到
+$$
+\boxed{\quad\mathbb E\sum_{k=1}^{N(t)}g(S_k)
+=\lambda\int_0^t g(s)\,ds.\quad}
+$$
+这是本章最常用的简化：先固定随机点数，把点的位置换成均匀样本，再对点数取期望。
+
+更一般地，只有被积函数对各坐标**对称**时，才可以把有序单纯形积分乘 $n!$ 换成整个立方体积分。涉及“第一个”“最后一个”的表达通常不对称，不能直接消掉排序。
+
+## 固定观察时刻的前向等待与年龄
+
+固定确定时刻 $t\ge0$，令
+$$
+A_t=t-S_{N(t)},\qquad R_t=S_{N(t)+1}-t.
+$$
+$A_t$ 是距最近到达的时间，若尚未到达则从 $S_0=0$ 起算；$R_t$ 是到下一次到达的剩余时间。
+
+对 $r\ge0$，
+$$
+\{R_t>r\}=\{N(t+r)-N(t)=0\}.
+$$
+由确定时刻之后的独立、平稳增量，
+$$
+R_t\sim\operatorname{Exp}(\lambda),\qquad
+R_t\perp\mathcal F_t^N.
+$$
+因此 $R_t$ 与 $A_t$ 独立。
+
+对 $0\le a<t$，$A_t>a$ 等价于最近长度为 $a$ 的区间内没有到达，故
+$$
+\mathbb P(A_t>a)=e^{-\lambda a},\qquad 0\le a<t.
+$$
+又有 $0\le A_t\le t$，且 $\mathbb P(A_t=t)=\mathbb P(N(t)=0)=e^{-\lambda t}$。所以 $A_t$ 的分布等于 $\min(E,t)$，其中 $E\sim\operatorname{Exp}(\lambda)$；这里的 $E$ 是分布表示，不是另一个已给定的实际间隔。
+
+利用非负变量的尾积分公式，
+$$
+\mathbb EA_t=\int_0^t e^{-\lambda a}da
+=\frac{1-e^{-\lambda t}}\lambda,\qquad
+\mathbb ER_t=\frac1\lambda.
+$$
+包含观察时刻的完整间隔长度为
+$$
+L_t=S_{N(t)+1}-S_{N(t)}=A_t+R_t,
+$$
+于是
+$$
+\boxed{\quad\mathbb EL_t=\frac{2-e^{-\lambda t}}\lambda
+\longrightarrow\frac2\lambda.\quad}
+$$
+对于从零开始的过程，有限 $t$ 时不能直接把年龄当作完整指数变量，也不能把均值写成恰好 $2/\lambda$；边界 $S_0=0$ 的影响由 $e^{-\lambda t}$ 项体现。
+
+## 为什么这不违背指数间隔的结论
+
+固定下标的 $T_n$ 满足 $\mathbb ET_n=1/\lambda$；但 $L_t=T_{N(t)+1}$ 的下标由整个到达配置选出，并不是独立抽签选出的下标。较长间隔更容易覆盖观察时刻，这改变了被选间隔的分布。
+
+尤其不能写
+$$
+\mathbb E[T_{n+1}\mid N(t)=n]=\mathbb ET_{n+1}.
+$$
+条件 $N(t)=n$ 包含 $S_n\le t<S_{n+1}$，已经对 $T_{n+1}$ 施加了约束。P12 末尾的问题需要连同 P13 的解答理解，不能保留中途用于提出矛盾的式子作为结论。
+
+同时，无记忆性只保证已知过去后的**前向剩余**仍为指数分布。它没有说已经过去的长度为零，因此“剩余均值为 $1/\lambda$”与“被观察间隔更长”并不矛盾。
+
+## 一个等待成本计算
+
+设在时刻 $h>0$ 统一处理 $[0,h]$ 内到达的所有请求，单个请求的等待时间为 $h-S_k$，总等待量
+$$
+W_h=\sum_{k=1}^{N(h)}(h-S_k).
+$$
+条件于 $N(h)=n$ 后用均匀位置，或直接使用本章求和公式，得
+$$
+\mathbb EW_h=\lambda\int_0^h(h-s)\,ds=\frac{\lambda h^2}{2}.
+$$
+若在总时长 $T$ 内安排固定的 $m$ 次清空，间隔 $h_1,\ldots,h_m\ge0$，$\sum_jh_j=T$，且每次都处理完此前到达，则期望总等待量为
+$$
+\frac\lambda2\sum_{j=1}^m h_j^2
+\ge\frac{\lambda T^2}{2m},
+$$
+其中 Cauchy–Schwarz 不等式的等号在 $h_j=T/m$ 时成立。这里固定了次数、到达率与处理规则；若引入容量、处理耗时或调整次数的成本，优化问题就变了。
+
+## 非齐次情形：位置按强度加权 {#sec-nonhomogeneous-arrivals}
+
+本节改用 @sec-nonhomogeneous-poisson 的非齐次模型。固定 $t>0$，要求 $0<\Lambda(t)<\infty$，条件于 $N(t)=n\ge1$。与齐次情形一样，前 $n$ 个到达位置的密度乘上其后直到 $t$ 没有到达的概率，得到有序区域上的联合密度
+$$
+f_{S_1,\ldots,S_n\mid N(t)=n}(s_1,\ldots,s_n)
+=\frac{n!}{\Lambda(t)^n}\prod_{k=1}^n\lambda(s_k),
+\quad 0<s_1<\cdots<s_n<t.
+$$
+也可用累计强度时间变换推导。它等于 $n$ 个独立变量按大小排序后的密度，其中每个变量在 $[0,t]$ 上的密度为
+$$
+f_t(s)=\frac{\lambda(s)}{\Lambda(t)}.
+$$
+只有 $\lambda$ 在该区间几乎处处为常数时，才恢复均匀分布。高强度时段在给定总数后仍更容易出现点。
+
+因此对于 $0\le s\le t$，
+$$
+N(s)\mid N(t)=n\sim\operatorname{Bin}\!\left(n,\frac{\Lambda(s)}{\Lambda(t)}\right).
+$$
+对非负可测 $g$，或满足 $\int_0^t|g(s)|\lambda(s)ds<\infty$ 的 $g$，先固定总数再取平均，得到
+$$
+\mathbb E\sum_{k=1}^{N(t)}g(S_k)=\int_0^t g(s)\lambda(s)\,ds.
+$$
+相应地，在时刻 $t$ 统一处理请求的期望总等待量为
+$$
+\int_0^t(t-s)\lambda(s)\,ds.
+$$
+齐次情况下它退化为 $\lambda t^2/2$；强度随时间变化后，各处理间隔的成本不再是同一个常系数二次函数，因此上一节“固定次数下等间隔最优”的推导不能原样照搬。
+
+**材料依据。** 张颢 P12 末尾与 P13 的等待悖论、P13 的条件位置与对称积分，P14 的等待成本。末节把 P12 非齐次模型与 P13 条件位置连接，是本轮增强桥接；不另开一般点过程专题。

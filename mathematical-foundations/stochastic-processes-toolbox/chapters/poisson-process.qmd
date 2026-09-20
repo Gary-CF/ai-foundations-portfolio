@@ -1,0 +1,264 @@
+# 泊松过程与到达时间 {#sec-poisson-process}
+
+同一串随机到达可以从两个角度描述：到时刻 $t$ 共发生多少次，或相邻两次相隔多久。泊松模型把这两种描述连接起来：计数服从泊松分布，间隔独立且服从指数分布。
+
+## 定义中每个条件的作用
+
+设 $\lambda>0$。齐次泊松过程 $(N(t))_{t\ge0}$ 是从 $N(0)=0$ 开始、路径右连续的计数过程，具有独立增量，且
+$$
+N(t+h)-N(t)\sim\operatorname{Pois}(\lambda h),\qquad t,h\ge0.
+$$
+这里计数路径非减、取非负整数值，几乎处处只有大小为 $1$ 的跳跃。参数 $\lambda$ 是单位时间的期望到达次数，量纲为时间的倒数。
+
+独立增量表示对 $0\le t_0<t_1<\cdots<t_m$，各 $N(t_k)-N(t_{k-1})$ 相互独立；分布只依赖 $h$ 是平稳增量。独立性还使 $N(t+h)-N(t)$ 与自然滤过 $\mathcal F_t^N$ 独立：先对有限多个过去计数成立，再由它们生成的信息集推广。
+
+课程从局部条件出发：对具有独立、平稳增量的右连续计数过程，要求
+$$
+\begin{aligned}
+\mathbb P(N(h)=1)&=\lambda h+o(h),\\
+\mathbb P(N(h)\ge2)&=o(h),\qquad h\downarrow0.
+\end{aligned}
+$$
+因此 $\mathbb P(N(h)=0)=1-\lambda h+o(h)$。第二项排除了单位时间内以一阶概率成批到达；仅有独立、平稳增量并不足以推出普通泊松过程。
+
+## 用概率生成函数推出计数分布
+
+定义概率生成函数
+$$
+G_t(z)=\mathbb E[z^{N(t)}],\qquad 0\le z\le1,
+$$
+其中 $z=0$ 时按 $0^0=1$ 理解。它与矩母函数 $\mathbb E e^{\theta N(t)}$ 是不同记号。选择 $0\le z\le1$ 的好处是 $z^k\le1$，多次到达项可以直接由其概率控制：
+$$
+G_h(z)=1+\lambda(z-1)h+o(h).
+$$
+独立、平稳增量分别用于乘法分解和识别第二个因子：
+$$
+G_{t+h}(z)=G_t(z)G_h(z).
+$$
+将 $[0,t]$ 等分为 $m$ 段，避免额外假设可微性，直接得到
+$$
+G_t(z)=G_{t/m}(z)^m
+=\left(1+\frac{\lambda(z-1)t}{m}+o(m^{-1})\right)^m
+=e^{\lambda t(z-1)}.
+$$
+展开幂级数并由生成函数系数的唯一性，
+$$
+\boxed{\quad\mathbb P(N(t)=n)
+=e^{-\lambda t}\frac{(\lambda t)^n}{n!},\qquad n\in\mathbb N_0.\quad}
+$$
+因此
+$$
+\mathbb EN(t)=\operatorname{Var}(N(t))=\lambda t.
+$$
+若 $s\le t$，把 $N(t)=N(s)+[N(t)-N(s)]$ 分开，独立性给出
+$$
+\operatorname{Cov}(N(s),N(t))=\lambda s,\qquad
+K(s,t)=\lambda\min(s,t).
+$$
+该协方差不是时间差的函数，均值也不是常数；过程具有平稳增量，却不是平稳过程。
+
+## 到达时刻与指数间隔
+
+令
+$$
+S_n=\inf\{t\ge0:N(t)\ge n\},\quad S_0=0,\qquad
+T_n=S_n-S_{n-1}.
+$$
+$S_n$ 是第 $n$ 次到达时刻，$T_n$ 是第 $n$ 个间隔。因为 $\{T_1>t\}=\{N(t)=0\}$，
+$$
+\mathbb P(T_1>t)=e^{-\lambda t},\qquad t\ge0,
+$$
+所以 $T_1\sim\operatorname{Exp}(\lambda)$，均值为 $1/\lambda$。
+
+要把这个结论推广到随机时刻 $S_n$，不能只说“独立增量”。独立增量首先是在确定时刻定义的。对右连续泊松过程，可以把有限停时 $S$ 用从右逼近的离散时刻近似，从确定时刻的独立性推出
+$$
+(N(S+u)-N(S))_{u\ge0}
+\quad\text{与 }\mathcal F_S^N\text{ 独立，且与原过程同分布。}
+$$
+这是此处需要的强 Markov 性，具体逼近论证见 @sec-poisson-random-time。每个 $S_n$ 几乎处处有限，因为
+$$
+\mathbb P(S_n>t)=\mathbb P(N(t)<n)
+=e^{-\lambda t}\sum_{k=0}^{n-1}\frac{(\lambda t)^k}{k!}\longrightarrow0.
+$$
+于是逐次在 $S_{n-1}$ 使用上述性质，得到
+$$
+T_1,T_2,\ldots\overset{\mathrm{iid}}\sim\operatorname{Exp}(\lambda).
+$$
+这里的独立性来自随机到达时刻之后的“重新开始”，而非把随机下标未经处理地代入确定时刻的公式。
+
+指数分布的无记忆性也有准确表达：
+$$
+\mathbb P(T>s+t\mid T>s)=\frac{e^{-\lambda(s+t)}}{e^{-\lambda s}}
+=e^{-\lambda t}.
+$$
+它描述的是一个间隔**在已知尚未结束后**的剩余分布，不表示任意选择出的间隔都服从同一个指数分布。下一章将讨论观察时刻所落入的间隔。
+
+## 反过来：由独立间隔构造计数
+
+从独立同分布的 $T_n\sim\operatorname{Exp}(\lambda)$ 出发，置 $S_n=\sum_{k=1}^nT_k$，再定义
+$$
+N(t)=\max\{n:S_n\le t\}.
+$$
+这一定义需要 $S_n\to\infty$ a.s.，以排除有限时间内无限多次到达。取任意 $c>0$，事件 $\{T_n\ge c\}$ 独立且概率为 $e^{-\lambda c}>0$，几乎必然出现无穷多次，因而总和发散。
+
+对 $0<s_1<\cdots<s_n<t$，前 $n$ 个间隔的密度乘上第 $n+1$ 次尚未到达的概率，得
+$$
+\lambda^ne^{-\lambda s_n}e^{-\lambda(t-s_n)}\,ds_1\cdots ds_n
+=\lambda^ne^{-\lambda t}\,ds_1\cdots ds_n.
+$$
+有序单纯形体积为 $t^n/n!$，积分即得泊松计数公式。若把 $[0,t]$ 划为长度 $h_1,\ldots,h_m$ 的区间，并规定各区间分别有 $n_1,\ldots,n_m$ 个点，同样积分得到
+$$
+e^{-\lambda\sum_jh_j}\lambda^{\sum_jn_j}
+\prod_{j=1}^m\frac{h_j^{n_j}}{n_j!}
+=\prod_{j=1}^m e^{-\lambda h_j}\frac{(\lambda h_j)^{n_j}}{n_j!}.
+$$
+乘积形式同时证明独立增量和增量的泊松分布。于是两种建模方式确实等价。
+
+## 第 n 次到达的分布
+
+由 $S_n\le t\Longleftrightarrow N(t)\ge n$，
+$$
+\mathbb P(S_n\le t)
+=1-e^{-\lambda t}\sum_{k=0}^{n-1}\frac{(\lambda t)^k}{k!}.
+$$
+对 $t>0$ 求导，
+$$
+f_{S_n}(t)=\frac{\lambda^nt^{n-1}e^{-\lambda t}}{(n-1)!},
+\qquad
+\mathbb ES_n=\frac n\lambda,\quad
+\operatorname{Var}(S_n)=\frac n{\lambda^2}.
+$$
+这称为 Erlang 分布，亦即形状参数 $n$、速率参数 $\lambda$ 的 Gamma 分布。使用软件或教材的 Gamma 记号时，应区分速率 $\lambda$ 与尺度 $1/\lambda$。
+
+计数问题通常转成 $N(t)$；“第几次发生前要等多久”通常转成 $S_n$。二者的事件等价式往往比直接积分更有用。
+
+## 叠加与独立稀疏化 {#sec-poisson-splitting}
+
+复杂的到达流可以合并，也可以按事件类别拆分；但能保留泊松结构的关键是独立性，而不只是平均速率的加减。
+
+### 独立流的叠加
+
+设 $N_1,N_2$ 是相互独立的齐次泊松过程，速率分别为 $\lambda_1,\lambda_2>0$。定义 $N=N_1+N_2$。对长度为 $h$ 的任意时间区间，两个增量独立，概率生成函数相乘：
+$$
+\mathbb E z^{\Delta N}
+=e^{\lambda_1h(z-1)}e^{\lambda_2h(z-1)}
+=e^{(\lambda_1+\lambda_2)h(z-1)}.
+$$
+因此增量为 $\operatorname{Pois}((\lambda_1+\lambda_2)h)$。对互不重叠的时间区间，把两个过程的增量一起分组，它们仍相互独立，故 $N$ 是速率 $\lambda_1+\lambda_2$ 的泊松过程。这里核对了整族增量，不只是某个时刻的边缘分布。
+
+独立性不能删除：若 $N_2=N_1$，叠加过程 $2N_1$ 每次跳 $2$，即使均值也是两倍，也不是普通泊松过程。独立指数等待时间的一个直接推论是
+$$
+\min(T_1,T_2)\sim\operatorname{Exp}(\lambda_1+\lambda_2),
+\qquad T_i\sim\operatorname{Exp}(\lambda_i), T_1\perp T_2.
+$$
+它对应两条独立到达流中最先发生的事件，亦可由生存概率相乘直接证明。
+
+### 每个点独立保留
+
+设 $N$ 速率为 $\lambda$。为第 $k$ 个到达点附上标记 $B_k\sim\operatorname{Bernoulli}(p)$，各标记独立，且标记序列与**整个到达过程**独立。令
+$$
+N_1(t)=\sum_{k=1}^{N(t)}B_k,\qquad N_0(t)=N(t)-N_1(t).
+$$
+对 $0\le u,v\le1$，先条件于 $N(t)=n$，得到 $(pu+(1-p)v)^n$，再对泊松总数平均：
+$$
+\begin{aligned}
+\mathbb E[u^{N_1(t)}v^{N_0(t)}]
+&=\exp\!\left\{\lambda t[pu+(1-p)v-1]\right\}\\
+&=e^{\lambda pt(u-1)}e^{\lambda(1-p)t(v-1)}.
+\end{aligned}
+$$
+生成函数分解为两个泊松生成函数，证明两个计数独立。对任意有限时间划分重复这个计算，独立标记与原独立增量保证各区间分组相互独立，因而 **$N_1,N_0$ 是相互独立的泊松过程**，速率为 $\lambda p,\lambda(1-p)$。端点 $p=0,1$ 对应其中一个过程恒为零。
+
+给定总数以后，两个子计数的和固定，通常不独立：
+$$
+\operatorname{Cov}(N_1(t),N_0(t)\mid N(t)=n)=-np(1-p).
+$$
+无条件时，总数的随机性恰好改变了这种依赖；上述联合生成函数才是独立性的完整依据。
+
+**隔一个保留一个不适用。** 如果只保留第 $2,4,6,\ldots$ 个点，新间隔是两个独立指数间隔之和，服从 $\operatorname{Gamma}(2,\text{速率 }\lambda)$，并非指数分布。因此保留下来的过程不是泊松过程。仅有“保留一半”或“进行了随机选择”都不够，必须核对标记之间及其与到达流的独立关系。
+
+## 非齐次泊松：强度随时间变化 {#sec-nonhomogeneous-poisson}
+
+现在把常数速率换成确定函数 $\lambda(t)\ge0$，要求它在每个有限区间可积。定义累计强度
+$$
+\Lambda(t)=\int_0^t\lambda(u)\,du.
+$$
+非齐次泊松过程从零开始，具有独立增量，并满足
+$$
+N(t)-N(s)\sim\operatorname{Pois}(\Lambda(t)-\Lambda(s)),\qquad0\le s\le t.
+$$
+局部可积性保证有限时段计数几乎处处有限。只放松平稳增量，还不能唯一确定这一模型；上面的泊松增量分布同样是定义的一部分。
+
+用一个单位速率泊松过程 $\bar N$ 作确定时间变换，
+$$
+N(t)=\bar N(\Lambda(t)),
+$$
+便给出构造：不交时间区间映射到不交的累计强度区间，故独立增量保留，参数变为累计强度差。$\Lambda$ 可以有平坦段，不必严格递增；该段强度为零，过程没有到达。
+
+相应地，
+$$
+\mathbb EN(t)=\operatorname{Var}(N(t))=\Lambda(t),\qquad
+\operatorname{Cov}(N(s),N(t))=\Lambda(\min(s,t)).
+$$
+$\lambda(t)$ 是速率，$\Lambda(t)$ 才是到时刻 $t$ 的期望次数；不能把前者直接当作泊松分布参数。
+
+从确定时刻 $t$ 等到下一次到达的时间 $R_t$ 满足
+$$
+\mathbb P(R_t>h\mid\mathcal F_t^N)
+=e^{-[\Lambda(t+h)-\Lambda(t)]},\qquad h\ge0.
+$$
+这个条件生存函数不依赖已观测路径，但一般依赖起始时刻 $t$，也通常不是关于 $h$ 的指数函数。因此不能继续使用“所有间隔独立同分布于同一个指数分布”的齐次结论。
+
+特别地，首次到达 $S_1$ 的生存函数为 $e^{-\Lambda(t)}$，在几乎所有 $t$ 处的密度为 $\lambda(t)e^{-\Lambda(t)}$。若 $\Lambda(\infty)<\infty$，还存在
+$$
+\mathbb P(S_1=\infty)=e^{-\Lambda(\infty)}>0;
+$$
+密度积分不足 $1$ 并非算错，而是存在永不发生第一次到达的概率。下一章会说明给定总数后的均匀位置结论怎样随强度改变。
+
+## 复合泊松：次数之外还有每次的贡献 {#sec-compound-poisson}
+
+若每次到达带来随机大小的贡献，就需要在计数外再加一层随机性。设 $N$ 为速率 $\lambda>0$ 的齐次泊松过程，$J_1,J_2,\ldots$ 为独立同分布的实值标记，且与整个 $N$ 独立，定义
+$$
+C(t)=\sum_{k=1}^{N(t)}J_k,\qquad\text{空和为 }0.
+$$
+这称为复合泊松过程。标记可以为正、负或零；因此 $C$ 未必单调，也未必是计数过程。$\lambda$ 是底层事件率，若 $\mathbb P(J_1=0)>0$，它不等于可见非零跳跃的发生率。
+
+### 先固定次数，再取平均
+
+假设 $\mathbb E|J_1|<\infty$，记 $m_J=\mathbb EJ_1$。给定 $N(t)=n$ 后，各标记的原分布不变，因此
+$$
+\mathbb E[C(t)\mid N(t)]=N(t)m_J,\qquad
+\mathbb EC(t)=\lambda t m_J.
+$$
+绝对可积性的依据也可同时核对：$\mathbb E\sum_{k=1}^{N(t)}|J_k|=\lambda t\mathbb E|J_1|<\infty$。
+
+若再有 $\mathbb EJ_1^2<\infty$，记方差为 $v_J$。全方差公式把两层波动分开：
+$$
+\begin{aligned}
+\operatorname{Var}(C(t))
+&=\mathbb E[N(t)v_J]+\operatorname{Var}(N(t)m_J)\\
+&=\lambda t(v_J+m_J^2)=\lambda t\mathbb EJ_1^2.
+\end{aligned}
+$$
+第一项来自每次贡献大小不同，第二项来自贡献次数不同。只保留 $\lambda t\operatorname{Var}(J_1)$ 会遗漏第二层；例如 $J_1\equiv c$ 时仍有计数波动 $c^2\lambda t$。
+
+### 特征函数的复合
+
+不加矩条件也能使用特征函数。记 $\varphi_J(u)=\mathbb E e^{\mathrm i uJ_1}$，则
+$$
+\begin{aligned}
+\mathbb E e^{\mathrm i uC(t)}
+&=\sum_{n\ge0}e^{-\lambda t}\frac{(\lambda t)^n}{n!}\varphi_J(u)^n\\
+&=\exp\{\lambda t[\varphi_J(u)-1]\}.
+\end{aligned}
+$$
+级数绝对收敛，因为 $|\varphi_J(u)|\le1$。这沿用了课程的“先对单次贡献求变换，再代入泊松计数变换”的路线。若标记是非负整数，也可以写概率生成函数；对一般实标记，不能无条件使用 $\mathbb E[z^{J_1}]$。
+
+在不交时间区间条件于各自点数，分属各区间的标记独立，且标记与点数独立，故 $C$ 仍有独立、平稳增量。二阶矩存在时，
+$$
+\operatorname{Cov}(C(s),C(t))
+=\lambda\min(s,t)\mathbb EJ_1^2.
+$$
+课程中的一个短例子是独立泊松过程之差 $N_1-N_2$。把速率 $\lambda_1+\lambda_2$ 的事件分别赋值 $+1,-1$，概率为 $\lambda_1/(\lambda_1+\lambda_2)$ 与 $\lambda_2/(\lambda_1+\lambda_2)$，独立稀疏化便得到同分布的过程。它不是普通泊松过程，却是复合泊松过程，均值与方差分别为 $(\lambda_1-\lambda_2)t$ 和 $(\lambda_1+\lambda_2)t$。
+
+**材料依据。** 张颢 P11 的泊松基础及 P12 约 00:29–00:55 的非齐次过程、00:55–01:18 的复合模型、01:18–01:30 的稀疏化、01:40–02:00 的叠加与差。随机时刻与间隔等价证明沿用 P0；P1 补齐生成函数适用对象、独立性和矩条件。

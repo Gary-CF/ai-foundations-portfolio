@@ -1,0 +1,89 @@
+# 随机过程与条件信息 {#sec-foundations}
+
+随机过程把“一个随机量的分布”扩展为“一族随机量如何共同变化”。后面的计算始终围绕三个问题：观察到了什么、下一步如何依赖过去、什么意义下存在长期规律。
+
+## 过程、路径与有限维分布
+
+在同一概率空间 $(\Omega,\mathcal F,\mathbb P)$ 上，一族取值于状态空间 $E$ 的随机变量
+$$
+X=(X_t)_{t\in T}
+$$
+称为随机过程。$T$ 是时间指标集，$E$ 是状态空间，两者分别决定时间与状态的类型。例如 $T=\mathbb N_0,E=\mathbb R$ 是离散时间、连续状态过程；泊松计数过程的 $T=[0,\infty),E=\mathbb N_0$。
+
+固定 $t$，$X_t:\Omega\to E$ 是随机变量；固定样本点 $\omega$，$t\mapsto X_t(\omega)$ 是一条**样本路径**。单个数 $X_t(\omega)$ 既不是整个过程，也不是整条路径。
+
+任取有限个时刻 $t_1,\ldots,t_m$，向量 $(X_{t_1},\ldots,X_{t_m})$ 的联合分布称为有限维分布。各时刻的边缘分布通常不够：若 $Z,W$ 独立且都服从标准正态分布，$(Z,Z)$ 与 $(Z,W)$ 的两个边缘相同，时间间的依赖却不同。
+
+有限维分布描述过程的分布结构；连续性、右连续性等路径性质仍需单独说明。正文不从有限维分布自动推断路径连续。
+
+全书以 $\mathbb P,\mathbb E,\operatorname{Var},\operatorname{Cov}$ 表示概率、期望、方差与协方差，$\mathbf 1_A$ 表示事件 $A$ 的指标函数。随机向量默认为列向量；Markov 链的状态分布专门采用**行向量**，转移矩阵每行和为 $1$。
+
+## 条件期望是对信息的投影
+
+对于可积随机变量 $X$ 和子 $\sigma$-代数 $\mathcal G\subseteq\mathcal F$，$\mathbb E[X\mid\mathcal G]$ 是一个 $\mathcal G$-可测随机变量，满足
+$$
+\mathbb E[\mathbf 1_A\mathbb E[X\mid\mathcal G]]
+=\mathbb E[\mathbf 1_AX],\qquad A\in\mathcal G.
+$$
+它在几乎处处意义下唯一。$\mathcal G$ 表示已经获得的信息，条件期望把 $X$ 中无法由该信息确定的部分平均掉。记号 $\mathbb E[X\mid Y]$ 是 $\mathbb E[X\mid\sigma(Y)]$ 的简写；它是 $Y$ 的函数，未必是常数。
+
+本书反复使用下列规则，使用时必须核对可积性：
+
+- **取出已知量：** $H$ 为 $\mathcal G$-可测，且有关乘积可积时，$\mathbb E[HX\mid\mathcal G]=H\mathbb E[X\mid\mathcal G]$。有界 $H$ 是常用的充分条件。
+- **塔式法则：** 若 $\mathcal H\subseteq\mathcal G$，则 $\mathbb E[\mathbb E[X\mid\mathcal G]\mid\mathcal H]=\mathbb E[X\mid\mathcal H]$。信息集之间的包含关系不能省略。
+- **独立性：** 若 $X$ 与 $\mathcal G$ 独立，则 $\mathbb E[X\mid\mathcal G]=\mathbb EX$。反过来，单凭条件均值不变不能推出独立。
+
+若 $X\in L^2$，令 $m=\mathbb E[X\mid\mathcal G]$。对任意平方可积的 $\mathcal G$-可测变量 $H$，
+$$
+\mathbb E[(X-m)H]
+=\mathbb E\!\left[H\mathbb E[X-m\mid\mathcal G]\right]=0.
+$$
+这就是条件期望的正交性。展开平方可得
+$$
+\mathbb E(X-H)^2=\mathbb E(X-m)^2+\mathbb E(m-H)^2.
+$$
+因此条件期望在所有利用当前信息的平方可积估计中最小化均方误差。@sec-conditional-gaussian 将把这个一般结论化成高斯情形的矩阵公式。
+
+对连续型 $Y$，事件 $\{Y=y\}$ 往往概率为零，不能直接用事件条件概率的比值定义条件分布。后文使用条件密度或其连续版本给出 $X\mid Y=y$ 的表达。
+
+## 滤过与几种不同的结构
+
+滤过 $(\mathcal F_t)_{t\in T}$ 是随时间增加的信息族：$s\le t$ 时 $\mathcal F_s\subseteq\mathcal F_t$。若 $X_t$ 对 $\mathcal F_t$ 可测，就称 $X$ **适应**于该滤过。自然滤过为
+$$
+\mathcal F_t^X=\sigma(X_s:s\le t).
+$$
+适应性只表示当前值已经可知，并不包含独立性或预测关系。鞅与停时都必须相对于指定的滤过定义；扩大信息后，原来的鞅性质可能失效。
+
+|结构|准确含义|不能由此推出|
+|---|---|---|
+|独立增量|互不重叠时间区间上的增量相互独立|增量分布只依赖区间长度|
+|平稳增量|$X_{t+h}-X_t$ 的分布只依赖 $h$|各时刻 $X_t$ 的分布相同|
+|严格平稳|任意有限维分布在共同时间平移下不变|不同时间独立|
+|Markov 性|给定当前状态后，下一步的条件分布不再依赖更早历史|下一步与当前状态独立|
+
+例如泊松过程具有独立、平稳增量，但 $N(t)\sim\operatorname{Pois}(\lambda t)$ 随 $t$ 变化，因此过程本身不平稳。对可数状态链，Markov 性可以理解为“未来与过去在给定现在后条件独立”；这里的“给定现在”是不可删除的条件。
+
+## 收敛方式与极限交换
+
+对于定义在同一概率空间上的实随机变量，常用收敛为
+$$
+\begin{aligned}
+X_n\to X\ \text{a.s.}&:\quad
+\mathbb P\{\omega:X_n(\omega)\to X(\omega)\}=1,\\
+X_n\xrightarrow{\mathbb P}X&:\quad
+\mathbb P(|X_n-X|>\varepsilon)\to0\quad(\varepsilon>0),\\
+X_n\xrightarrow{L^p}X&:\quad
+\mathbb E|X_n-X|^p\to0\quad(p\ge1).
+\end{aligned}
+$$
+依分布收敛 $X_n\Rightarrow X$ 表示分布函数在极限分布的连续点处收敛，不要求这些变量定义在同一概率空间。基本蕴含为：几乎处处收敛蕴含依概率收敛，$L^p$ 收敛也蕴含依概率收敛，而依概率收敛蕴含依分布收敛；这些逆命题一般不成立。
+
+$L^1$ 收敛允许交换期望与极限，因为
+$$
+|\mathbb EX_n-\mathbb EX|\le\mathbb E|X_n-X|\to0.
+$$
+仅有几乎处处收敛不够。取 $U\sim\operatorname{Unif}(0,1)$，$X_n=n\mathbf1_{\{U\le1/n\}}$，则 $X_n\to0$ a.s.，但 $\mathbb EX_n=1$。后面的非负鞅会出现同一种现象：越来越少的路径承担了不可忽略的期望。
+
+非负求和可用 Tonelli 或单调收敛交换；有可积控制函数时可用控制收敛；一般有符号求和、积分需要绝对可积等依据。集中版本见 @sec-shared-tools。
+
+**材料依据。** 本章是各组课程从中段开始所需的必要桥接，限定在高斯、Markov 链与鞅正文实际使用的对象和规则，不另开测度论专题。

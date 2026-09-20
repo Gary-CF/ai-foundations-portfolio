@@ -1,0 +1,123 @@
+# 序贯概率比检验 {#sec-sprt}
+
+固定样本量检验先决定观察多少次，序贯检验则事先规定“何时证据足以停止”。随机停止并不自动破坏错误概率控制；关键是预先定义完整规则，并对这个规则证明概率界。
+
+本附录沿 MIT 第23讲连接似然比、随机游走和 Wald 公式，只讨论两个简单假设之间的独立同分布检验，不展开一般最优性理论。
+
+## 先固定似然比方向
+
+在假设 $H_i$ 下，观测 $Y_1,Y_2,\ldots$ 独立同分布，密度或概率质量函数为 $f_i$，概率与期望记作 $\mathbb P_i,\mathbb E_i$。假设 $f_0,f_1$ 相对于同一基准测度定义，在共同支持集上均严格为正，且两分布不同。这样似然比在两种假设下都有限、正值。
+
+**沿讲稿采用 $f_0/f_1$ 的方向**，定义
+$$
+L_0=1,\qquad L_n=\prod_{k=1}^n\frac{f_0(Y_k)}{f_1(Y_k)},\qquad
+S_n=\log L_n=\sum_{k=1}^n\ell(Y_k),
+\quad\ell(y)=\log\frac{f_0(y)}{f_1(y)}.
+$$
+$L_n$ 大支持 $H_0$，小支持 $H_1$。这是似然之比，不是后验概率之比；有正的先验概率时，后验比还要乘先验比。
+
+取 $0<B<1<A$，在观察前固定规则
+$$
+T=\inf\{n\ge1:L_n\notin(B,A)\}.
+$$
+当 $L_T\ge A$ 时判 $H_0$，当 $L_T\le B$ 时判 $H_1$，未触边时继续。$T$ 是自然滤过 $\mathcal F_n=\sigma(Y_1,\ldots,Y_n)$ 的停时。记判决事件为 $D_0,D_1$，并定义实际错误概率
+$$
+\alpha=\mathbb P_0(D_1),\qquad\beta=\mathbb P_1(D_0).
+$$
+不要把阈值 $A,B$、目标错误率和实际错误率混用。若某教材使用 $f_1/f_0$，它的上下边界及判决方向也必须一起转换。
+
+## 用非负鞅得到严格错误界
+
+在 $H_1$ 下，每个似然比因子的均值为
+$$
+\mathbb E_1\frac{f_0(Y_k)}{f_1(Y_k)}=\int f_0(y)\,dy=1,
+$$
+所以 $L_n$ 是关于 $\mathbb P_1$ 的非负鞅。同理，$L_n^{-1}$ 是关于 $\mathbb P_0$ 的非负鞅。二者的“公平性”分别属于不同概率模型，不能省略下标。
+
+对有限时间最大不等式令时限递增，事件单调收敛给出
+$$
+\begin{aligned}
+\beta&\le\mathbb P_1(\exists n:L_n\ge A)\le\frac1A,\\
+\alpha&\le\mathbb P_0(\exists n:L_n^{-1}\ge B^{-1})\le B.
+\end{aligned}
+$$
+这里不需要贸然写 $\mathbb E_1L_T=1$，也不需要忽略越界量。若目标为 $\alpha\le\alpha_*$、$\beta\le\beta_*$，其中 $0<\alpha_*,\beta_*<1$，一组保守且严格有效的选择是
+$$
+\boxed{\quad B=\alpha_*,\qquad A=\frac1{\beta_*}.\quad}
+$$
+这些界控制按照预先规定规则作出的错误判决，不能据此随意更换假设、追加筛选规则后仍沿用同一个证明。
+
+在本附录的模型下，$T$ 在两种假设下都有有限期望。简要理由是：两分布不同且互相等价，故存在 $\varepsilon>0$，使 $\mathbb P_i(\ell(Y)\ge\varepsilon)=q_i>0$，$i=0,1$。选整数 $r$ 使 $r\varepsilon>\log A-\log B$；只要尚未停止，接下来 $r$ 个增量都至少为 $\varepsilon$ 就必触上界，其条件概率为 $q_i^r$。因此
+$$
+\mathbb P_i(T>kr)\le(1-q_i^r)^k,\qquad\mathbb E_iT<\infty.
+$$
+这只用于证明有限性，通常是很粗的平均样本数上界。
+
+## 常用 Wald 阈值为什么带有近似
+
+对停止时可判定的事件 $D$，按 $\{T=n\}$ 分解，固定时刻的密度比公式给出
+$$
+\mathbb P_0(D)
+=\sum_{n\ge1}\mathbb E_1[L_n\mathbf1_{D\cap\{T=n\}}]
+=\mathbb E_1[L_T\mathbf1_D].
+$$
+$T$ 在两种模型下都有限，各项非负，故分解与求和有依据。这是停止样本的换测度恒等式，不是无条件调用可选停止。
+
+分别取 $D_0,D_1$，得到精确关系
+$$
+1-\alpha=\mathbb E_1[L_T\mathbf1_{D_0}]\ge A\beta,\qquad
+\alpha=\mathbb E_1[L_T\mathbf1_{D_1}]\le B(1-\beta).
+$$
+若**忽略越界**，把 $L_T$ 在两个判决事件上近似为 $A,B$，便得到
+$$
+A\approx\frac{1-\alpha}{\beta},\qquad
+B\approx\frac{\alpha}{1-\beta}.
+$$
+于是常见的设计是以目标错误率代入
+$$
+A_{\mathrm W}=\frac{1-\alpha_*}{\beta_*},\qquad
+B_{\mathrm W}=\frac{\alpha_*}{1-\beta_*},
+\qquad\alpha_*+\beta_*<1.
+$$
+这不是上一节保守界的同一个选择，也不能单凭“忽略越界”的等式保证实际两项错误率恰好等于目标。对离散观测，似然比尤其可能跳过边界；需要准确保证时，可使用前述保守阈值，或另外核算该具体模型的实际错误概率。
+
+## 平均样本数：Wald 等式与越界修正
+
+再假设 $\mathbb E_i|\ell(Y)|<\infty$，$i=0,1$。定义
+$$
+D(f\Vert g)=\int f(y)\log\frac{f(y)}{g(y)}\,dy.
+$$
+在当前共同正支持且分布不同的条件下，
+$$
+\mu_0=\mathbb E_0\ell(Y)=D(f_0\Vert f_1)>0,\qquad
+\mu_1=\mathbb E_1\ell(Y)=-D(f_1\Vert f_0)<0.
+$$
+每步平均对数证据朝正确假设的边界漂移。由 @sec-wald 及已证明的 $\mathbb E_iT<\infty$，精确等式为
+$$
+\mathbb E_iS_T=\mu_i\mathbb E_iT.
+$$
+令 $a=\log A>0,b=\log B<0$。若忽略对数越界量，
+$$
+\begin{aligned}
+\mathbb E_0T&\approx\frac{(1-\alpha)a+\alpha b}{D(f_0\Vert f_1)},\\
+\mathbb E_1T&\approx\frac{\beta a+(1-\beta)b}{-D(f_1\Vert f_0)}.
+\end{aligned}
+$$
+这里 $\alpha,\beta$ 是实际错误率；若再用目标错误率替代，又增加了一层近似。公式的用途是解释证据积累速度与观察成本的关系，不是无误差的样本数预算。
+
+越界的含义可以写得很具体：在 $D_0$ 上 $S_T=a+O_+$，在 $D_1$ 上 $S_T=b-O_-$，其中 $O_+,O_-\ge0$。若 $|\ell(Y)|\le c$，则两种越界量至多为 $c$。用实际错误率作权重时，忽略越界造成的 $\mathbb E_iS_T$ 误差至多 $c$，平均样本数误差至多 $c/|\mu_i|$。当单步证据相对于阈值不小，越界就不应忽略。
+
+## 一个 Bernoulli 方向检查
+
+检验 $H_0:p=0.4$ 与 $H_1:p=0.6$，则
+$$
+\ell(Y)=\begin{cases}
+\log(2/3),&Y=1,\\
+\log(3/2),&Y=0.
+\end{cases}
+$$
+观察到 $1$ 支持成功率较高的 $H_1$，因此对数似然比下降，与 $f_0/f_1$ 的约定一致。
+
+若两个目标错误率均为 $0.05$，保守阈值为 $B=0.05,A=20$。因为每步对数证据为 $\pm\log(3/2)$，而 $7\log(3/2)<\log20<8\log(3/2)$，实际停止发生在“零的累计个数减去一的累计个数”首次达到 $\pm8$ 时。终端似然比不是恰好 $20$ 或 $1/20$，这正是离散越界的可见例子。
+
+**材料依据。** 上传的 MIT 第23讲约 00:00–00:51，尤其是似然比方向、双阈值、平均试验次数与 overshoot 的讨论；衔接第24讲对停止极限交换的提醒。一般复合假设、自适应采样和序贯检验最优性定理不在本附录展开。

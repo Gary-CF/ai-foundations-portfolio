@@ -94,24 +94,108 @@ $$
 
 #### 范数
 
-设 $f(x)=\lVert x\rVert$，对应的对偶范数为 $\lVert\cdot\rVert_\star$。由 Hölder 不等式，
+设 $f(x)=\|x\|$。回顾其对偶范数定义：
+$$
+\|y\|_*=\sup_{\|u\|\le1}y^\top u.
+$$
+它衡量线性函数 $u\mapsto y^\top u$ 在原范数单位球上的最大值，
+并满足 Hölder 不等式
+$$
+|y^\top x|\le\|y\|_*\|x\|.
+$$
 
+下面计算范数函数的共轭：
 $$
-y^\top x\le\lVert y\rVert_\star\lVert x\rVert.
+f^\star(y)=\sup_x\bigl(y^\top x-\|x\|\bigr).
 $$
+
+若 $\|y\|_*\le1$，则
+$$
+y^\top x-\|x\|
+\le(\|y\|_*-1)\|x\|
+\le0.
+$$
+取 $x=0$ 可达到 $0$，故 $f^\star(y)=0$。
+
+若 $\|y\|_*>1$，由定义可取 $\|u\|\le1$ 使 $y^\top u>1$。
+沿该方向取 $x=tu$，其中 $t>0$，则
+$$
+y^\top x-\|x\|
+=t\bigl(y^\top u-\|u\|\bigr)
+\ge t\bigl(y^\top u-1\bigr)
+\longrightarrow+\infty.
+$$
+故 $f^\star(y)=+\infty$。
 
 因此
-
 $$
-f^\star(y)
-=
+f^\star(y)=
 \begin{cases}
-0, & \lVert y\rVert_\star\le1,\\
-+\infty, & \lVert y\rVert_\star>1.
+0, & \|y\|_*\le1,\\
++\infty, & \|y\|_*>1.
 \end{cases}
 $$
 
-也就是说，范数的共轭是对偶范数单位球的指示函数。
+即：范数的共轭是对偶范数单位球的指示函数。
+这里的指示函数在集合内取 $0$、集合外取 $+\infty$，
+不是概率论中的 $0$–$1$ 指示函数。
+
+注意，对偶范数 $\|y\|_*$ 与共轭函数 $f^\star(y)$ 不是同一个对象。
+
+对偶范数的几何解释、Hölder 不等式的证明及常见对偶范数，
+见附录中的 @sec-dual-norm。
+
+**矩阵例子：核范数的共轭。**
+
+范数共轭的结论同样适用于矩阵空间。
+采用 Frobenius 内积
+$\langle X,Y\rangle=\operatorname{tr}(X^\top Y)$，
+令
+$$
+F(X)=\|X\|_{\mathrm{nuc}}.
+$$
+其共轭定义为
+$$
+F^\star(Y)
+=
+\sup_X\bigl(\langle X,Y\rangle-\|X\|_{\mathrm{nuc}}\bigr).
+$$
+
+核范数的对偶范数是谱范数，
+因此直接应用前面的范数共轭结论：
+$$
+\boxed{
+F^\star(Y)=
+\begin{cases}
+0,&\|Y\|_2\le1,\\
++\infty,&\|Y\|_2>1.
+\end{cases}
+}
+$$
+
+即：核范数的共轭是谱范数单位球的指示函数。
+
+在计算对偶函数时，这个结论可以直接用于消去矩阵变量：
+$$
+\inf_X
+\bigl(\|X\|_{\mathrm{nuc}}-\langle Y,X\rangle\bigr)
+=
+-F^\star(Y)
+=
+\begin{cases}
+0,&\|Y\|_2\le1,\\
+-\infty,&\|Y\|_2>1.
+\end{cases}
+$$
+
+所以，Lagrangian 中若出现“核范数减去线性项”，
+对矩阵变量取下确界后，
+有限性条件就会产生对应系数矩阵的谱范数约束。
+
+注意，核范数与谱范数是互为对偶范数，
+不是互为共轭函数。
+它们的定义、SVD 证明与低秩解释见附录
+@sec-spectral-nuclear-duality。
 
 ## Fenchel–Young 不等式
 
@@ -261,6 +345,231 @@ g(\lambda,\nu)>-\infty
 $$
 
 显式写成对偶可行性约束。
+
+## 用共轭计算对偶函数 {#sec-conjugate-dual-bridge}
+
+共轭函数与 Lagrange 对偶不是同一个对象：
+共轭是对函数进行变换，对偶则是从优化问题构造新的优化问题。
+两者的联系在于，共轭可以计算 Lagrangian 对原变量的下确界。
+
+### 核心恒等式：消去带线性项的变量
+
+对正常函数 $f$ 和给定向量 $s$，
+$$
+\begin{aligned}
+\inf_x\bigl[f(x)+s^\top x\bigr]
+&=-\sup_x\bigl[(-s)^\top x-f(x)\bigr]\\
+&=-f^\star(-s).
+\end{aligned}
+$$
+
+这里采用扩展值约定：定义域之外 $f(x)=+\infty$，
+因此对 $x$ 的优化自动限制在 $\operatorname{dom}f$ 内。
+该恒等式不要求下确界能够取到。
+
+它给出一个可复用的操作：
+当 Lagrangian 中关于 $x$ 的部分可以写成
+“原函数 $+$ 线性项”时，就能用共轭消去 $x$。
+
+注意两个负号的位置：
+$$
+\inf_x\bigl[f(x)+s^\top x\bigr]=-f^\star(-s),
+\qquad
+\inf_x\bigl[f(x)-s^\top x\bigr]=-f^\star(s).
+$$
+
+### 仿射约束下的通用模板
+
+考虑
+$$
+\begin{aligned}
+\operatorname{minimize}\quad &f_0(x)\\
+\operatorname{subject\ to}\quad
+&Ax\le b,\\
+&Cx=d,
+\end{aligned}
+$$
+其中 $f_0$ 为正常凸函数，
+$A\in\mathbb R^{m\times n}$、$C\in\mathbb R^{p\times n}$，
+不等式按分量理解。
+
+令 $\lambda\in\mathbb R_+^m$、$\nu\in\mathbb R^p$。
+Lagrangian 为
+$$
+\begin{aligned}
+L(x,\lambda,\nu)
+&=f_0(x)+\lambda^\top(Ax-b)+\nu^\top(Cx-d)\\
+&=f_0(x)+(A^\top\lambda+C^\top\nu)^\top x
+-b^\top\lambda-d^\top\nu.
+\end{aligned}
+$$
+
+固定乘子，对 $x$ 取下确界：
+$$
+\begin{aligned}
+g(\lambda,\nu)
+&=-b^\top\lambda-d^\top\nu\\
+&\quad+\inf_x\left[
+f_0(x)+(A^\top\lambda+C^\top\nu)^\top x
+\right]\\
+&=-b^\top\lambda-d^\top\nu
+-f_0^\star(-A^\top\lambda-C^\top\nu).
+\end{aligned}
+$$
+
+因此对偶问题可以写成
+$$
+\begin{aligned}
+\operatorname{maximize}_{\lambda,\nu}\quad
+&-b^\top\lambda-d^\top\nu
+-f_0^\star(-A^\top\lambda-C^\top\nu)\\
+\operatorname{subject\ to}\quad
+&\lambda\ge0,\\
+&-A^\top\lambda-C^\top\nu
+\in\operatorname{dom}f_0^\star.
+\end{aligned}
+$$
+
+最后一个约束把对偶函数取有限值的条件显式写了出来。
+若共轭在该点取 $+\infty$，对偶函数就取 $-\infty$，
+不能提供有限的下界。
+
+这也说明了共轭的两种作用：
+
+- 共轭函数的值决定对偶目标；
+- 共轭函数的定义域决定对偶变量受到的额外限制。
+
+由于 $f_0^\star$ 为凸函数，上式中的负共轭项为凹函数，
+与对偶函数应当为凹函数的结论一致。
+
+### 例子：等式约束下的最小范数
+
+考虑
+$$
+\begin{aligned}
+\operatorname{minimize}\quad &\|x\|\\
+\operatorname{subject\ to}\quad &Ax=b.
+\end{aligned}
+$$
+
+令 $f(x)=\|x\|$。由前面已经得到的范数共轭，
+$$
+f^\star(y)=
+\begin{cases}
+0,&\|y\|_*\le1,\\
++\infty,&\|y\|_*>1.
+\end{cases}
+$$
+
+代入共轭计算模板：
+$$
+\begin{aligned}
+g(\nu)
+&=-b^\top\nu-f^\star(-A^\top\nu)\\
+&=
+\begin{cases}
+-b^\top\nu,&\|A^\top\nu\|_*\le1,\\
+-\infty,&\|A^\top\nu\|_*>1.
+\end{cases}
+\end{aligned}
+$$
+
+这里使用了范数的对称性：
+$\|-A^\top\nu\|_*=\|A^\top\nu\|_*$。
+所以对偶问题是
+$$
+\begin{aligned}
+\operatorname{maximize}_{\nu}\quad &-b^\top\nu\\
+\operatorname{subject\ to}\quad &\|A^\top\nu\|_*\le1.
+\end{aligned}
+$$
+
+原问题中的范数目标，经过共轭变成了对偶问题中的对偶范数约束。
+例如，若原目标是 $\|x\|_1$，对偶约束就是
+$\|A^\top\nu\|_\infty\le1$。
+
+若把等式乘子替换为 $-\nu$，目标也可以写成 $b^\top\nu$；
+两种写法等价，但必须与所选 Lagrangian 的符号约定保持一致。
+
+### 变量分裂：为复合目标构造对偶
+
+考虑没有显式约束的复合问题
+$$
+\inf_{x\in\mathbb R^n}f_0(Ax+b),
+$$
+其中 $A\in\mathbb R^{m\times n}$，
+$f_0:\mathbb R^m\to\mathbb R\cup\{+\infty\}$ 为正常凸函数。
+
+直接对无约束形式构造 Lagrange 对偶，没有可优化的乘子，
+得到的只是原问题最优值本身，不能简化计算。
+
+引入辅助变量 $z=Ax+b$，等价地写为
+$$
+\begin{aligned}
+\operatorname{minimize}_{x,z}\quad &f_0(z)\\
+\operatorname{subject\ to}\quad &Ax+b-z=0.
+\end{aligned}
+$$
+
+对应的 Lagrangian 是
+$$
+\begin{aligned}
+L(x,z,\nu)
+&=f_0(z)+\nu^\top(Ax+b-z)\\
+&=f_0(z)-\nu^\top z+(A^\top\nu)^\top x+b^\top\nu.
+\end{aligned}
+$$
+
+分别消去两个变量。
+
+首先，由于 $x$ 可以在整个 $\mathbb R^n$ 中变化，
+$$
+\inf_x(A^\top\nu)^\top x
+=
+\begin{cases}
+0,&A^\top\nu=0,\\
+-\infty,&A^\top\nu\ne0.
+\end{cases}
+$$
+当系数非零时，沿其反方向放大 $x$，线性项就能趋于 $-\infty$。
+
+其次，由共轭定义，
+$$
+\inf_z\bigl[f_0(z)-\nu^\top z\bigr]
+=-f_0^\star(\nu).
+$$
+
+因此对偶问题为
+$$
+\begin{aligned}
+\operatorname{maximize}_{\nu}\quad
+&b^\top\nu-f_0^\star(\nu)\\
+\operatorname{subject\ to}\quad
+&A^\top\nu=0,\\
+&\nu\in\operatorname{dom}f_0^\star.
+\end{aligned}
+$$
+
+这个推导中，消去自由变量 $x$ 产生线性约束，
+消去辅助变量 $z$ 产生共轭项。
+这是复合优化中常见的变量分裂思路。
+
+### 使用边界
+
+上述仿射约束模板不能直接用于一般非线性约束：
+只有当关于原变量的附加项确实是线性的，
+才能直接识别为原目标的共轭。
+
+若对原变量取下确界时还保留约束 $x\in S$，
+则应将它写入函数：
+$$
+\widetilde f(x)=f(x)+\delta_S(x),
+$$
+再使用 $\widetilde f^\star$，不能忽略这个定义域限制。
+
+最后，写出对偶问题不等于证明强对偶成立。
+共轭负责计算对偶函数；对偶下界能否达到原问题最优值，
+仍需检查后续的强对偶条件。
 
 ## 弱对偶
 
@@ -494,6 +803,59 @@ $$ {#eq-complementary-slackness}
    +\sum_{j=1}^p\nu_j^\star\nabla h_j(x^\star)
    =0.
    $$ {#eq-kkt-stationarity}
+
+### 从 Fenchel–Young 等号看驻点条件
+
+对于前面讨论的仿射约束问题
+$$
+\min_x f_0(x),
+\qquad Ax\le b,\quad Cx=d,
+$$
+共轭与 KKT 之间还有一条直接联系。
+
+设 $f_0$ 为正常凸函数，$x\in\operatorname{dom}f_0$，并记
+$$
+y=-A^\top\lambda-C^\top\nu.
+$$
+
+Fenchel–Young 不等式及其等号条件为
+$$
+f_0(x)+f_0^\star(y)\ge y^\top x,
+$$
+$$
+f_0(x)+f_0^\star(y)=y^\top x
+\quad\Longleftrightarrow\quad
+y\in\partial f_0(x).
+$$
+
+这里 $\partial f_0(x)$ 是次微分。
+等号意味着 $x$ 实现了共轭定义中的上确界，
+等价地，也实现了
+$f_0(x)+(A^\top\lambda+C^\top\nu)^\top x$
+的全局最小值。
+
+代入 $y$，等号条件变成
+$$
+0\in\partial f_0(x)+A^\top\lambda+C^\top\nu.
+$$
+
+若 $f_0$ 在 $x$ 处可微，则进一步化为
+$$
+\nabla f_0(x)+A^\top\lambda+C^\top\nu=0.
+$$
+
+这正是该问题的 KKT 驻点条件。
+因此，从共轭视角看，驻点条件是在要求：
+所选乘子对应的线性下界在 $x$ 处恰好与目标函数接触。
+
+但 Fenchel–Young 取等号只对应这里的驻点条件。
+要组成完整的 KKT 条件，还必须检查
+$Ax\le b$、$Cx=d$、$\lambda\ge0$，
+以及互补松弛
+$$
+\lambda_i\bigl((Ax)_i-b_i\bigr)=0,
+\qquad i=1,\ldots,m.
+$$
 
 ### KKT 的充分性
 

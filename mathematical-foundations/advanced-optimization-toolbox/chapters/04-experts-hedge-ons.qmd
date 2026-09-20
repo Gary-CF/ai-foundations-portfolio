@@ -3,6 +3,8 @@
 当决策是“如何组合 $N$ 个专家”时，可行域是概率单纯形。直接使用 Euclidean OGD 会引入不理想的维数因子；指数权重则自然产生 $\sqrt{\log N}$。本章先完整分析 Hedge，再说明局部二阶曲率如何导出 Online Newton Step（ONS）。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 6。Hedge 的 log-sum-exp 势函数证明完整保留；ONS 只保留 exp-concavity 二次下界、矩阵更新和椭圆势函数主链，不展开行列式代数的每个中间步骤。
 :::
 

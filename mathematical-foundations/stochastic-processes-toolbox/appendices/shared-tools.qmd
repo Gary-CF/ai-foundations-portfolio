@@ -1,0 +1,85 @@
+# 共用概率与矩阵工具 {#sec-shared-tools}
+
+本附录集中放置正文反复使用的规则，重点记录何时能用。它不替代原有概率统计工具箱，也不假定读者能访问旧项目。
+
+## 非负求和、尾概率与极限交换
+
+若 $Y_n\ge0$，Tonelli 与单调收敛给出
+$$
+\mathbb E\sum_{n\ge0}Y_n=\sum_{n\ge0}\mathbb EY_n,
+$$
+两边允许为无穷。若变量有正有负，一个方便的充分条件是 $\sum_n\mathbb E|Y_n|<\infty$，此时可以用 Fubini 交换。矩阵概率乘法、访问次数和周期占用量大多属于非负情形。
+
+对非负实变量 $Y$，逐点有 $Y=\int_0^\infty\mathbf1_{\{Y>t\}}dt$，故
+$$
+\mathbb EY=\int_0^\infty\mathbb P(Y>t)\,dt.
+$$
+对取值于 $\mathbb N_0\cup\{\infty\}$ 的 $T$，同理
+$$
+\mathbb ET=\sum_{n\ge0}\mathbb P(T>n).
+$$
+泊松年龄均值、几何尾停时的可积性都可直接用这两个式子。
+
+常用极限定理的分工如下：
+
+|规则|条件|结论|
+|---|---|---|
+|单调收敛|$0\le Y_n\uparrow Y$ a.s.|$\mathbb EY_n\uparrow\mathbb EY$，允许无穷|
+|Fatou|$Y_n\ge0$|$\mathbb E\liminf Y_n\le\liminf\mathbb EY_n$|
+|控制收敛|$Y_n\to Y$ a.s.，$|Y_n|\le Z$，$\mathbb EZ<\infty$|$Y_n\to Y$ 于 $L^1$，期望收敛|
+
+Fatou 只有一个方向的不等式，不能用它宣称期望保持。有限个项可以逐项取极限；无穷个状态或时刻的求和仍需上述控制。
+
+## Borel–Cantelli 与可积变量的尾部
+
+第一 Borel–Cantelli 引理：若 $\sum_n\mathbb P(A_n)<\infty$，则事件 $A_n$ 只发生有限次 a.s.。不要求事件独立。证明是
+$$
+\mathbb P\Bigl(\bigcup_{n\ge m}A_n\Bigr)
+\le\sum_{n\ge m}\mathbb P(A_n)\to0,
+$$
+再利用尾部并集递减到“发生无穷多次”的事件。鞅单元的分块证明只使用这一方向。
+
+若事件独立且 $\sum_n\mathbb P(A_n)=\infty$，第二 Borel–Cantelli 引理保证无穷多次发生。对于正文中同概率独立事件，只需观察连续失败概率 $(1-p)^k\to0$ 即可。
+
+若 $Z_n$ 同分布、$\mathbb E|Z_1|<\infty$，不要求独立，则对每个 $\varepsilon>0$，由尾积分比较
+$$
+\sum_{n\ge1}\mathbb P(|Z_n|>\varepsilon n)
+=\sum_{n\ge1}\mathbb P(|Z_1|>\varepsilon n)
+\le\frac{\mathbb E|Z_1|}{\varepsilon}<\infty.
+$$
+因此 $Z_n/n\to0$ a.s.。它用于返回周期论证中控制最后一个未完成周期，而不是把未完成周期直接删去。
+
+独立同分布且 $\mathbb E|Z_1|<\infty$ 时，强大数定律给出平均值趋于 $\mathbb EZ_1$ a.s.。此处将其作为前置概率定理；正文给出了有限方差版本的可迁移证明。
+
+## 条件 Jensen、全方差与全协方差
+
+凸函数 $\varphi$ 满足有关变量可积时，条件 Jensen 为
+$$
+\varphi(\mathbb E[X\mid\mathcal G])
+\le\mathbb E[\varphi(X)\mid\mathcal G].
+$$
+特别地，$|\mathbb E[X\mid\mathcal G]|\le\mathbb E[|X|\mid\mathcal G]$，所以条件期望在 $L^1$ 中是压缩；对平方函数得到 $L^2$ 压缩。这解释了条件期望正交分解中的可积性。
+
+对二阶矩有限的列向量 $X$，记 $m=\mathbb E[X\mid\mathcal G]$，
+$$
+\operatorname{Cov}(X\mid\mathcal G)
+=\mathbb E[(X-m)(X-m)^\top\mid\mathcal G].
+$$
+由 $X-\mathbb EX=(X-m)+(m-\mathbb EX)$ 展开，交叉项的条件期望为零，故
+$$
+\operatorname{Cov}(X)
+=\mathbb E[\operatorname{Cov}(X\mid\mathcal G)]
++\operatorname{Cov}(\mathbb E[X\mid\mathcal G]).
+$$
+标量版本就是全方差公式。一般只能推出**平均条件协方差**不超过原协方差；不能推出每个观测值对应的条件方差都减小。高斯样章中条件协方差不依赖观测值，才获得更强的逐值结论。
+
+## 半正定序与 Schur 补
+
+对实对称矩阵，$A\succeq0$ 表示 $v^\top Av\ge0$ 对任意 $v$ 成立；$A\preceq B$ 表示 $B-A\succeq0$。这比较所有线性方向上的二次型，不是逐元素比较。
+
+若 $D\succ0$，则
+$$
+\Sigma=\begin{pmatrix}A&C\\C^\top&D\end{pmatrix}\succeq0
+\quad\Longleftrightarrow\quad S=A-CD^{-1}C^\top\succeq0.
+$$
+正定版本同样成立。分块消元把 $\Sigma$ 合同变换为 $\operatorname{diag}(S,D)$，且 $CD^{-1}C^\top\succeq0$，所以 $S\preceq A$。这给出了条件高斯的剩余协方差及其大小关系；完整消元与密度证明见 @sec-proof。

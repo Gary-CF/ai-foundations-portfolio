@@ -7,6 +7,7 @@ book:
   subtitle: "面向人工智能与机器学习的理论、几何与算法"
   author: "Gary Chen"
   date: last-modified
+  output-file: convex-optimization-toolbox
   chapters:
     - index.qmd
     - part: "基础语言与几何"
@@ -26,13 +27,12 @@ book:
     - part: "模型与应用"
       chapters:
         - chapters/09-models-applications.qmd
-    - part: "附录"
-      chapters:
-        - appendices/mathematical-toolbox.qmd
-        - appendices/conic-optimization.qmd
-        - appendices/advanced-algorithms.qmd
-        - appendices/stochastic-online-optimization.qmd
-        - appendices/notation.qmd
+  appendices:
+    - appendices/mathematical-toolbox.qmd
+    - appendices/conic-optimization.qmd
+    - appendices/advanced-algorithms.qmd
+    - appendices/stochastic-online-optimization.qmd
+    - appendices/notation.qmd
 
 format:
   html:
@@ -43,6 +43,13 @@ format:
   pdf:
     documentclass: scrreprt
     pdf-engine: xelatex
+    CJKmainfont: "Noto Serif CJK SC"
+    CJKsansfont: "Noto Sans CJK SC"
+    CJKmonofont: "Noto Sans Mono CJK SC"
+    classoption: [openany]
+    include-in-header:
+      text: |
+        \DeclareTOCStyleEntries[pagenumberwidth=2.5em]{tocline}{part,chapter,section,subsection}
     toc: true
     keep-tex: true
 

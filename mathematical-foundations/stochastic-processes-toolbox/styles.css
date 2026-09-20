@@ -1,0 +1,6 @@
+/* 保留样章的清爽配色，只作用于正文，不挤压Book导航。 */
+main.content { line-height: 1.85; color: #23313b; }
+main.content h1, main.content h2, main.content h3 { color: #173d4a; line-height: 1.4; }
+main.content h2 { margin-top: 1.8em; }
+main.content a { color: #176574; }
+main.content blockquote { border-left: 3px solid #376b78; background: #f3f6f7; padding: .6em 1em; }

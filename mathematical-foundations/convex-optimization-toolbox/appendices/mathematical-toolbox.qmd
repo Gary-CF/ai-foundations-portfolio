@@ -101,7 +101,7 @@ $$
 
 这里“等价”表示它们产生相同的收敛与连续性概念，并不表示数值相同。
 
-## 对偶范数与 Hölder 不等式
+## 对偶范数与 Hölder 不等式 {#sec-dual-norm}
 
 范数 $\lVert\cdot\rVert$ 的对偶范数定义为
 
@@ -137,44 +137,283 @@ $$
 
 对偶范数在最速下降、鲁棒优化和范数共轭中反复出现。
 
-## 矩阵算子范数
+## 矩阵算子范数 {#sec-operator-norm}
 
-由向量范数诱导的算子范数定义为
+向量范数衡量向量的大小，算子范数则衡量线性映射最多能把向量放大多少倍。它是控制矩阵乘法、估计光滑常数和选择步长的常用工具。
 
+### 输入与输出范数
+
+设 $A\in\mathbb R^{m\times n}$，输入空间 $\mathbb R^n$ 使用范数
+$\|\cdot\|_b$，输出空间 $\mathbb R^m$ 使用范数 $\|\cdot\|_a$。
+由这两个范数诱导的算子范数定义为
 $$
-\lVert A\rVert
+\|A\|_{b\to a}
 =
-\sup_{x\ne0}
-\frac{\lVert Ax\rVert}{\lVert x\rVert}.
-$$
-
-它给出线性映射放大向量的最大倍数，因此
-
-$$
-\lVert Ax\rVert
-\le
-\lVert A\rVert\lVert x\rVert.
-$$
-
-常用情形为
-
-$$
-\lVert A\rVert_2=\sigma_{\max}(A),
-$$
-
-$$
-\lVert A\rVert_1
+\sup_{x\ne0}\frac{\|Ax\|_a}{\|x\|_b}
 =
-\max_j\sum_i|A_{ij}|,
+\sup_{\|x\|_b\le1}\|Ax\|_a.
 $$
 
+箭头表示“输入范数 $\to$ 输出范数”。两个表达式等价，
+因为任意非零 $x$ 都可以归一化为 $x/\|x\|_b$。
+
+由定义，对所有 $x$ 都有
 $$
-\lVert A\rVert_\infty
+\|Ax\|_a\le\|A\|_{b\to a}\|x\|_b.
+$$
+
+若输入与输出都使用 $\ell_p$ 范数，通常简写为
+$\|A\|_p=\|A\|_{p\to p}$。当上下文没有明确指定范数时，
+不能把不同的算子范数混用。
+
+### 谱范数：Euclidean 长度的最大放大倍数
+
+输入与输出都使用 $\ell_2$ 范数时，得到谱范数：
+$$
+\|A\|_2
 =
-\max_i\sum_j|A_{ij}|.
+\sup_{\|x\|_2=1}\|Ax\|_2.
 $$
 
-$\lVert A\rVert_2$ 是谱范数，不要与 Frobenius 范数混淆。
+将长度平方后，
+$$
+\begin{aligned}
+\|A\|_2^2
+&=\sup_{\|x\|_2=1}\|Ax\|_2^2\\
+&=\sup_{\|x\|_2=1}x^\top A^\top Ax\\
+&=\lambda_{\max}(A^\top A).
+\end{aligned}
+$$
+
+最后一步使用对称矩阵的 Rayleigh 商结论：
+单位向量上的二次型最大值等于最大特征值，
+并在相应的单位特征向量处取到。
+
+由于 $A$ 的奇异值是 $A^\top A$ 特征值的非负平方根，
+$$
+\boxed{
+\|A\|_2
+=\sqrt{\lambda_{\max}(A^\top A)}
+=\sigma_{\max}(A).
+}
+$$
+
+因此，最大的右奇异向量给出被 $A$ 放大最多的输入方向，
+最大奇异值给出这个方向上的放大倍数。
+
+### 常用公式与记号边界
+
+| 算子范数 | 计算公式 |
+|---|---|
+| $\|A\|_1$ | $\displaystyle\max_{1\le j\le n}\sum_{i=1}^m|A_{ij}|$，最大绝对列和 |
+| $\|A\|_2$ | $\sigma_{\max}(A)$，最大奇异值 |
+| $\|A\|_\infty$ | $\displaystyle\max_{1\le i\le m}\sum_{j=1}^n|A_{ij}|$，最大绝对行和 |
+
+这里的矩阵 $\ell_1$ 算子范数不是所有元素绝对值之和；
+谱范数也不是 Frobenius 范数：
+$$
+\|A\|_F
+=
+\sqrt{\sum_{i,j}A_{ij}^2}
+=
+\sqrt{\sum_k\sigma_k(A)^2}.
+$$
+
+谱范数关注最大放大方向，Frobenius 范数则汇总所有奇异方向的平方大小。
+
+算子范数与对偶范数也不是同一个概念：
+前者衡量线性映射的放大能力，
+后者衡量线性函数在单位球上的最大值。
+
+### 应用：最小二乘的光滑常数
+
+考虑
+$$
+F(x)=\frac12\|Ax-b\|_2^2.
+$$
+
+其梯度与 Hessian 为
+$$
+\nabla F(x)=A^\top(Ax-b),
+\qquad
+\nabla^2F(x)=A^\top A.
+$$
+
+对任意 $x,z$，
+$$
+\begin{aligned}
+\|\nabla F(x)-\nabla F(z)\|_2
+&=\|A^\top A(x-z)\|_2\\
+&\le\|A^\top A\|_2\|x-z\|_2\\
+&=\|A\|_2^2\|x-z\|_2.
+\end{aligned}
+$$
+
+因此可取梯度的 Lipschitz 常数
+$$
+L=\|A\|_2^2=\lambda_{\max}(A^\top A).
+$$
+
+这解释了谱范数如何进入优化算法：它控制梯度变化的最快尺度。
+当 $A\ne0$ 时，梯度下降常用固定步长
+$$
+\eta=\frac{1}{\|A\|_2^2}.
+$$
+
+若目标写成 $\|Ax-b\|_2^2$，没有前面的 $1/2$，
+则对应的光滑常数变为 $2\|A\|_2^2$。
+使用步长公式前，应先核对目标函数的系数。
+
+## 谱范数与核范数的对偶 {#sec-spectral-nuclear-duality}
+
+矩阵优化不仅关心线性映射的最大放大倍数，也关心矩阵在多少个方向上具有显著作用。谱范数与核范数分别从不同角度描述奇异值，并在矩阵内积下互为对偶。
+
+### 三种常用矩阵范数
+
+设 $X\in\mathbb R^{m\times n}$，其奇异值为
+$\sigma_1(X)\ge\cdots\ge\sigma_k(X)\ge0$，
+其中 $k=\min\{m,n\}$。
+
+| 范数 | 定义 | 含义 |
+|---|---|---|
+| 谱范数 | $\|X\|_2=\sigma_1(X)$ | 最大方向上的放大倍数 |
+| 核范数 | $\displaystyle\|X\|_{\mathrm{nuc}}=\sum_{i=1}^k\sigma_i(X)$ | 所有奇异值的总量 |
+| Frobenius 范数 | $\displaystyle\|X\|_F=\sqrt{\sum_{i=1}^k\sigma_i(X)^2}$ | 所有奇异值的平方和开方 |
+
+核范数也称迹范数。文献常将它记为 $\|X\|_*$；
+为避免与一般对偶范数的下标 $*$ 混淆，本书使用
+$\|X\|_{\mathrm{nuc}}$。
+
+只有当 $X$ 为对称半正定矩阵时，才可以直接写成
+$$
+\|X\|_{\mathrm{nuc}}=\operatorname{tr}(X).
+$$
+一般矩阵的核范数不能用主对角线元素之和计算。
+
+### 矩阵空间中的对偶范数
+
+矩阵空间采用 Frobenius 内积
+$$
+\langle X,Y\rangle
+=\operatorname{tr}(X^\top Y).
+$$
+
+给定矩阵范数 $N$，其对偶范数定义为
+$$
+N_*(Y)=\sup_{N(X)\le1}\langle X,Y\rangle.
+$$
+
+在这个内积下，谱范数与核范数互为对偶：
+$$
+\boxed{
+\sup_{\|X\|_2\le1}\langle X,Y\rangle
+=\|Y\|_{\mathrm{nuc}},
+}
+$$
+$$
+\boxed{
+\sup_{\|X\|_{\mathrm{nuc}}\le1}\langle X,Y\rangle
+=\|Y\|_2.
+}
+$$
+
+相应的 Hölder 不等式为
+$$
+|\langle X,Y\rangle|
+\le\|X\|_2\|Y\|_{\mathrm{nuc}}
+$$
+以及交换两个矩阵后得到的
+$$
+|\langle X,Y\rangle|
+\le\|X\|_{\mathrm{nuc}}\|Y\|_2.
+$$
+
+### 关键证明：用 SVD 找到达到上界的矩阵
+
+先证明谱范数的对偶是核范数。
+
+设 $Y\ne0$，秩为 $r$，其紧致 SVD 写成
+$$
+Y=\sum_{i=1}^r\sigma_i u_i v_i^\top,
+$$
+其中 $\sigma_i>0$，$\{u_i\}$ 与 $\{v_i\}$ 分别是正交归一向量组。
+
+对任意 $\|X\|_2\le1$，
+$$
+\begin{aligned}
+|\langle X,Y\rangle|
+&=\left|\sum_{i=1}^r\sigma_i u_i^\top Xv_i\right|\\
+&\le\sum_{i=1}^r\sigma_i|u_i^\top Xv_i|\\
+&\le\sum_{i=1}^r\sigma_i\|u_i\|_2\|Xv_i\|_2\\
+&\le\sum_{i=1}^r\sigma_i\|X\|_2\\
+&\le\sum_{i=1}^r\sigma_i
+=\|Y\|_{\mathrm{nuc}}.
+\end{aligned}
+$$
+
+这里依次使用了三角不等式、Cauchy–Schwarz 不等式，
+以及谱范数控制长度放大的性质。
+
+为了证明这个上界可以达到，取
+$$
+X_0=\sum_{i=1}^r u_i v_i^\top.
+$$
+它把每个 $v_i$ 映到对应的 $u_i$，
+并把这些 $v_i$ 张成空间的正交补映到零，
+所以 $\|X_0\|_2=1$。此时
+$$
+\langle X_0,Y\rangle
+=\sum_{i=1}^r\sigma_i
+=\|Y\|_{\mathrm{nuc}}.
+$$
+因此谱范数单位球上的上确界恰好等于核范数。
+
+再证明反方向。由上面得到的不等式交换 $X,Y$，
+对于 $\|X\|_{\mathrm{nuc}}\le1$，
+$$
+\langle X,Y\rangle
+\le\|X\|_{\mathrm{nuc}}\|Y\|_2
+\le\|Y\|_2.
+$$
+
+取对应最大奇异值的秩一矩阵
+$$
+X_1=u_1v_1^\top.
+$$
+它只有一个非零奇异值，且该奇异值为 $1$，所以
+$$
+\|X_1\|_{\mathrm{nuc}}=1,
+\qquad
+\langle X_1,Y\rangle=\sigma_1(Y)=\|Y\|_2.
+$$
+上界再次取到，故核范数的对偶是谱范数。
+当 $Y=0$ 时，两个结论均直接成立。
+
+### 为什么核范数用于低秩优化
+
+矩阵的秩统计非零奇异值的个数，而核范数累加奇异值的大小。
+因此，核范数惩罚相当于对奇异值向量施加 $\ell_1$ 惩罚，
+常被用作秩惩罚的凸替代，以鼓励低秩结构。
+
+谱范数与核范数的对偶关系又说明：
+核范数目标在共轭与对偶推导中，会自然对应谱范数单位球约束。
+
+不过，使用核范数并不自动保证指定的秩，
+也不自动保证恢复真实低秩矩阵；
+这些结论还需要观测模型与问题结构的额外条件。
+
+### 与向量 Euclidean 范数的区别
+
+向量的 $\ell_2$ 范数是自对偶的，
+但矩阵谱范数不是。矩阵空间中自对偶的是 Frobenius 范数：
+$$
+\sup_{\|X\|_F\le1}\langle X,Y\rangle=\|Y\|_F.
+$$
+
+原因是 Frobenius 内积与范数等价于把矩阵按元素展开后，
+使用向量的 Euclidean 内积与范数。
+不能仅因谱范数也记作 $\|\cdot\|_2$，
+就把向量 $\ell_2$ 范数的自对偶结论直接搬过来。
 
 ## 向量、矩阵与张量求导 {#sec-matrix-calculus}
 

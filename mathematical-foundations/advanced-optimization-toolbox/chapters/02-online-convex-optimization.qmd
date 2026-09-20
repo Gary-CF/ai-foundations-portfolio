@@ -3,6 +3,8 @@
 离线优化面对一个固定目标；在线优化面对的是连续到来的决策轮次。学习器必须先作出决策，随后才看到当轮损失及其反馈。因此，本章首先固定“谁先行动、能看到什么、与谁比较”，再讨论算法。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章以 Lecture 5 为主线。Online Convex Optimization Warmup 博客只用于辅助动机表达，正式定义、条件和结论以课件中的 OCO 模型为准。动态遗憾、非平稳环境和 Bandit 反馈只标明接口，不在本章展开。
 :::
 

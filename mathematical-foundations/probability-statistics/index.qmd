@@ -6,3 +6,4 @@
 
 笔记较为粗略，后续会持续校对、补充与完善，也希望能给读者带来一些帮助。
 
+公开来源与尚待补齐的材料身份见仓库的[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。

@@ -1,0 +1,124 @@
+# Markov 链与分布演化 {#sec-markov-evolution}
+
+如果当前状态已经包含预测下一步所需的历史信息，就可以用一步转移规则逐步构造整个过程的分布。本章限定为离散时间、有限或可数状态空间 $E$ 的齐次 Markov 链。
+
+## 从条件分布定义 Markov 性
+
+令 $\mathcal F_n^X=\sigma(X_0,\ldots,X_n)$。Markov 性要求对每个 $j\in E$，
+$$
+\mathbb P(X_{n+1}=j\mid\mathcal F_n^X)
+=\mathbb P(X_{n+1}=j\mid X_n)
+\quad\text{a.s.}
+$$
+若右侧在 $X_n=i$ 时不依赖 $n$，称为时间齐次，记
+$$
+p_{ij}=\mathbb P(X_{n+1}=j\mid X_n=i),\qquad
+P=(p_{ij})_{i,j\in E}.
+$$
+矩阵满足 $p_{ij}\ge0,\sum_jp_{ij}=1$。对于在某个初始分布下不会被访问的状态，$p_{ij}$ 仍作为模型给定的转移规则，而不是从一个零概率条件事件中反推。
+
+给定初始分布 $\alpha_i=\mathbb P(X_0=i)$，对有限路径有
+$$
+\mathbb P(X_0=i_0,\ldots,X_n=i_n)
+=\alpha_{i_0}p_{i_0i_1}\cdots p_{i_{n-1}i_n}.
+$$
+这是条件概率链式法则加上 Markov 性：每次条件化时，全部历史都被当前状态替代。初始分布与转移矩阵缺一不可。
+
+例如 $X_{n+1}=X_n+\xi_{n+1}$，其中增量独立同分布且与 $X_0$ 独立，则
+$$
+\mathbb P(X_{n+1}=j\mid\mathcal F_n^X)
+=\mathbb P(\xi_{n+1}=j-X_n).
+$$
+独立增量给出了 Markov 性。一般 Markov 链则未必具有独立增量：下一步的变化可以随当前状态改变。
+
+## 多步转移与 Chapman–Kolmogorov 方程
+
+记从 $i$ 出发的概率与期望为 $\mathbb P_i,\mathbb E_i$，并定义
+$$
+p_{ij}^{(n)}=\mathbb P_i(X_n=j),\qquad P^{(0)}=I.
+$$
+在中间时刻 $m$ 对状态 $k$ 分解，
+$$
+\begin{aligned}
+p_{ij}^{(m+n)}
+&=\sum_{k\in E}\mathbb P_i(X_m=k)\,
+\mathbb P_i(X_{m+n}=j\mid X_m=k)\\
+&=\sum_{k\in E}p_{ik}^{(m)}p_{kj}^{(n)}.
+\end{aligned}
+$$
+第二步同时用了 Markov 性和齐次性；零概率分支贡献为零。可数求和各项非负，不存在条件收敛问题。因此
+$$
+P^{(m+n)}=P^{(m)}P^{(n)},\qquad P^{(n)}=P^n.
+$$
+这就是 Chapman–Kolmogorov 方程。若转移规则随时间改变，需要保留起止时刻并按顺序乘不同矩阵，不能写成单个 $P$ 的幂。
+
+采用行向量分布约定，
+$$
+\boxed{\quad\alpha_n=\alpha_0P^n.\quad}
+$$
+不要把分布行向量与随机状态向量混淆。对于函数 $f:E\to\mathbb R$，则把函数值排列为列向量，定义转移算子
+$$
+(Pf)(i)=\sum_jp_{ij}f(j)=\mathbb E_i f(X_1).
+$$
+对有界 $f$，或有关项绝对可积时，
+$$
+\mathbb E[f(X_{n+m})\mid\mathcal F_n^X]=(P^mf)(X_n).
+$$
+同一个矩阵向前推进状态分布、把未来函数拉回当前状态，左右乘法分别对应这两个用途。
+
+## 一个二状态模型
+
+令 $E=\{0,1\}$，
+$$
+P=\begin{pmatrix}1-a&a\\b&1-b\end{pmatrix},\qquad0\le a,b\le1.
+$$
+设 $q_n=\mathbb P(X_n=1)$，则
+$$
+q_{n+1}=a(1-q_n)+(1-b)q_n=a+(1-a-b)q_n.
+$$
+若 $a+b>0$，固定点为 $q_*=a/(a+b)$，故
+$$
+q_n-q_*=(1-a-b)^n(q_0-q_*).
+$$
+当 $0<a+b<2$ 时，分布趋向固定点；当 $a=b=1$ 时，状态确定交替，分布一般振荡。即使后者存在不变分布 $(1/2,1/2)$，从单个状态出发也不收敛到它。这个例子预告了“平稳”和“极限”的区别。
+
+## 首次进入与一步分析
+
+对集合 $A\subseteq E$，定义首次进入时间
+$$
+T_A=\inf\{n\ge0:X_n\in A\},\qquad\inf\varnothing=\infty.
+$$
+进入概率 $h_i=\mathbb P_i(T_A<\infty)$ 满足
+$$
+h_i=1\ (i\in A),\qquad h_i=\sum_jp_{ij}h_j\ (i\notin A).
+$$
+后一个等式来自按第一步分解。对 $u_i=\mathbb E_iT_A$，允许值为无穷大，同理得到
+$$
+u_i=0\ (i\in A),\qquad u_i=1+\sum_jp_{ij}u_j\ (i\notin A).
+$$
+方程给出了计算入口，但无限状态时仅解方程未必唯一。真实的 $h$ 是第一组边界方程的最小非负解，真实的 $u$ 是第二组的最小非负解。证明方法是先考虑有限步内进入的概率或截断的累计等待，再迭代一步关系，最后单调取极限；任意非负解都在每轮迭代中控制这些有限时量。边界条件、非负性与最小性不能省略。
+
+## 随机时刻的 Markov 性 {#sec-discrete-strong-markov}
+
+对自然滤过，若 $T$ 满足 $\{T\le n\}\in\mathcal F_n^X$，就称为停时。首次进入时间是停时，因为是否已经进入只需检查到当前为止的状态。停时的信息记为
+$$
+\mathcal F_T^X=\{A\in\mathcal F:\ A\cap\{T=n\}\in\mathcal F_n^X\text{ 对所有有限 }n\}.
+$$
+对几乎处处有限的停时 $T$ 和有界 $f$，
+$$
+\mathbb E[f(X_{T+m})\mid\mathcal F_T^X]=(P^mf)(X_T).
+$$
+离散时间下可以直接证明。任取 $A\in\mathcal F_T^X$，按 $\{T=n\}$ 分解：
+$$
+\begin{aligned}
+\mathbb E[\mathbf1_A f(X_{T+m})]
+&=\sum_{n\ge0}\mathbb E[\mathbf1_{A\cap\{T=n\}}f(X_{n+m})]\\
+&=\sum_{n\ge0}\mathbb E[\mathbf1_{A\cap\{T=n\}}(P^mf)(X_n)]\\
+&=\mathbb E[\mathbf1_A(P^mf)(X_T)].
+\end{aligned}
+$$
+中间一步用了确定时刻的 Markov 性，因为分支事件属于 $\mathcal F_n^X$；有界性使求和绝对可积。对有限多个未来状态的函数重复这一论证，就得到停时之后的整段转移规则。若 $T$ 可能无穷大，结论只在 $\{T<\infty\}$ 上使用。
+
+这项强 Markov 性支持后面“每次返回某状态后重新开始”的论证。它不能推广到任意依赖未来的随机时刻，例如“最后一次访问某状态”的时刻一般不是停时。
+
+**材料依据。** “随机过程—2024年版”视频组（讲者待补，公开链接见仓库参考资料） P23–P24 的 Markov 性、齐次转移、多步分布与随机游走；张颢 P14 的引入。一步分析和离散停时分解是状态分类与长期行为所需的桥接。

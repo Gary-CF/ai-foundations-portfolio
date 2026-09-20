@@ -25,7 +25,7 @@ $$
 
 $\mathcal F_t$ 表示截至时刻 $t$ 已经知道的全部信息。若随机变量 $X_t$ 在 $\mathcal F_t$ 下可测，就称过程 $\{X_t\}$ 适应于 $\{\mathcal F_t\}$。
 
-在线决策中，动作 $A_t$ 通常由过去历史决定，因此它应当是 $\mathcal F_{t-1}$-可测的；奖励 $R_t$ 在本轮观察后才进入 $\mathcal F_t$。
+在线决策中，确定性策略的动作 $A_t$ 对过去历史 $\mathcal F_{t-1}$ 可测；随机策略则通常只有动作分布对它可测，新采样的 $A_t$ 不必如此。若要条件于已采样动作，应另用 $\mathcal G_t=\sigma(\mathcal F_{t-1},A_t)$ 表示决策后、奖励前的信息；奖励 $R_t$ 在观察后进入 $\mathcal F_t$。
 
 ### Martingale、submartingale 与 supermartingale
 
@@ -104,7 +104,7 @@ $$
 D_t=R_t-E[R_t\mid\mathcal F_{t-1}],
 $$
 
-即“实际奖励减去在当前历史和动作下的条件均值”。虽然动作 $A_t$ 可以根据历史自适应选择，但仍有
+这里是实际奖励减去仅给定历史的条件均值；随机动作也被平均。若要减去给定历史和已采样动作的条件均值，可改用 $D_t=R_t-E[R_t\mid\mathcal G_t]$，再由塔式性质得到相同的历史鞅差条件。虽然动作可以自适应选择，但仍有
 
 $$
 E[D_t\mid\mathcal F_{t-1}]=0.
@@ -295,13 +295,13 @@ $$
 
 $V_t$ 在每一步都由过去信息确定，是自适应过程中的累计条件方差。
 
-设 $\{D_t\}$ 是 martingale difference sequence，并且
+设 $\{D_t\}$ 是适应于 $\{\mathcal F_t\}$ 的平方可积 martingale difference sequence，令 $M_t=\sum_{s=1}^tD_s$、$M_0=0$。假设有确定常数 $b>0$，使
 
 $$
 D_t\le b
 $$
 
-几乎必然成立。则对任意 $x,v>0$，
+几乎必然成立。则对固定时刻 $t$ 及任意确定阈值 $x\ge0$、$v>0$，
 
 $$
 P(M_t\ge x,\ V_t\le v)
@@ -311,7 +311,16 @@ P(M_t\ge x,\ V_t\le v)
 \right).
 $$
 
-这就是 Freedman 不等式的常用固定时刻形式。
+这就是 Freedman 不等式的常用固定时刻形式，参见 Tropp 的 [Theorem 1.1](https://arxiv.org/pdf/1101.3039)。$V_t$ 一般是随机量；“可预测”并不表示它是事先固定的常数，不能直接将确定阈值 $v$ 替换成 $V_t$ 得到随机边界。
+
+若另有确定的 $v>0$ 满足 $V_t\le v$ 几乎必然成立，令 $L=\log(1/\delta)$、$0<\delta<1$，解二次不等式得到：以至少 $1-\delta$ 的概率，
+
+$$
+M_t\le \frac{bL}{3}+\sqrt{2vL+\frac{b^2L^2}{9}}
+\le\sqrt{2vL}+\frac{2bL}{3}.
+$$
+
+若方差上界仅以高概率成立，须另计其失败概率。这与《高级优化工具箱》集中工具附录采用相同的确定阈值约定。
 
 ### 证明主线
 
@@ -502,6 +511,10 @@ R\sqrt{
 $$
 
 Linear UCB 与线性 Bandit 的 optimism bonus 正是从这个椭球置信集出发。
+
+```{=latex}
+\clearpage
+```
 
 ## 集中工具如何选择
 

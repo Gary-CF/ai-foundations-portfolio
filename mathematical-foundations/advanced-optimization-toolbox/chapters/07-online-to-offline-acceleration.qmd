@@ -3,6 +3,8 @@
 普通 online-to-batch 把 $O(\sqrt T)$ 遗憾除以 $T$，得到 $O(T^{-1/2})$。若在线算法能利用光滑目标产生的梯度可预测性，并让累计权重增长到 $\Theta(T^2)$，同一转换可以得到 $O(T^{-2})$。关键不是机械加权，而是稳定转换、optimism 和负稳定项三者匹配。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 9，并与 Lecture 4 的 Nesterov 加速结果对照。完整保留 stabilized online-to-batch 的恒等式和 optimism 设计；Hölder 光滑下的 universal 方法只留研究接口。
 :::
 

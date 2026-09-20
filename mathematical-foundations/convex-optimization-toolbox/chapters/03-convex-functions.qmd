@@ -36,7 +36,7 @@ $$ {#eq-convex-definition}
 
 则称 $f$ 为凸函数。
 
-式 @eq-convex-definition 的几何含义是：函数图像上任意两点之间的弦，都位于函数图像的上方。
+ @eq-convex-definition 的几何含义是：函数图像上任意两点之间的弦，都位于函数图像的上方。
 
 ::: {.callout-note title="为什么定义域也必须是凸集？"}
 只有当 $x$ 与 $y$ 之间的整条线段都在定义域内时，比较“线段中点的函数值”和“端点函数值的加权平均”才有意义。定义域的凸性不是附带条件，而是凸函数定义的一部分。
@@ -130,7 +130,7 @@ f(y)\ge f(x)+\nabla f(x)^\top(y-x),
 \forall x,y\in\operatorname{dom}f.
 $$ {#eq-first-order-convex}
 
-右侧是 $f$ 在 $x$ 处的一阶 Taylor 近似。式 @eq-first-order-convex 表明：对凸函数，一阶近似不仅在 $x$ 附近有效，而且是整个定义域上的全局下界。
+右侧是 $f$ 在 $x$ 处的一阶 Taylor 近似。 @eq-first-order-convex 表明：对凸函数，一阶近似不仅在 $x$ 附近有效，而且是整个定义域上的全局下界。
 
 ::: {.callout-tip title="几何视角：局部信息为何能够控制全局？"}
 $\nabla f(x)$ 决定函数图像在 $(x,f(x))$ 处的切平面。凸函数的图像始终位于这个切平面上方，因此梯度提供的不是局部猜测，而是全局有效的线性下界。这也是梯度法、对偶理论和 KKT 条件能够成立的共同几何基础。
@@ -164,7 +164,7 @@ $$
 
 #### 充分性
 
-反过来，假设式 @eq-first-order-convex 对所有 $x,y$ 都成立。令
+反过来，假设 @eq-first-order-convex 对所有 $x,y$ 都成立。令
 
 $$
 z=\theta x+(1-\theta)y,
@@ -222,7 +222,7 @@ g''(t)
 v^\top\nabla^2f(x+tv)v.
 $$
 
-因此，高维 Hessian 半正定恰好等价于函数沿每个方向的二阶导数非负，再结合直线限制判定即可得到式 @eq-second-order-convex。
+因此，高维 Hessian 半正定恰好等价于函数沿每个方向的二阶导数非负，再结合直线限制判定即可得到 @eq-second-order-convex。
 
 #### 例：凸二次函数
 

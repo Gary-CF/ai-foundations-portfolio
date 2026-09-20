@@ -1,0 +1,224 @@
+# 鞅与停止 {#sec-martingales-stopping}
+
+Markov 性约束未来的条件分布，鞅性质只约束未来的条件均值。鞅允许依赖全部历史，但要求在已经掌握的信息下，下一步没有可预测的平均增量。
+
+## 定义与基本计算
+
+固定滤过 $(\mathcal F_n)_{n\ge0}$。实值过程 $(M_n)$ 是关于该滤过的鞅，如果对每个 $n$：
+
+- $M_n$ 对 $\mathcal F_n$ 可测，即过程适应；
+- $\mathbb E|M_n|<\infty$；
+- $\mathbb E[M_{n+1}\mid\mathcal F_n]=M_n$ a.s.。
+
+若最后的等号换成 $\ge$，称为下鞅（submartingale）；换成 $\le$，称为上鞅（supermartingale）。名称容易混淆，使用时以条件不等式方向为准。
+
+反复用塔式法则，$m\ge n$ 时
+$$
+\mathbb E[M_m\mid\mathcal F_n]=M_n,\qquad
+\mathbb EM_m=\mathbb EM_0.
+$$
+每一步的可积性确保条件期望存在；滤过的包含关系确保可以逐步消去较晚信息。仅有无条件均值恒定不够。例如 $M_0=Z,M_1=-Z$，$Z$ 为均值零的非退化可积变量，取 $\mathcal F_0=\mathcal F_1=\sigma(Z)$，二者均值相同，但条件鞅等式不成立。
+
+若 $\xi_k$ 独立、可积且均值零，$S_n=\sum_{k=1}^n\xi_k$，则对自然滤过
+$$
+\mathbb E[S_{n+1}\mid\mathcal F_n]
+=S_n+\mathbb E[\xi_{n+1}\mid\mathcal F_n]=S_n.
+$$
+独立性在最后把条件均值化成零。更一般地，只需增量满足 $\mathbb E[\xi_{n+1}\mid\mathcal F_n]=0$；这样的序列称为鞅差序列，不要求增量独立。
+
+反过来，任意鞅的增量 $D_k=M_k-M_{k-1}$ 都是鞅差。若平方可积，则 $j<k$ 时
+$$
+\mathbb E[D_jD_k]=\mathbb E[D_j\mathbb E(D_k\mid\mathcal F_{k-1})]=0.
+$$
+因此不同时刻的鞅差正交，但一般不独立。
+
+## 可预测下注与乘积鞅
+
+设 $H_k$ 对 $\mathcal F_{k-1}$ 可测，表示第 $k$ 次结果揭晓前决定的系数。若每个 $H_k$ 有界，则
+$$
+Y_n=Y_0+\sum_{k=1}^nH_k(M_k-M_{k-1})
+$$
+在 $Y_0$ 可积且 $\mathcal F_0$-可测时仍是鞅，因为
+$$
+\mathbb E[Y_n-Y_{n-1}\mid\mathcal F_{n-1}]
+=H_n\mathbb E[M_n-M_{n-1}\mid\mathcal F_{n-1}]=0.
+$$
+这里“下注先于结果”表现为可测性，“平均增量为零”来自原鞅；有界性是保证乘积可积的方便充分条件，并非要求所有时间共享同一个界。
+
+另一个课程例子是独立可积变量 $Z_k$，满足 $\mathbb EZ_k=1$。置 $M_0=1,M_n=\prod_{k=1}^n Z_k$，则独立性保证有限乘积绝对可积，且
+$$
+\mathbb E[M_{n+1}\mid\sigma(Z_1,\ldots,Z_n)]=M_n.
+$$
+如果 $Z_k=2\mathbf1_{\{\text{第 }k\text{ 次公平硬币为正面}\}}$，则
+$$
+M_n=2^n\mathbf1_{\{\text{前 }n\text{ 次全为正面}\}}.
+$$
+它是均值恒为 $1$ 的非负鞅，几乎每条路径最终却变成零。@sec-martingales-convergence 将解释为何这里不能交换极限与期望。
+
+## 凸变换与下鞅
+
+若 $M$ 是鞅，$\varphi$ 为凸函数且 $\varphi(M_n)$ 可积，由条件 Jensen 不等式，
+$$
+\mathbb E[\varphi(M_{n+1})\mid\mathcal F_n]
+\ge\varphi(\mathbb E[M_{n+1}\mid\mathcal F_n])
+=\varphi(M_n).
+$$
+因此 $|M_n|$ 是下鞅；若 $M_n$ 平方可积，$M_n^2$ 也是下鞅。对**下鞅**作同样变换，还需要 $\varphi$ 单调不减，才能把条件均值的不等式传入 $\varphi$。平方函数在全实轴上不单调，不能据此断言任意下鞅的平方仍是下鞅。
+
+若 $S_n$ 是独立同分布、均值零、方差 $\sigma^2<\infty$ 的增量和，则展开平方，
+$$
+\mathbb E[S_{n+1}^2\mid\mathcal F_n]=S_n^2+\sigma^2,
+$$
+所以 $S_n^2-n\sigma^2$ 是鞅。减去可预测的方差累积，把平方过程重新中心化，是后面计算停止时间的关键构造。
+
+## 可预测漂移：把平均趋势单独记账 {#sec-doob-decomposition}
+
+对于一般可积适应过程 $Y_n$，条件平均增量不一定为零，但在增量发生前就能由当前信息计算。令
+$$
+d_k=\mathbb E[Y_k-Y_{k-1}\mid\mathcal F_{k-1}],\qquad
+A_0=0,\quad A_n=\sum_{k=1}^nd_k,\quad M_n=Y_n-A_n.
+$$
+每个 $d_k$ 都可积且对 $\mathcal F_{k-1}$ 可测，$A_n$ 在时刻 $n-1$ 已知，称为可预测过程。注意“可预测”是相对于信息的可测性，并不表示它是确定性函数。
+
+从定义直接得到
+$$
+\mathbb E[M_n-M_{n-1}\mid\mathcal F_{n-1}]
+=\mathbb E[Y_n-Y_{n-1}\mid\mathcal F_{n-1}]-d_n=0.
+$$
+所以
+$$
+\boxed{\quad Y_n=M_n+A_n,\quad M\text{ 是鞅，}\ A\text{ 可预测且 }A_0=0.\quad}
+$$
+这就是离散时间的 Doob 分解。构造只涉及有限次可积变量求和，不需要二阶矩。它把可预测的平均漂移放进 $A$，留下条件均值为零的波动。
+
+在 $A_0=0$ 的约定下，分解唯一：若另一组 $Y=\widetilde M+\widetilde A$ 满足同样条件，令 $D=A-\widetilde A=\widetilde M-M$。它既是鞅又可预测，故
+$$
+D_n=\mathbb E[D_n\mid\mathcal F_{n-1}]=D_{n-1},\qquad D_0=0.
+$$
+因此 $D_n=0$ a.s.。若 $Y$ 是下鞅，则 $d_k\ge0$，$A_n$ 非减；上鞅对应非增的 $A$。
+
+两个已见构造现在具有同一个解释：独立均值零、方差 $\sigma^2$ 的增量和满足 $Y_n=S_n^2$、$A_n=n\sigma^2$；在整数时刻观察非齐次泊松过程时，$Y_n=N(n)$ 的平均漂移为 $\Lambda(n)-\Lambda(n-1)$，因此 $N(n)-\Lambda(n)$ 是关于该离散滤过的鞅。
+
+这是对课程鞅差与条件均值构造的增强桥接。本节只处理离散时间，不把该有限和公式当作连续时间 Doob–Meyer 分解的证明。
+
+## 停时与停止过程
+
+取值于 $\mathbb N_0\cup\{\infty\}$ 的随机变量 $T$ 称为关于 $(\mathcal F_n)$ 的停时，若
+$$
+\{T\le n\}\in\mathcal F_n\qquad(n\ge0).
+$$
+例如首次达到阈值 $T=\inf\{n:M_n\ge a\}$ 是停时；判断当前是否已经触发不需要未来信息。某个区间内“最后一次达到阈值”一般不是停时，因为当前无法知道以后是否还会达到。
+
+对鞅 $M$ 和任意停时 $T$，定义 $M_n^T=M_{n\wedge T}$。固定 $n$ 时它适应且可积，因为
+$$
+|M_{n\wedge T}|\le\sum_{k=0}^n|M_k|.
+$$
+关键增量公式是
+$$
+M_{(n+1)\wedge T}-M_{n\wedge T}
+=\mathbf1_{\{T>n\}}(M_{n+1}-M_n).
+$$
+由于 $\{T>n\}\in\mathcal F_n$，取条件期望为零，所以停止过程仍是鞅；对下鞅、上鞅亦保留相应不等式。**固定 $n$ 的停止过程合法，不等于已经允许令 $n\to\infty$。**
+
+## 可选停止：先有限，再交换极限 {#sec-optional-stopping}
+
+若 $T\le N$ a.s.，由停止过程在确定时刻 $N$ 的期望，立即得到
+$$
+\mathbb EM_T=\mathbb EM_0.
+$$
+若仅有 $T<\infty$ a.s.，只能先写
+$$
+\mathbb EM_{T\wedge n}=\mathbb EM_0.
+$$
+此时 $M_{T\wedge n}\to M_T$ a.s.；要得到终端期望等式，还需要保证 $L^1$ 收敛。以下是两组方便检查的充分条件：
+
+1. 存在可积随机变量 $Y$，使所有 $n$ 都有 $|M_{T\wedge n}|\le Y$。控制收敛直接适用。
+2. 鞅增量一致有界 $|M_{k+1}-M_k|\le C$，且 $\mathbb ET<\infty$。此时 $|M_{T\wedge n}|\le |M_0|+CT$，归入第一种情况。
+
+更一般地，一致可积的停止变量族也足够，见下一章。这些是充分条件清单，不是唯一可能的版本。
+
+**加倍下注反例。** 公平硬币每轮押正面，第一次押 $1$，每输一次翻倍，首次赢时停止。第 $k$ 次下注额 $2^{k-1}$ 由过去决定，每个有限时刻的净收益过程 $G_n$ 是鞅，$G_0=0$。若 $T$ 为首次正面，则 $T<\infty$ a.s.，甚至 $\mathbb ET=2$，但
+$$
+G_T=1\quad\text{a.s.},\qquad
+G_{T\wedge n}=\begin{cases}1,&T\le n,\\-(2^n-1),&T>n.
+\end{cases}
+$$
+其期望仍为零：概率 $2^{-n}$ 的巨大损失恰好抵消其他路径的收益。下注增量不一致有界，停止变量也不一致可积，因此终端等式不成立。“公平”与“停时平均有限”各自都不足以替代适用条件。
+
+## 赌徒破产：停止方法怎样正确使用
+
+令 $S_0=i\in\{1,\ldots,b-1\}$，每步独立以相同概率加减 $1$，$b\ge2$，并令
+$$
+T=\inf\{n:S_n\in\{0,b\}\}.
+$$
+从任一内部状态，接下来 $b$ 步连续向同一方向走就会触边，成功概率至少 $2^{-b}$。按长度 $b$ 的时间块条件化，得到几何尾界，故 $\mathbb ET<\infty$。
+
+$S_n$ 是鞅，且停止过程在 $[0,b]$ 内有界。因此
+$$
+\mathbb ES_T=i,\qquad
+\mathbb P_i(S_T=b)=\frac ib.
+$$
+再对 $S_n^2-n$ 使用**有界停时** $T\wedge n$，
+$$
+\mathbb E S_{T\wedge n}^2-\mathbb E(T\wedge n)=i^2.
+$$
+平方项由 $b^2$ 控制，时间项单调增加到 $T$，分别用控制收敛和单调收敛，得
+$$
+\mathbb ET=\mathbb ES_T^2-i^2=bi-i^2=i(b-i).
+$$
+推导没有直接把无界停时塞进平方鞅：先截断，再逐项说明极限依据，才得到所需公式。
+
+## Wald 恒等式：随机项数怎样进入期望 {#sec-wald}
+
+设 $\xi_1,\xi_2,\ldots$ 独立同分布，$\mathbb E|\xi_1|<\infty$，均值为 $\mu$，令 $S_n=\sum_{k=1}^n\xi_k$。相对于自然滤过 $\mathcal F_n=\sigma(\xi_1,\ldots,\xi_n)$，若停时 $T\in\mathbb N_0\cup\{\infty\}$ 满足 $\mathbb ET<\infty$，则
+$$
+\boxed{\quad\mathbb ES_T=\mu\,\mathbb ET.\quad}
+$$
+$T$ 一般依赖观测到的增量，并不与它们独立。真正起作用的是：是否需要第 $k$ 项，即 $\{T\ge k\}$，在看到第 $k$ 项之前已经确定。
+
+### 从中心化鞅到可交换的级数
+
+$M_n=S_n-n\mu$ 是鞅，对每个有界截断 $T\wedge n$ 有 $\mathbb EM_{T\wedge n}=0$。这里增量未必一致有界，不能仅凭前面的“有界增量加可积停时”版本结束证明。
+
+展开随机和更直接。由于 $\{T\ge k\}\in\mathcal F_{k-1}$，它与 $\xi_k$ 独立。先用 Tonelli 检查绝对可积：
+$$
+\begin{aligned}
+\mathbb E\sum_{k\ge1}|\xi_k|\mathbf1_{\{T\ge k\}}
+&=\sum_{k\ge1}\mathbb E|\xi_k|\,\mathbb P(T\ge k)\\
+&=\mathbb E|\xi_1|\,\mathbb ET<\infty.
+\end{aligned}
+$$
+于是 $S_T=\sum_{k\ge1}\xi_k\mathbf1_{\{T\ge k\}}$ 可积，Fubini 允许交换有符号求和与期望：
+$$
+\mathbb ES_T
+=\sum_{k\ge1}\mu\mathbb P(T\ge k)=\mu\mathbb ET.
+$$
+同一估计也控制截断尾部：
+$$
+\mathbb E|S_T-S_{T\wedge n}|
+\le\mathbb E|\xi_1|\sum_{k>n}\mathbb P(T\ge k)\to0.
+$$
+再加上 $T\wedge n\to T$ 于 $L^1$，就补齐了中心化鞅可选停止的极限步骤。这个证明说明：可积性可以由随机和结构提供，不必机械要求每步有统一界。
+
+### 一个停时例子与一个非停时反例
+
+令 $\xi_k\sim\operatorname{Bernoulli}(p)$ 独立，$0<p\le1$，$T$ 是首次出现 $1$ 的时刻。此时 $S_T=1$，且 $\mathbb ET=1/p$，故 $\mathbb ES_T=p\mathbb ET=1$。终止与增量明显相关，但公式成立。
+
+反过来，令 $\xi_1,\xi_2$ 独立以相同概率取 $\pm1$，并按尚未观察的第二项定义：若 $\xi_2=1$ 就取 $T=2$，否则取 $T=1$。它有界，却不是自然滤过的停时，因为 $\{T\le1\}=\{\xi_2=-1\}$ 在时刻 $1$ 不可知。此时
+$$
+S_T=\xi_1+\xi_2\mathbf1_{\{\xi_2=1\}},\qquad
+\mathbb ES_T=\tfrac12\ne0=\mu\mathbb ET.
+$$
+所以“项数有限”不能替代“终止规则是停时”。即使是停时，若 $\mathbb ET=\infty$，也不能照搬本节的有限期望等式。
+
+### 与课程中的指数型 Wald 公式衔接
+
+如果 $m(\theta)=\mathbb E e^{\theta\xi_1}<\infty$，记 $\psi(\theta)=\log m(\theta)$，则
+$$
+L_n(\theta)=\exp\{\theta S_n-n\psi(\theta)\}
+$$
+是非负乘积鞅。停止后若有适当的一致可积性，才能把 $\mathbb EL_{T\wedge n}(\theta)=1$ 推进到 $\mathbb EL_T(\theta)=1$。课程还由指数表达对参数求导讨论随机和；那需要额外核对求导与期望交换。本节用绝对可积级数单独证明一阶等式，避免暗中附加矩母函数存在的假设。
+
+序贯概率比检验使用的正是对数似然增量构成的随机游走，见 @sec-sprt。其平均样本数计算使用本节等式；其错误概率控制则使用非负似然比鞅，两者用途不同。
+
+**材料依据。** MIT 第23–24讲的鞅差、可预测下注、乘积、停止及 Wald 讨论。可预测漂移分解是对课程构造的增强桥接；一阶 Wald 等式另用绝对可积级数补齐证明，不依赖未经检查的参数求导。序贯检验移入独立附录。

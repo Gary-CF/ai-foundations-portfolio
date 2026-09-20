@@ -3,6 +3,8 @@
 OGD 默认用 Euclidean 距离衡量移动代价，但“距离近”应由问题结构决定：概率分布适合 KL 散度，椭球域适合 Mahalanobis 范数。Online Mirror Descent（OMD）用一个强凸正则函数把几何写进更新和证明。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 7。只完整建立 Bregman 三点结构与 OMD 主不等式，再把 OGD、Hedge、ONS、FTRL 和 dual averaging 放入同一坐标系；不并列重复前两章已经完成的具体遗憾证明。
 :::
 

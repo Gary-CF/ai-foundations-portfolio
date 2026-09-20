@@ -55,7 +55,7 @@ $$
 \theta x+(1-\theta)y\in C,
 $$ {#eq-convex-set}
 
-则 $C$ 为凸集。由归纳法，式 @eq-convex-set 等价于：$C$ 包含其任意有限个点的所有凸组合。
+则 $C$ 为凸集。由归纳法， @eq-convex-set 等价于：$C$ 包含其任意有限个点的所有凸组合。
 
 ### 凸锥
 
@@ -287,24 +287,108 @@ $$
 
 ### 线性分式映射
 
-考虑
-
+考虑映射
 $$
-T(x)
-=
-\frac{Ax+b}{c^\top x+d},
-\qquad c^\top x+d>0.
-$$
-
-在分母为正的定义域上，凸集在该映射下的像仍为凸集。证明通常通过透视坐标
-
-$$
-y=\frac{x}{c^\top x+d},
+T(x)=\frac{Ax+b}{c^\top x+d},
 \qquad
-t=\frac{1}{c^\top x+d}
+\operatorname{dom}T
+=\{x\in\mathbb R^n:c^\top x+d>0\},
+$$
+其中 $A\in\mathbb R^{m\times n}$、$b\in\mathbb R^m$、
+$c\in\mathbb R^n$、$d\in\mathbb R$。
+
+若 $C\subseteq\operatorname{dom}T$ 是凸集，则其像
+$$
+T(C)=\{T(x):x\in C\}
+$$
+也是凸集。
+
+关键不在于 $T$ 是线性映射——它一般不是——而在于：
+像空间中两点的任意凸组合，都能找到一个仍在 $C$ 中的原像。
+
+**证明。**
+
+任取 $x_1,x_2\in C$ 和 $\theta\in[0,1]$。
+我们要找到 $x_\theta\in C$，使得
+$$
+T(x_\theta)
+=\theta T(x_1)+(1-\theta)T(x_2).
 $$
 
-将问题还原为线性关系。它是后续线性分式规划等价变换的几何基础。
+引入透视坐标
+$$
+t_i=\frac{1}{c^\top x_i+d}>0,
+\qquad
+y_i=t_i x_i,
+\qquad i=1,2.
+$$
+由定义可得
+$$
+c^\top y_i+dt_i=1,
+\qquad
+T(x_i)=Ay_i+bt_i.
+$$
+因此，在 $(y,t)$ 坐标下，原来的分式变成了线性表达式。
+
+在这个坐标空间中取凸组合：
+$$
+y_\theta=\theta y_1+(1-\theta)y_2,
+\qquad
+t_\theta=\theta t_1+(1-\theta)t_2.
+$$
+由于 $t_1,t_2>0$，有 $t_\theta>0$，可以还原出
+$$
+\begin{aligned}
+x_\theta
+&=\frac{y_\theta}{t_\theta}\\
+&=\frac{\theta t_1}{t_\theta}x_1
++\frac{(1-\theta)t_2}{t_\theta}x_2.
+\end{aligned}
+$$
+这里两个系数均非负，且和为 $1$。
+所以 $x_\theta$ 是 $x_1,x_2$ 的凸组合，由 $C$ 的凸性可知
+$x_\theta\in C$。
+
+另一方面，线性约束在凸组合下保持：
+$$
+\begin{aligned}
+c^\top y_\theta+dt_\theta
+&=\theta(c^\top y_1+dt_1)
+ +(1-\theta)(c^\top y_2+dt_2)\\
+&=1.
+\end{aligned}
+$$
+于是
+$$
+c^\top x_\theta+d
+=\frac{c^\top y_\theta+dt_\theta}{t_\theta}
+=\frac{1}{t_\theta}>0,
+$$
+从而
+$$
+\begin{aligned}
+T(x_\theta)
+&=\frac{A(y_\theta/t_\theta)+b}{1/t_\theta}\\
+&=Ay_\theta+bt_\theta\\
+&=\theta(Ay_1+bt_1)
+ +(1-\theta)(Ay_2+bt_2)\\
+&=\theta T(x_1)+(1-\theta)T(x_2).
+\end{aligned}
+$$
+这说明像空间中的任意凸组合仍属于 $T(C)$，故 $T(C)$ 为凸集。
+
+**几何理解。**
+
+线性分式映射保留线段，但一般不保留线段上的分点比例：
+像空间中的权重是 $\theta$，对应原空间中的权重却是
+$\theta t_1/t_\theta$。
+
+分母为正的条件保证 $t_1,t_2,t_\theta>0$，
+使还原过程中的系数确实构成凸组合。
+因此不能不加条件地把结论推广到跨越分母零点的集合。
+
+这种“引入 $(y,t)$，把分式还原为线性关系”的方法，
+也是后续线性分式规划等价变换的几何基础。
 
 ## 分离超平面
 

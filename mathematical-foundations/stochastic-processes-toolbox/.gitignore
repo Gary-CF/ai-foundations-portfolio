@@ -1,0 +1,22 @@
+/_book/
+/_pdf/
+/.quarto/
+*.zip
+*.log
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*:Zone.Identifier
+.DS_Store
+__MACOSX/
+
+**/*.quarto_ipynb
+
+# 单文件渲染可能留下的旁路生成物
+/index.html
+/chapters/*.html
+/appendices/*.html
+/chapters/*_files/
+/appendices/*_files/
+/site_libs/

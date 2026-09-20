@@ -1,0 +1,6 @@
+format:
+  pdf:
+    documentclass: book
+    mainfont: Noto Sans CJK SC
+    sansfont: Noto Sans CJK SC
+    include-in-header: tex/portable.tex

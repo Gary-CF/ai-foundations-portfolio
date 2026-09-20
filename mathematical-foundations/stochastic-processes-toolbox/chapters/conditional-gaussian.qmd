@@ -1,0 +1,363 @@
+# 条件高斯与估计 {#sec-conditional-gaussian}
+
+我们常常只能看到系统的一部分：观测到了 $Y=y$，却想知道没有直接观测到的 $X$。问题不只是“猜一个 $X$”，还包括：猜测之后，剩下多少不确定性？
+
+联合高斯模型把这两件事放在一起回答：**条件均值给出均方误差最小的估计，条件协方差描述估计后剩余的不确定性。** 本章沿着“分块消元与配方 → 估计解释 → 线性观测”的顺序展开。
+
+前置知识只需多元高斯、协方差和分块矩阵乘法。条件期望的最优性会在使用处证明。
+
+## 先分清：未知量、观测量与条件 {#sec-objects}
+
+全章随机向量均为列向量。设 $X\in\mathbb R^p$、$Y\in\mathbb R^q$，并且它们**联合高斯**：
+
+$$
+\begin{pmatrix}X\\Y\end{pmatrix}
+\sim\mathcal N\!\left(
+\begin{pmatrix}\mu_X\\\mu_Y\end{pmatrix},
+\underbrace{\begin{pmatrix}
+\Sigma_{XX}&\Sigma_{XY}\\
+\Sigma_{YX}&\Sigma_{YY}
+\end{pmatrix}}_{\Sigma}\right).
+$$
+
+这里
+
+$$
+\Sigma_{XY}=\mathbb E[(X-\mu_X)(Y-\mu_Y)^\top]
+\in\mathbb R^{p\times q},\qquad
+\Sigma_{YX}=\Sigma_{XY}^\top.
+$$
+
+“$X$ 和 $Y$ 各自高斯”还不够；需要拼起来的向量联合高斯。后面从不相关推出独立，正是用到了这个条件。
+
+还要区分两个对象：$\mathbb E[X\mid Y=y]$ 是观测值 $y$ 对应的向量；$\mathbb E[X\mid Y]$ 则是 $Y$ 的函数，在观测发生之前仍是随机向量。我们先求前者，再把 $y$ 换回 $Y$ 得到后者。
+
+连续型的 $Y$ 通常满足 $\mathbb P(Y=y)=0$，因此不能用事件概率之比解释这里的条件。非退化情形下，用条件密度
+
+$$
+f_{X\mid Y}(x\mid y)=\frac{f_{X,Y}(x,y)}{f_Y(y)}
+$$
+
+来计算即可。这里固定 $y$，积分与配方的变量都是 $x$。
+
+## 条件分布：均值修正，协方差扣减 {#sec-formula}
+
+假设 $\Sigma_{YY}\succ0$，定义
+
+$$
+B=\Sigma_{XY}\Sigma_{YY}^{-1},\qquad
+S=\Sigma_{XX}-\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}.
+$$
+
+则条件分布为
+
+$$
+\boxed{\quad
+X\mid Y=y\sim\mathcal N\bigl(\mu_X+B(y-\mu_Y),\ S\bigr).
+\quad}
+$$
+
+三个位置分别有明确作用：
+
+- $y-\mu_Y$：观测相对于原先预期的偏差；
+- $B$：把观测偏差换算成对 $X$ 的修正；
+- $S$：利用观测后，尚未解释的协方差。
+
+条件协方差不依赖具体的 $y$，这是联合高斯模型的特殊结构。不同观测值移动条件分布的中心，但不改变它的形状。
+
+下面先在 $\Sigma\succ0$ 时用密度证明；此时 $S\succ0$。仅要求 $\Sigma_{YY}\succ0$ 时，$S$ 可以奇异，公式仍可用退化高斯分布来理解，后面的残差解释会说明原因。
+
+## 关键推导：保留观测块，消掉交叉块 {#sec-proof}
+
+### 分块消元为什么恰好给出配方
+
+记中心化后的取值为 $u=x-\mu_X$、$v=y-\mu_Y$。联合密度的核心是二次型
+
+$$
+\begin{pmatrix}u\\v\end{pmatrix}^{\!\top}
+\Sigma^{-1}
+\begin{pmatrix}u\\v\end{pmatrix}.
+$$
+
+条件密度要除以 $Y$ 的边缘密度。于是我们希望把这个二次型拆成两块：一块只含 $v$，与分母抵消；另一块保留 $u$，直接读出条件分布。
+
+构造可逆矩阵
+
+$$
+L=\begin{pmatrix}I_p&-B\\0&I_q\end{pmatrix}.
+$$
+
+左乘时，利用 $B\Sigma_{YY}=\Sigma_{XY}$，有
+
+$$
+L\Sigma=
+\begin{pmatrix}
+\Sigma_{XX}-B\Sigma_{YX}&\Sigma_{XY}-B\Sigma_{YY}\\
+\Sigma_{YX}&\Sigma_{YY}
+\end{pmatrix}
+=\begin{pmatrix}S&0\\\Sigma_{YX}&\Sigma_{YY}\end{pmatrix}.
+$$
+
+再右乘 $L^\top$，因为 $\Sigma_{YY}B^\top=\Sigma_{YX}$，得到
+
+$$
+L\Sigma L^\top=
+\begin{pmatrix}S&0\\0&\Sigma_{YY}\end{pmatrix}
+=D.
+$$
+
+这一步保留了观测协方差 $\Sigma_{YY}$，消掉了两个交叉块。又因为 $\Sigma\succ0$ 且 $L$ 可逆，$D\succ0$，所以 $S\succ0$，后续求逆有依据。
+
+由 $L\Sigma L^\top=D$ 可得 $\Sigma^{-1}=L^\top D^{-1}L$。因此
+
+$$
+\begin{aligned}
+\begin{pmatrix}u\\v\end{pmatrix}^{\!\top}
+\Sigma^{-1}\begin{pmatrix}u\\v\end{pmatrix}
+&=
+\left(L\begin{pmatrix}u\\v\end{pmatrix}\right)^{\!\top}
+D^{-1}
+\left(L\begin{pmatrix}u\\v\end{pmatrix}\right)\\
+&=(u-Bv)^\top S^{-1}(u-Bv)
++v^\top\Sigma_{YY}^{-1}v.
+\end{aligned}
+$$
+
+这就是多元配方。关键不是背诵分块逆矩阵，而是找到变换 $u\mapsto u-Bv$，让交叉项消失。
+
+### 抵消边缘密度，并补齐归一化因子
+
+联合密度与边缘密度相除后，指数中的 $v^\top\Sigma_{YY}^{-1}v$ 正好抵消。归一化因子也能直接确定：由于 $\det L=1$，
+
+$$
+\det\Sigma=\det D=\det S\,\det\Sigma_{YY}.
+$$
+
+于是
+
+$$
+f_{X\mid Y}(x\mid y)=
+\frac{\exp\!\left[-\frac12(u-Bv)^\top S^{-1}(u-Bv)\right]}
+{(2\pi)^{p/2}(\det S)^{1/2}}.
+$$
+
+把 $u-Bv$ 写成 $x-[\mu_X+B(y-\mu_Y)]$，便得到上一节的条件均值与协方差。
+
+## 残差解释：观测到底解释了什么 {#sec-residual}
+
+把刚才的消元作用到随机向量上，令
+
+$$
+R=X-\mu_X-B(Y-\mu_Y).
+$$
+
+直接计算可得
+
+$$
+\mathbb E[R]=0,\qquad
+\operatorname{Cov}(R,Y)=\Sigma_{XY}-B\Sigma_{YY}=0,
+\qquad \operatorname{Cov}(R)=S.
+$$
+
+由于 $(R,Y)$ 是 $(X,Y)$ 的线性变换，它们仍联合高斯；**联合高斯加上零交叉协方差，才推出 $R$ 与 $Y$ 独立**。于是
+
+$$
+X=\underbrace{\mu_X+B(Y-\mu_Y)}_{\text{由观测确定的部分}}
++\underbrace{R}_{\text{与观测独立的残差}}.
+$$
+
+给定 $Y=y$，前一项成为确定向量，残差的分布不变。这既解释了条件均值的形式，也解释了条件协方差为什么不随 $y$ 改变。
+
+这一论证只需 $\Sigma_{YY}\succ0$，不需要联合密度存在，因此也覆盖 $S$ 奇异的情形：某些方向的残差可能恒为零。
+
+### “不确定性减少”是怎样的大小关系
+
+协方差的大小用半正定序比较：$S\preceq\Sigma_{XX}$ 表示对所有 $a\in\mathbb R^p$，
+
+$$
+a^\top S a\le a^\top\Sigma_{XX}a.
+$$
+
+也就是任意线性方向 $a^\top X$ 的条件方差都不超过原方差。这里
+
+$$
+a^\top(\Sigma_{XX}-S)a
+=(\Sigma_{YX}a)^\top\Sigma_{YY}^{-1}(\Sigma_{YX}a)\ge0,
+$$
+
+所以 $0\preceq S\preceq\Sigma_{XX}$。这不表示每个矩阵元素都变小，也不表示每个方向都严格减小：若 $\Sigma_{YX}a=0$，该方向没有方差缩减。
+
+对于一般分布，只能由全协方差公式得到
+
+$$
+\operatorname{Cov}(X)
+=\mathbb E[\operatorname{Cov}(X\mid Y)]
++\operatorname{Cov}(\mathbb E[X\mid Y]).
+$$
+
+它保证的是**平均条件协方差**不超过原协方差，不能据此断言每一个观测值下的条件方差都更小。联合高斯中条件协方差恒为 $S$，才得到这里逐个观测值成立的结论。
+
+## 为什么条件均值就是最优估计 {#sec-estimation}
+
+这里的“最优”专指平方损失。给定 $\mathbb E\|X\|^2<\infty$，在所有满足 $\mathbb E\|g(Y)\|^2<\infty$ 的可测估计中，求
+
+$$
+\min_g\ \mathbb E\|X-g(Y)\|^2.
+$$
+
+令 $m(Y)=\mathbb E[X\mid Y]$。把误差分成
+
+$$
+X-g(Y)=[X-m(Y)]+[m(Y)-g(Y)].
+$$
+
+交叉项的期望为零，因为第二项是 $Y$ 的函数，而
+
+$$
+\mathbb E[X-m(Y)\mid Y]=0.
+$$
+
+具体地，利用条件期望与塔式法则，
+
+$$
+\begin{aligned}
+&\mathbb E\bigl[(X-m(Y))^\top(m(Y)-g(Y))\bigr]\\
+&\quad=\mathbb E\bigl[
+\mathbb E[X-m(Y)\mid Y]^\top(m(Y)-g(Y))\bigr]=0.
+\end{aligned}
+$$
+
+平方可积保证交叉项可积。因此
+
+$$
+\boxed{
+\mathbb E\|X-g(Y)\|^2
+=\mathbb E\|X-m(Y)\|^2
++\mathbb E\|m(Y)-g(Y)\|^2.}
+$$
+
+第二项非负，且等号成立当且仅当 $g(Y)=m(Y)$ 几乎处处。这就证明了最优性与几乎处处意义下的唯一性，**不需要高斯假设**。
+
+高斯假设额外保证了什么？它让本来可以是非线性的 $m(Y)$ 恰好成为仿射函数：
+
+$$
+m(Y)=\mu_X+\Sigma_{XY}\Sigma_{YY}^{-1}(Y-\mu_Y).
+$$
+
+仅有二阶矩且 $\Sigma_{YY}\succ0$ 时，上式仍是最佳仿射估计。原因是其残差与 $Y-\mu_Y$ 不相关，因而与任意仿射估计之差正交；同样展开平方即可证明。但没有联合高斯性，它未必在所有非线性估计中最优。
+
+本章把常说的“最优线性估计”准确写为“最优仿射估计”；中心化后，两者的系数公式相同。联合高斯是二者与条件均值重合的充分条件，不是必要条件。
+
+## 应用：从带噪观测推断状态 {#sec-observation}
+
+考虑课程中的线性高斯模型
+
+$$
+Y=AX+\varepsilon,\qquad
+X\sim\mathcal N(\mu,P),\quad
+\varepsilon\sim\mathcal N(0,V),\quad X\perp\!\!\!\perp\varepsilon.
+$$
+
+这里 $A\in\mathbb R^{q\times p}$，$P\succeq0$，假设 $V\succ0$。因此 $APA^\top+V\succ0$，观测协方差可逆。
+
+先检查联合高斯性，不能只检查两个边缘：独立的高斯向量 $(X,\varepsilon)$ 联合高斯，而
+
+$$
+\begin{pmatrix}X\\Y\end{pmatrix}
+=\begin{pmatrix}I_p&0\\A&I_q\end{pmatrix}
+\begin{pmatrix}X\\\varepsilon\end{pmatrix},
+$$
+
+所以 $(X,Y)$ 联合高斯。再计算公式需要的三个量：
+
+$$
+\begin{aligned}
+\mathbb E[Y]&=A\mu,\\
+\operatorname{Cov}(X,Y)
+&=\mathbb E[(X-\mu)(A(X-\mu)+\varepsilon)^\top]=PA^\top,\\
+\operatorname{Cov}(Y)&=APA^\top+V.
+\end{aligned}
+$$
+
+后两行的交叉项因为独立且噪声零均值而消失，**噪声自己的协方差 $V$ 不会消失**。
+
+代入条件高斯公式，得到
+
+$$
+\begin{aligned}
+K&=PA^\top(APA^\top+V)^{-1},\\
+\mathbb E[X\mid Y=y]&=\mu+K(y-A\mu),\\
+\operatorname{Cov}(X\mid Y=y)&=P-PA^\top(APA^\top+V)^{-1}AP.
+\end{aligned}
+$$
+
+$y-A\mu$ 是实际观测与预测观测之差，$K$ 决定用多大幅度修正原估计。本节只做一次观测更新，不延伸到完整的动态滤波算法。
+
+**一维例子。** 若 $Y=X+\varepsilon$，$X\sim\mathcal N(\mu,\tau^2)$，独立噪声 $\varepsilon\sim\mathcal N(0,\sigma^2)$，且 $\tau^2,\sigma^2>0$，则
+
+$$
+\mathbb E[X\mid Y=y]
+=\frac{\sigma^2}{\tau^2+\sigma^2}\mu
++\frac{\tau^2}{\tau^2+\sigma^2}y,
+\qquad
+\operatorname{Var}(X\mid Y=y)
+=\frac{\tau^2\sigma^2}{\tau^2+\sigma^2}.
+$$
+
+观测噪声越小，越信任 $y$；观测噪声越大，越保留原均值 $\mu$。例如 $\mu=0$、$\tau^2=4$、$\sigma^2=1$、$y=3$，条件均值是 $2.4$，条件方差是 $0.8$。估计向观测靠近，但仍保留噪声带来的不确定性。
+
+## 条件下求函数期望：先求分布，再求矩 {#sec-example}
+
+沿用讲稿中的例子。设 $U,V$ 独立且都服从 $\mathcal N(0,1)$，令
+
+$$
+X=U+2V,\qquad Y=U-V.
+$$
+
+它们联合高斯，且
+
+$$
+\mathbb E[X]=\mathbb E[Y]=0,\qquad
+\operatorname{Cov}\begin{pmatrix}X\\Y\end{pmatrix}
+=\begin{pmatrix}5&-1\\-1&2\end{pmatrix}.
+$$
+
+于是
+
+$$
+X\mid Y=y\sim\mathcal N\left(-\frac y2,\frac92\right).
+$$
+
+要求 $\mathbb E[X^2\mid Y=y]$，就在这个条件分布下求二阶矩：
+
+$$
+\mathbb E[X^2\mid Y=y]
+=\operatorname{Var}(X\mid Y=y)
++\bigl(\mathbb E[X\mid Y=y]\bigr)^2
+=\frac92+\frac{y^2}{4}.
+$$
+
+特别地，$y=2$ 时结果为 $11/2$。若条件写为随机变量 $Y$，则
+
+$$
+\mathbb E[X^2\mid Y]=\frac92+\frac{Y^2}{4}
+\quad\text{几乎处处成立}.
+$$
+
+一般地，在相应积分存在时，
+
+$$
+\mathbb E[h(X)\mid Y=y]=\int h(x)f_{X\mid Y}(x\mid y)\,dx.
+$$
+
+无需另造一个含义不清的“条件随机变量”；固定观测值，按条件分布计算即可。也不能把 $\mathbb E[h(X)\mid Y]$ 直接换成 $h(\mathbb E[X\mid Y])$，上面的平方例子就差了条件方差。
+
+## 查阅时先检查这几件事 {#sec-boundaries}
+
+- **联合性：** 边缘各自高斯不足以套条件高斯公式。
+- **求逆对象：** 逆的是观测协方差 $\Sigma_{YY}$；公式不是对矩阵做普通除法，乘法次序不能交换。
+- **退化情况：** $\Sigma_{YY}$ 奇异时，本章的普通逆公式不适用；需先处理冗余观测或另行讨论支持集上的退化条件分布。
+- **最优性的范围：** 本章最优性针对平方损失；条件均值不必是其他损失下的最优解。
+- **条件协方差：** 联合高斯下它不随观测值变化，且按半正定序不增；不要把这句话推广成一般分布的逐点结论。
+
+<!-- 本章来源映射、公式修复与桥接记录见 ../_draft/sample-audit.md。 -->

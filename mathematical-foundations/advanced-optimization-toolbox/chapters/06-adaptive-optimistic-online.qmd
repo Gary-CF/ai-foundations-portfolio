@@ -3,6 +3,8 @@
 最坏情形界回答“环境最难时会多差”，却不能区分一个平稳、低损失序列与真正对抗的序列。本章研究第二层目标：在不牺牲最坏情形保证的前提下，让遗憾自动缩放到数据实际呈现的小损失、低方差或低变化。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章对应 Lecture 8–9。small-loss、self-confident tuning、Optimistic OMD、gradient variance 与 gradient variation 均为主线；AdaGrad、coin-betting 和完整 parameter-free 理论只保留接口。
 :::
 

@@ -59,22 +59,32 @@ $$
 | Azuma–Hoeffding | 有界鞅差 | 自适应和 | 粗粒度高概率在线界 |
 | Freedman | 有界鞅差 + 条件方差 | 方差自适应的和 | online-to-batch、高概率遗憾 |
 
-若 $X_t$ 是鞅差、$X_t\le b$，令
+设 $(\mathcal F_t)_{t\ge0}$ 为 filtration，$X_t$ 是适应于它的平方可积鞅差，即 $X_t$ 对 $\mathcal F_t$ 可测且 $\mathbb E[X_t\mid\mathcal F_{t-1}]=0$。假设存在确定常数 $b>0$，使每步 $X_t\le b$ 几乎处处成立。定义从零出发的鞅及其可预测二次变差
 
 $$
-V_T=\sum_{t=1}^T\mathbb E_t[X_t^2].
+M_T=\sum_{t=1}^T X_t,
+\qquad
+V_T=\sum_{t=1}^T\mathbb E[X_t^2\mid\mathcal F_{t-1}].
 $$
 
-Freedman 型结论的典型形式为：以至少 $1-\delta$ 的概率，
+对固定时刻 $T$ 和**确定阈值** $x\ge0$、$v>0$，Freedman 不等式给出联合事件界
 
 $$
-\sum_{t=1}^TX_t
+\Pr(M_T\ge x,\ V_T\le v)
 \le
-\sqrt{2V_T\log(1/\delta)}
-+\frac b3\log(1/\delta),
+\exp\!\left(-\frac{x^2}{2(v+bx/3)}\right).
+$$ {#eq-freedman-joint}
+
+这是 Tropp 的 [Theorem 1.1](https://arxiv.org/pdf/1101.3039) 的固定时刻推论；原定理还控制存在某个时刻同时越过这两个确定阈值的事件。这里仅需增量的单侧上界；若要双侧界，还要对 $-X_t$ 检查相应条件。
+
+若另有确定的 $v>0$ 满足 $V_T\le v$ 几乎处处成立，令 $L=\log(1/\delta)$、$0<\delta<1$，则以至少 $1-\delta$ 的概率，
+
+$$
+M_T\le \frac{bL}{3}+\sqrt{2vL+\frac{b^2L^2}{9}}
+\le \sqrt{2vL}+\frac{2bL}{3}.
 $$
 
-常数随采用的版本略有变化。使用时必须同时检查单步上界与条件方差，不能只凭二阶矩有限就套用。
+第一项阈值来自解二次不等式 $x^2\ge2L(v+bx/3)$。$V_T$ 一般是随机量，不能在固定阈值尾界中直接把 $v$ 换成观测到的 $V_T$；若只以高概率控制 $V_T$，还须计入该事件失败的概率。使用时必须同时检查单步上界、条件方差及阈值是否确定，不能只凭二阶矩有限就套用。
 
 ## Union bound 与 anytime 置信事件
 

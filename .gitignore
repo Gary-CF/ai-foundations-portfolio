@@ -6,7 +6,7 @@ _book/
 _draft/
 
 # Downloaded Windows metadata
-*:Zone.Identifier
+*Zone.Identifier
 
 # Archives and temporary packages
 *.zip
@@ -14,3 +14,13 @@ _draft/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Isolated release builds and PDF output
+_pdf/
+.release-build/
+
+# Generated TeX at book roots; keep hand-written tex/ includes
+/mathematical-foundations/*/*.tex
+
+# Python bytecode caches
+__pycache__/

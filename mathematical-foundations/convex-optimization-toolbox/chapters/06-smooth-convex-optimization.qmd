@@ -76,7 +76,7 @@ $$
 
 ### 函数误差控制距离误差
 
-若 $x^\star$ 是无约束最优点，则 $\nabla f(x^\star)=0$。在式 @eq-mu-strong-convex 中令 $x=x^\star$，得到
+若 $x^\star$ 是无约束最优点，则 $\nabla f(x^\star)=0$。在 @eq-mu-strong-convex 中令 $x=x^\star$，得到
 
 $$
 f(x)-f(x^\star)
@@ -95,6 +95,8 @@ $$
 目标值接近最优，就能定量保证变量也接近唯一最优点。
 
 ### 梯度控制函数误差
+
+本节及后续无约束梯度更新取 $f:\mathbb R^n\to\mathbb R$；若限制在一般凸集上，需另行检查更新可行性或使用投影。
 
 从强凸下界出发，对右侧关于 $y$ 求最小：
 
@@ -174,7 +176,7 @@ $$
 Lt\lVert d\rVert_2^2.
 $$
 
-积分即得式 @eq-descent-lemma。
+积分即得 @eq-descent-lemma。
 
 ::: {.callout-tip title="二次夹逼"}
 若 $f$ 同时 $\mu$-强凸且 $L$-光滑，那么它在任一点附近都被两个共享同一切平面的二次函数夹住。强凸下界防止函数过平，光滑上界防止函数弯曲过快。
@@ -182,22 +184,22 @@ $$
 
 ### 二阶判据
 
-若 $f$ 二阶可微，则
+若 $f$ 在开凸集 $C$ 上二阶连续可微，则 $L$-光滑等价于
 
 $$
-\nabla^2f(x)\preceq LI,
-\qquad \forall x\in C
+\|\nabla^2f(x)\|_{\mathrm{op}}\le L
+\quad\Longleftrightarrow\quad
+-LI\preceq\nabla^2f(x)\preceq LI,
+\qquad x\in C.
 $$
 
-是 $L$-光滑的二阶刻画。若 $f$ 还凸，则 Hessian 特征值满足
+必要性由梯度沿单位方向的差商得到；充分性由沿线段积分 Hessian 得到。若 $f$ 还凸，则下界可加强为 $0\preceq\nabla^2f(x)$。
 
-$$
-0\le\lambda_i\bigl(\nabla^2f(x)\bigr)\le L.
-$$
+只有上界 $\nabla^2f\preceq LI$，不能排除负曲率过大，因此在一般非凸情形下不足以刻画光滑性。
 
 ## 光滑性的下降保证
 
-在式 @eq-descent-lemma 中取
+在 @eq-descent-lemma 中取
 
 $$
 y=x-\frac1L\nabla f(x),
@@ -228,6 +230,69 @@ f(x)-p^\star
 $$ {#eq-smooth-gradient-lower}
 
 原因是 $p^\star$ 不大于式 @eq-smooth-one-step-decrease 左侧的函数值。
+
+## 梯度余强制性 {#sec-gradient-cocoercivity}
+
+凸性给出梯度的单调性，光滑性限制梯度差的大小。二者结合，能进一步用内积控制梯度差的平方。
+
+设 $f:\mathbb R^n\to\mathbb R$ 凸且 $L$-光滑，则 Baillon–Haddad 定理给出
+
+$$
+\langle\nabla f(x)-\nabla f(y),x-y\rangle
+\ge\frac1L\|\nabla f(x)-\nabla f(y)\|_2^2.
+$$ {#eq-gradient-cocoercivity}
+
+这称为梯度的 $1/L$-余强制性。它同时约束梯度差的长度和方向，强于单独使用 Cauchy–Schwarz 不等式。
+
+**关键证明。** 固定 $y$，减去切平面的线性部分，令
+
+$$
+h(z)=f(z)-\nabla f(y)^\top z.
+$$
+
+$h$ 仍凸且 $L$-光滑，并且 $\nabla h(y)=0$，所以 $y$ 是其全局最优点。对 $h$ 从 $x$ 做一步梯度下降，得到
+
+$$
+h(y)\le h\left(x-\frac1L\nabla h(x)\right)
+\le h(x)-\frac1{2L}\|\nabla h(x)\|_2^2.
+$$
+
+代回定义便有
+
+$$
+f(x)-f(y)-\nabla f(y)^\top(x-y)
+\ge\frac1{2L}\|\nabla f(x)-\nabla f(y)\|_2^2.
+$$
+
+交换 $x,y$ 再相加，即得式 @eq-gradient-cocoercivity。这里凸性用于把 $\nabla h(y)=0$ 转成全局最优，光滑性用于单步下降。
+
+### 强凸光滑情形的加强
+
+若 $f$ 还为 $\mu$-强凸，记 $s=x-y$、$v=\nabla f(x)-\nabla f(y)$，则
+
+$$
+\langle v,s\rangle
+\ge\frac{\mu L}{\mu+L}\|s\|_2^2
++\frac1{\mu+L}\|v\|_2^2.
+$$ {#eq-strong-smooth-interpolation}
+
+当 $\mu<L$，令 $\widetilde f(z)=f(z)-\mu\|z\|_2^2/2$。它凸且 $(L-\mu)$-光滑：从 $f$ 的二次上界减去该二次项，得到常数 $L-\mu$ 的二次上界；对全空间可微凸函数，这与相同常数的梯度光滑性等价。
+
+对 $\widetilde f$ 使用余强制性，
+
+$$
+(L-\mu)\langle v-\mu s,s\rangle
+\ge\|v-\mu s\|_2^2.
+$$
+
+展开并移项，得到
+
+$$
+(L+\mu)\langle v,s\rangle
+\ge\|v\|_2^2+\mu L\|s\|_2^2.
+$$
+
+当 $L=\mu$，强凸下界与光滑上界重合，$f(z)-\mu\|z\|_2^2/2$ 为仿射函数，故 $v=\mu s$，上述结论仍成立。下一章用它证明梯度更新的距离收缩。
 
 ## 强凸与光滑的联合控制
 
@@ -333,6 +398,8 @@ t_k
 f(x_k+td_k).
 $$
 
+这里要求射线上的最小值能够取得；仅有下降方向并不能保证这一点。步长 $1/L$ 最小化的是下降引理给出的二次上界，一般不是原函数的精确线搜索解。
+
 它在当前射线上选择最优步长，但求解一维问题也有成本。精确线搜索单步更优，不代表总运行时间一定更短。
 
 ### 回溯线搜索
@@ -358,6 +425,96 @@ $$ {#eq-armijo}
 ::: {.callout-note title="线搜索检查的是充分下降，不是步长越小越好"}
 过大的步长可能越过低谷并使目标上升，过小的步长则推进缓慢。回溯线搜索从较大胆的步长出发，只缩小到刚好满足充分下降。
 :::
+
+### Wolfe 与 Goldstein 条件
+
+记 $g_k=\nabla f(x_k)$，$\phi(t)=f(x_k+td_k)$，并设 $g_k^\top d_k<0$。Wolfe 条件由两部分组成，参数满足 $0<c_1<c_2<1$：
+
+$$
+\begin{aligned}
+\phi(t_k)&\le\phi(0)+c_1t_k\phi'(0),\\
+\phi'(t_k)&\ge c_2\phi'(0).
+\end{aligned}
+$$ {#eq-wolfe-conditions}
+
+第一条是 Armijo 充分下降；第二条要求方向导数不再过于负，防止在仍可明显下降时过早停下。由于 $\phi'(0)<0$，第二条对足够小的步长通常不成立，因此单纯不断缩小步长不能实现一般的 Wolfe 搜索。
+
+强 Wolfe 条件把第二条换成
+
+$$
+|\phi'(t_k)|\le c_2|\phi'(0)|,
+$$
+
+还限制了越过谷底后的正斜率。若 $\phi$ 连续可微、沿正射线下有界且 $\phi'(0)<0$，则存在满足强 Wolfe 条件的正步长；具体括区间与缩放算法暂不展开。
+
+Goldstein 条件用函数值的双边约束排除过小步长：
+
+$$
+\phi(0)+(1-c)t_k\phi'(0)
+\le\phi(t_k)
+\le\phi(0)+ct_k\phi'(0),\qquad 0<c<\tfrac12.
+$$
+
+本书以后主要使用 Armijo 和 Wolfe；Goldstein 保留作比较，不再单独展开证明。
+
+## 线搜索的收敛接口：Zoutendijk 定理 {#sec-zoutendijk}
+
+逐步下降不等于最终到达最优点：若步长不断变小，总推进量仍可能有限。Zoutendijk 定理说明，Wolfe 条件如何保证下降量与梯度大小建立联系。
+
+设 $f:\mathbb R^n\to\mathbb R$ 连续可微、下有界，且存在统一常数 $L>0$ 使梯度全局 $L$-Lipschitz。每个未终止的迭代使用下降方向 $d_k$ 和满足式 @eq-wolfe-conditions 的步长，参数 $c_1,c_2$ 固定。定义
+
+$$
+\cos\theta_k=\frac{-g_k^\top d_k}{\|g_k\|_2\|d_k\|_2}>0.
+$$
+
+则
+
+$$
+\sum_{k=0}^{\infty}\cos^2\theta_k\,\|g_k\|_2^2<\infty.
+$$ {#eq-zoutendijk-series}
+
+若某一步梯度为零，算法可直接终止，无需再定义该步方向角。这里使用全局光滑假设使陈述简洁；局部版本可在包含相关迭代线段的区域内施加统一光滑界。
+
+**证明。** Wolfe 曲率条件与 Lipschitz 性依次给出
+
+$$
+(1-c_2)(-g_k^\top d_k)
+\le(g_{k+1}-g_k)^\top d_k
+\le L t_k\|d_k\|_2^2.
+$$
+
+因此步长不能任意小：
+
+$$
+t_k\ge\frac{(1-c_2)(-g_k^\top d_k)}{L\|d_k\|_2^2}.
+$$
+
+再由 Armijo 条件，
+
+$$
+\begin{aligned}
+f(x_k)-f(x_{k+1})
+&\ge c_1t_k(-g_k^\top d_k)\\
+&\ge\frac{c_1(1-c_2)}L\cos^2\theta_k\,\|g_k\|_2^2.
+\end{aligned}
+$$
+
+设 $f_{\mathrm{low}}$ 为函数下界，对 $k=0,\ldots,N$ 求和得到
+
+$$
+\sum_{k=0}^N\cos^2\theta_k\,\|g_k\|_2^2
+\le\frac{L\,[f(x_0)-f_{\mathrm{low}}]}{c_1(1-c_2)}.
+$$
+
+右侧与 $N$ 无关，令 $N\to\infty$ 即得结论。
+
+### 从可求和到梯度趋于零
+
+如果方向始终与负梯度保持足够小的夹角，即存在统一 $\delta>0$ 使 $\cos\theta_k\ge\delta$，则 $\sum_k\|g_k\|_2^2<\infty$，从而 $\|g_k\|_2\to0$。负梯度方向的 $\cos\theta_k=1$，直接满足这一条件。
+
+定理本身不要求凸性，也不直接保证 $x_k$ 收敛。若序列有聚点，梯度连续性保证聚点驻定；再加凸性，驻点才是全局最优点。不要把一般非凸算法中的“全局收敛”误读成“找到全局最优解”。
+
+一般可微函数中，$g_k^\top d_k<0$ 保证充分小的正步长下降；反过来，仅观察到目标下降，不能推出方向导数严格为负。例如 $f(t)=-t^3$ 在 $0$ 处向右下降，但导数为零。
 
 ## 典型误区
 

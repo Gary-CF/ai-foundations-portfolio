@@ -3,6 +3,8 @@
 Online Gradient Descent（OGD）只做两件事：沿当轮次梯度下降，再投影回可行域。它的全部分析建立在一个平方距离势函数上。本章先把这条母不等式证明清楚，再分别代入一般凸性、强凸性和随机梯度条件。
 
 ::: {.callout-note title="材料来源与边界"}
+Lecture 编号沿用原材料标记，课程与作者待补；映射及公开核验资料见[参考资料](https://github.com/Gary-CF/ai-foundations-portfolio/blob/main/REFERENCES.md)。
+
 本章以 Lecture 5 为主，并用 Lecture 3 的下降法分析补足步长选择。只保留 OGD 与 online-to-batch 的主证明链；高概率转换需要鞅集中工具，不由期望分析自动推出，留到集中不等式附录处理。
 :::
 

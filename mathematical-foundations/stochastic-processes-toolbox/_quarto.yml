@@ -1,0 +1,47 @@
+project:
+  type: book
+  output-dir: _book
+book:
+  title: 随机过程工具箱
+  subtitle: P0 + P1 完整稿 · v0.4
+  chapters:
+  - index.qmd
+  - chapters/foundations.qmd
+  - chapters/gaussian-processes.qmd
+  - chapters/conditional-gaussian.qmd
+  - chapters/poisson-process.qmd
+  - chapters/conditional-arrivals.qmd
+  - chapters/markov-evolution.qmd
+  - chapters/markov-classification.qmd
+  - chapters/markov-long-run.qmd
+  - chapters/martingales-stopping.qmd
+  - chapters/martingales-convergence.qmd
+  appendices:
+  - appendices/shared-tools.qmd
+  - appendices/technical-proofs.qmd
+  - appendices/sequential-testing.qmd
+  search: true
+  output-file: stochastic-processes-toolbox
+lang: zh-CN
+number-sections: true
+toc: true
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc-depth: 3
+    html-math-method: mathjax
+  pdf:
+    documentclass: scrreprt
+    pdf-engine: xelatex
+    CJKmainfont: "Noto Serif CJK SC"
+    CJKsansfont: "Noto Sans CJK SC"
+    CJKmonofont: "Noto Sans Mono CJK SC"
+    classoption:
+    - oneside
+    - openany
+    fontsize: 11pt
+    papersize: a4
+    geometry: margin=24mm
+    toc-depth: 2
+    keep-tex: true

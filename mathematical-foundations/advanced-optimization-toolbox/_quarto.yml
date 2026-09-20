@@ -7,6 +7,7 @@ book:
   subtitle: "在线学习、Bandit 与自适应方法"
   author: "Gary Chen"
   date: last-modified
+  output-file: advanced-optimization-toolbox
   chapters:
     - index.qmd
     - part: "统一分析语言"
@@ -25,12 +26,11 @@ book:
         - chapters/08-adversarial-bandits-bco.qmd
         - chapters/09-stochastic-bandits.qmd
         - chapters/10-linear-bandits.qmd
-    - part: "附录"
-      chapters:
-        - appendices/concentration-toolbox.qmd
-        - appendices/proof-templates.qmd
-        - appendices/research-interfaces.qmd
-        - appendices/notation.qmd
+  appendices:
+    - appendices/concentration-toolbox.qmd
+    - appendices/proof-templates.qmd
+    - appendices/research-interfaces.qmd
+    - appendices/notation.qmd
 
 format:
   html:
@@ -41,6 +41,13 @@ format:
   pdf:
     documentclass: scrreprt
     pdf-engine: xelatex
+    CJKmainfont: "Noto Serif CJK SC"
+    CJKsansfont: "Noto Sans CJK SC"
+    CJKmonofont: "Noto Sans Mono CJK SC"
+    classoption: [openany]
+    include-in-header:
+      text: |
+        \DeclareTOCStyleEntries[pagenumberwidth=2.5em]{tocline}{chapter,section,subsection}
     toc: true
     keep-tex: true
 

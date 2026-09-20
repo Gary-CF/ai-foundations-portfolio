@@ -1,9 +1,11 @@
 project:
   type: book
+  output-dir: _book
 
 book:
   title: "概率论与数理统计工具箱"
   author: "Gary Chen"
+  output-file: probability-statistics-notes
   chapters:
     - index.qmd
     - chapters/00-knowledge-map.qmd
@@ -33,6 +35,9 @@ format:
     documentclass: scrreprt
     pdf-engine: xelatex
     CJKmainfont: "Noto Serif CJK SC"
+    CJKsansfont: "Noto Sans CJK SC"
+    CJKmonofont: "Noto Sans Mono CJK SC"
+    keep-tex: true
     toc: true
     number-sections: true
 

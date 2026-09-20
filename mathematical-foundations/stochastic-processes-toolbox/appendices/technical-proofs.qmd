@@ -1,0 +1,94 @@
+# 关键结论的补充证明 {#sec-technical-proofs}
+
+本附录只收录正文主线已经使用、但完整展开会打断阅读的论证。
+
+## 泊松过程在到达时刻重新开始 {#sec-poisson-random-time}
+
+设 $N$ 是右连续齐次泊松过程，$\mathcal F_t=\sigma(N(u):u\le t)$，$S$ 是几乎处处有限的停时。连续时间停时信息定义为
+$$
+\mathcal F_S=\{A\in\mathcal F:A\cap\{S\le t\}\in\mathcal F_t\text{ 对每个 }t\ge0\}.
+$$
+置 $S_m=2^{-m}\lceil2^mS\rceil$，则 $S_m\downarrow S$，且对网格时刻 $r$，$A\cap\{S_m=r\}\in\mathcal F_r$。这一点使确定时刻的独立增量可以逐分支使用。
+
+固定 $u_1,\ldots,u_k\ge0$ 及有界连续函数 $g$。记
+$$
+Z_m=g\bigl(N(S_m+u_1)-N(S_m),\ldots,N(S_m+u_k)-N(S_m)\bigr),
+$$
+并令 $c=\mathbb E g(N(u_1),\ldots,N(u_k))$。对 $A\in\mathcal F_S$，在各网格分支上，未来增量与 $\mathcal F_r$ 独立且其分布不依赖 $r$，因此
+$$
+\mathbb E[\mathbf1_AZ_m]
+=\sum_r\mathbb E[\mathbf1_{A\cap\{S_m=r\}}Z_m]
+=\sum_r\mathbb P(A\cap\{S_m=r\})c
+=\mathbb P(A)c.
+$$
+有界性与分支事件互斥保证级数绝对可积。路径右连续使 $Z_m$ a.s. 收敛到把 $S_m$ 换为 $S$ 的 $Z$；控制收敛得 $\mathbb E[\mathbf1_AZ]=\mathbb P(A)c$。有界连续测试函数确定有限维分布，再推广到这些坐标生成的信息，得到停时之后的计数过程与过去独立，且与原过程同分布。
+
+这段证明只用了确定时刻的独立、平稳增量，加上停时可测性与右连续性。若随机时刻依赖尚未观察的未来，分支事件不一定属于对应信息集，证明就失效。
+
+## 有限不可约非周期链的分布收敛 {#sec-finite-mixing-proof}
+
+设状态数为 $d<\infty$，$P$ 不可约且非周期。先说明存在某个 $m$ 使 $Q=P^m$ 的所有元素都严格为正。
+
+选参考状态 $o$。其正概率返回长度集合在加法下封闭，最大公约数为 $1$，所以能选有限个返回长度 $r_1,\ldots,r_k$，公约数已经为 $1$。这些长度的非负整数和包含所有充分大的整数：模 $r_1$ 考察生成的剩余类，有限加法半群实际构成子群，而公约数为 $1$ 使其覆盖全部剩余类；每个剩余类选一个可表示的非负长度，再不断加 $r_1$ 即可。
+
+从任意 $i$ 先走到 $o$，在 $o$ 返回若干次，再走到 $j$，可得所有充分大长度的 $i\to j$ 路径。状态对只有有限个，取共同足够大的 $m$，便有 $Q_{ij}>0$。
+
+令 $\eta=\min_{i,j}Q_{ij}>0$，$\epsilon=d\eta\le1$，$u$ 为均匀概率行向量。若 $\epsilon<1$，每行可以分解为
+$$
+Q(i,\cdot)=\epsilon u+(1-\epsilon)R(i,\cdot),
+$$
+其中 $R$ 仍是随机矩阵。对概率行向量 $\alpha,\beta$，公共部分抵消，且随机矩阵对 $\ell^1$ 距离不扩张，故
+$$
+\|\alpha Q-\beta Q\|_1
+\le(1-\epsilon)\|\alpha-\beta\|_1.
+$$
+不扩张性直接来自三角不等式和行和为 $1$：$\sum_j|\sum_i v_iR_{ij}|\le\sum_i|v_i|$。若 $\epsilon=1$，$Q$ 的各行已全为 $u$，一次即可消除初始分布影响。
+
+有限不可约链由正文已知存在平稳概率 $\pi$。写 $n=km+r,0\le r<m$，则
+$$
+\|\alpha P^n-\pi\|_1
+\le(1-\epsilon)^k\|\alpha-\pi\|_1\to0.
+$$
+非周期性用于得到全正矩阵幂；有限性用于把各状态对的路径长度与正概率统一控制。这个几何界不能直接推广到任意可数无限状态链。
+
+## 上穿次数与鞅收敛 {#sec-upcrossing-proof}
+
+设 $M$ 是鞅，$C=\sup_n\mathbb E|M_n|<\infty$。固定实数 $a<b$，观察到 $M_k\le a$ 时开始持有一单位，直到观察到 $M_k\ge b$ 时退出，再重复。每一步是否持有只由此前观测决定，记为 $H_k\in\{0,1\}$，故
+$$
+G_N=\sum_{k=1}^NH_k(M_k-M_{k-1}),\qquad\mathbb EG_N=0.
+$$
+若在时刻零已满足买入条件，就从第一段增量开始持有。令 $U_N[a,b]$ 为到时刻 $N$ 完成的上穿次数，每个完整段贡献至少 $b-a$；最后一个未完成段若存在，买入价不超过 $a$，其损益至少 $-(M_N-a)^-$。所以逐路径有
+$$
+G_N\ge(b-a)U_N[a,b]-(M_N-a)^-,
+\qquad x^-=\max(-x,0).
+$$
+取期望，
+$$
+(b-a)\mathbb EU_N[a,b]\le\mathbb E(M_N-a)^-\le C+|a|.
+$$
+$U_N$ 非减，单调收敛使无穷时间的上穿次数仍有有限期望，因而几乎处处有限。
+
+对所有有理数 $a<b$ 取可数交。若某条路径 $\liminf M_n<\limsup M_n$，就能在两者之间选有理数 $a<b$，并产生无穷次上穿，矛盾。因此 $M_n$ 有扩展实数极限。再由 Fatou，
+$$
+\mathbb E\liminf_n|M_n|\le C,
+$$
+排除正负无穷极限，并证明极限可积。这里没有得到 $\mathbb E|M_n-M_\infty|\to0$，所以也没有自动得到期望保持。
+
+## 一致可积为何允许 L1 取极限 {#sec-ui-proof}
+
+设 $Y_n\to Y$ a.s.，且 $(Y_n)$ 一致可积。先选一个足够大的 $K$ 使尾期望统一有界，便有
+$$
+\sup_n\mathbb E|Y_n|\le K+\sup_n\mathbb E[|Y_n|\mathbf1_{\{|Y_n|>K\}}]<\infty.
+$$
+Fatou 给出 $\mathbb E|Y|<\infty$。定义连续截断函数 $\phi_K(x)=\max(-K,\min(x,K))$，则
+$$
+\begin{aligned}
+\mathbb E|Y_n-Y|
+\le{}&\mathbb E|\phi_K(Y_n)-\phi_K(Y)|\\
+&+\mathbb E[|Y_n|\mathbf1_{\{|Y_n|>K\}}]
++\mathbb E[|Y|\mathbf1_{\{|Y|>K\}}].
+\end{aligned}
+$$
+固定 $K$，第一项由控制收敛趋零；第二项对 $n$ 的上确界随 $K\to\infty$ 趋零；第三项由 $Y$ 的可积性趋零。按这个顺序取极限得到 $L^1$ 收敛。
+
+**核验来源。** 上穿与一致可积结论核对了 [Durrett 第五版作者公开稿](https://services.math.duke.edu/~rtd/PTE/PTE5_011119.pdf) 中 Theorems 4.2.11、4.6.3 与 4.6.7；本附录给出与正文所需鞅版本相适配的证明，不转载教材原文。
