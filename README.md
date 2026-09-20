@@ -9,8 +9,7 @@
 | 高级优化工具箱 | 在线优化、自适应方法与 Bandit | [目录与前言](mathematical-foundations/advanced-optimization-toolbox/index.qmd) | [阅读](pdfs/advanced-optimization-toolbox.pdf) | 10 章、4 篇附录；研究接口未扩写 |
 | 随机过程工具箱 | 高斯、泊松、Markov 链与鞅 | [阅读说明](mathematical-foundations/stochastic-processes-toolbox/index.qmd) | [阅读](pdfs/stochastic-processes-toolbox.pdf) | v0.4，10 章、3 篇附录；许可待确认 |
 
-矩阵、向量与张量微积分在凸优化的[数学预备工具附录](mathematical-foundations/convex-optimization-toolbox/appendices/mathematical-toolbox.qmd)中，并非独立完成的项目。统计学习、深度学习和强化学习目前是计划方向，尚无独立笔记。
-
+矩阵、向量与张量微积分在凸优化的[数学预备工具附录](mathematical-foundations/convex-optimization-toolbox/appendices/mathematical-toolbox.qmd)中，并非独立完成的项目。
 ## 构建与更新 PDF
 
 已验收环境与命令见 [发布验收记录](RELEASE-CHECK.md)。需要 Quarto、XeLaTeX（TeX Live / TinyTeX）、Noto Serif/Sans CJK SC 字体、Python 3 和 Poppler（`pdfinfo`、`pdftotext`、`pdffonts`）。脚本仅用 Python 标准库，不修改 Conda 环境。
