@@ -12,7 +12,7 @@
 | 深度学习与进阶统计学习工具箱 | 泛化理论、神经网络、训练与隐式偏置 | [目录与前言](machine-learning-foundations/deep-learning-statistical-learning-toolbox/index.qmd) | <!-- pdf:deep-learning-statistical-learning-toolbox -->[阅读](pdfs/deep-learning-statistical-learning-toolbox.pdf)<!-- /pdf --> | 预备章、19 章、4 附录 |
 | 深度强化学习笔记 | 价值学习、策略优化、离线 RL 与 LLM | [目录与前言](machine-learning-foundations/deep-reinforcement-learning/index.qmd) | <!-- pdf:deep-reinforcement-learning -->[阅读](pdfs/deep-reinforcement-learning.pdf)<!-- /pdf --> | 22 章、4 附录 |
 
-以上“正文范围”不等于逐式数学审稿或发布验收通过。原四套数学笔记的历史验收见 [RELEASE-CHECK.md](RELEASE-CHECK.md)；新增三套的接入检查与本机验收步骤见 [REPOSITORY-CHECK.md](REPOSITORY-CHECK.md)。发布清单记录的是最近一次发布，不会因添加正文而自动更新。
+原四套数学笔记的历史验收见 [RELEASE-CHECK.md](RELEASE-CHECK.md)；新增三套的接入检查与本机验收步骤见 [REPOSITORY-CHECK.md](REPOSITORY-CHECK.md)。
 
 ## 目录与阅读关系
 
