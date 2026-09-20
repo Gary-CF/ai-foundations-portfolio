@@ -1,0 +1,89 @@
+# 可分析的非凸问题：PCA、因子化与矩阵补全 {#sec-11-factorization}
+
+**来源：**CS229M L12，L13 对前讲的回顾。下面完整证明秩一全观测情形；矩阵补全保留观测与一致性条件，不将课程略去的技术假设删掉。
+
+## PCA 的两个等价入口
+
+中心化数据协方差 $M\succeq0$，PCA 求 $\max_{\|v\|=1}v^\top Mv$，最优方向是最大特征向量。若想同时学习方向和幅度，可考虑
+
+$$f(x)=\frac14\|xx^\top-M\|_F^2.$$
+
+它对 $x$ 是四次非凸函数。非凸来自把矩阵变量限制为 $xx^\top$；并不意味着每个局部极小都是坏的。
+
+## 梯度和 Hessian：先展开标量
+
+展开得
+
+$$f(x)=\frac14\|x\|^4-\frac12x^\top Mx+\frac14\|M\|_F^2,$$
+
+因此
+
+$$\nabla f(x)=\|x\|^2x-Mx,
+\quad\nabla^2f(x)=\|x\|^2I+2xx^\top-M.$$
+
+不想写 Hessian 时，可令 $g(t)=f(x+tv)$，读出 $g''(0)=v^\top Hv$。矩阵参数时这个方向导数技巧尤其有效，避免四阶索引。
+
+## 所有驻点分类
+
+设 $M$ 特征值 $\lambda_1\ge\cdots\ge\lambda_d\ge0$，先取 $\lambda_1>\lambda_2$。驻点要么 $x=0$，要么 $Mx=\|x\|^2x$，故 $x$ 位于某个正特征值空间且 $\|x\|^2=\lambda_j$。
+
+在 $x=0$，$H=-M$ 有负特征值，是非极小驻点。若 $x=\sqrt{\lambda_j}v_j$ 且 $\lambda_j<\lambda_1$，沿 $v_1$ 的曲率
+
+$$v_1^\top Hv_1=\lambda_j-\lambda_1<0,$$
+
+所以也是鞍点。若 $x=\pm\sqrt{\lambda_1}v_1$，沿 $v_1$ 曲率为 $2\lambda_1$，沿其他特征方向为 $\lambda_1-\lambda_i>0$，是局部极小。
+
+它也是全局极小：记 $r=\|x\|^2$，$x^\top Mx\le\lambda_1r$，所以 $f(x)\ge r^2/4-\lambda_1r/2+\|M\|_F^2/4$，右边在 $r=\lambda_1$ 达最小，且顶特征方向取等。
+
+若顶特征值有重数，最优方向形成集合；仍无坏局部极小，但不再是孤立强凸点。若 $M=zz^\top$ 且 $z\ne0$，全局解正好为 $\pm z$，展示了最简单的良性非凸恢复。
+
+## 矩阵补全：只看到少量位置
+
+对低秩目标 $M$，只观察随机集合 $\Omega$ 中的元素，用 $P_\Omega$ 保留观测、其余置零。秩一版本目标为
+
+$$f_\Omega(x)=\frac1{4p}\|P_\Omega(xx^\top-M)\|_F^2,$$
+
+其中各独立位置采样概率为 $p$；对称模型需把 $(i,j),(j,i)$ 联动处理。固定 $x$ 时有 $\mathbb Ef_\Omega(x)=\tfrac14\|xx^\top-M\|^2$，但这不自动保证优化所得、依赖 $\Omega$ 的 $x$ 具有相同几何。
+
+还需控制整个允许区域内的梯度与 Hessian 误差，且防止 $x$ 变得极度尖峰。常见做法是限制或惩罚行范数/坐标大小，并要求真值不相干（incoherent）：秩一归一化 $\|z\|_2=1$ 下 $\|z\|_\infty\le\mu/\sqrt d$。
+
+如果 $z=e_1$，唯一非零信息在一个角落，没观测到它就无法辨别真值。故不相干性是信息分散的条件，不只是证明技巧。
+
+## 景观迁移的证明路线
+
+令 $\Delta\in\mathbb R^d$，有
+
+$$\left.\frac{d}{dt}(x+t\Delta)(x+t\Delta)^\top\right|_{0}=x\Delta^\top+\Delta x^\top.$$
+
+令 $E=xx^\top-M$，则采样目标方向二阶导为
+
+$$\frac1{2p}\|P_\Omega(x\Delta^\top+\Delta x^\top)\|_F^2+
+\frac1p\langle P_\Omega(E),P_\Omega(\Delta\Delta^\top)\rangle.$$
+
+把它与全观测版本比较，是研究驻点与负曲率的入口。需要的三步是：观测足够且独立；在低秩、非尖峰的结构集合上一致集中；把集中界代入一阶与二阶必要条件，推出任一局部极小靠近 $\pm z$，再单独证明算法可在所需区域内到达近似二阶点。
+
+## 条件明确的近似景观迁移推导
+
+令全观测 $g(x)=\tfrac14\|xx^\top-zz^\top\|^2$，$\|z\|=1$，记 $r=\|x\|^2$、$a=\langle x,z\rangle$。在某个已控制的不相干区域，假设采样目标的局部极小点 $x$ 满足以下由**一致**集中导出的三个标量近似条件：
+
+$$|\langle x,\nabla g(x)\rangle|\le\epsilon,\quad
+|\langle z,\nabla g(x)\rangle|\le\epsilon,\quad
+z^\top\nabla^2g(x)z\ge-\epsilon.$$
+
+前文梯度/Hessian 公式给出
+
+$$|r^2-a^2|\le\epsilon,\qquad|a(r-1)|\le\epsilon,
+\qquad r+2a^2-1\ge-\epsilon.$$
+
+由 $a^2\le r$，第三式推出 $r\ge(1-\epsilon)/3$。若 $\epsilon\le1/64$，第一式再推出 $a^2\ge r^2-\epsilon>1/16$，故 $|a|\ge1/4$。第二式现在允许安全除以 $|a|$，得到 $|r-1|\le4\epsilon$。再回代第一式，$a^2\ge(1-4\epsilon)^2-\epsilon\ge1-9\epsilon$，于是 $|a|\ge1-9\epsilon$。
+
+选 $z$ 的符号使内积为正，则
+
+$$\min_{s\in\{\pm1\}}\|x-sz\|^2=r+1-2|a|
+\le(1+4\epsilon)+1-2(1-9\epsilon)=22\epsilon.$$
+
+这严格说明了 $O(\sqrt\epsilon)$ 距离从哪里来。还没有被这段代数证明的部分是：对采样模型建立覆盖整个需要区域的三个近似条件，并证明局部极小确实属于该区域。
+
+课程官网链接的往届笔记给出采样规模的示意形式 $p=\operatorname{poly}(\mu,\log d)/(d\epsilon^2)$；但其证明在中途额外使用了候选 $x$ 的不相干性，并省略了确保该性质的完整机制。本书因此将该规模标为**课程示意结果**，不将它升级成无需约束/正则的全局正式定理。来源：[往届矩阵补全讲义](https://github.com/tengyuma/cs229m_notes/blob/main/tex/collection/07-02-nonconvex.tex)。
+
+**自检。**全观测目标的好几何为什么不能仅通过“采样目标期望等于它”自动继承？唯一特征向量与唯一参数解为何还差一个符号？

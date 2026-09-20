@@ -1,0 +1,55 @@
+# 噪声的隐式正则化与曲率 {#sec-15-noise}
+
+**来源：**CS229M L17 全讲、L18 前半。课程自身将部分长期漂移分析标为启发式，本章保留这一边界。
+
+## 先分清三种协方差
+
+随机梯度写 $g_t=\nabla L(\theta_t)+\xi_t$。噪声协方差 $C(\theta)=\mathbb E_t[\xi_t\xi_t^\top]$，参数在局部附近的稳态协方差 $S$，以及数据协方差，是不同对象。把它们都写成“方差”会让后面的 Hessian 关系失去意义。
+
+## 一维二次目标：可以精确计算
+
+局部目标 $L(x)=hx^2/2$，$h>0$，更新 $x_{t+1}=(1-\eta h)x_t-\eta\xi_t$，噪声独立中心化、方差 $c$。若 $0<\eta h<2$，均值趋零，稳态方差满足
+
+$$s=(1-\eta h)^2s+\eta^2c,
+\quad s=\frac{\eta c}{2h-\eta h^2}\approx\frac{\eta c}{2h}.$$
+
+标准差是 $O(\sqrt\eta)$，方差是 $O(\eta)$；转录中两者有混用。固定非零步长下一般是围绕极小点波动，并非参数精确收敛到极小点。
+
+## 多维 Lyapunov 方程
+
+局部二次目标 $\tfrac12x^\top Hx$、对称 $H\succ0$，更新矩阵 $A=I-\eta H$。稳定时
+
+$$S=ASA^\top+\eta^2C,
+\quad HS+SH=\eta(C+HSH).$$
+
+在小步长一阶近似下 $HS+SH\approx\eta C$。若 $H,C$ 可同时对角化，$s_j\approx\eta c_j/(2h_j)$。一般不能随便写成 $S=\eta H^{-1}C/2$，因为矩阵未必交换。
+
+若 $H$ 有零方向且该方向有持续噪声，则对应随机游走通常没有有界稳态协方差。若噪声也完全不作用于该方向，它才可能保持初始分量。课程在限制子空间上分析，正是为处理这个区别。
+
+## 高阶项如何产生平均漂移
+
+**局部启发式，非一般长期定理。**在参考点附近令三阶导张量为 $T$，则
+
+$$\nabla L(x)=Hx+\tfrac12T[x,x]+O(\|x\|^3).$$
+
+中心化局部涨落协方差为 $S$ 时，平均更新多出 $-\eta T:S/2$，第 $i$ 坐标为 $-\eta\sum_{jk}T_{ijk}S_{jk}/2$。若局部把 $S$ 视作常量，$T:S=\nabla\operatorname{tr}(HS)$，看起来像沿某种曲率惩罚下降。
+
+但实际 $S$ 随位置变化，平均位置也可能偏移，长期时间尺度上小余项会累积；若对 $\operatorname{tr}(H(\theta)S(\theta))$ 求导，还会出现 $\nabla S$ 项。因此不能由这一行就宣布“SGD 精确等于优化 $L+\lambda\operatorname{tr}H$”。
+
+## Hessian 分解与标签噪声
+
+对单样本损失 $\ell(f_\theta(x),y)$，标量输出链式法则给
+
+$$\nabla_\theta^2\ell=\ell''(f,y)\nabla f\nabla f^\top+\ell'(f,y)\nabla^2f.$$
+
+平方损失时 $\ell''=1$、$\ell'=f-y$，所以在插值点第二项消失，经验 Hessian 为 $n^{-1}\sum_i\nabla f_i\nabla f_i^\top$。这是 Gauss–Newton 型分解，转录的 “Gaussian decomposition” 不准确。
+
+若每次额外给标签加入独立零均值噪声 $\zeta$，梯度噪声中出现 $-\zeta\nabla f$；在上述局部条件下其协方差可能与 Hessian 成比例。若 $C=cH$ 且限制在正特征子空间，局部小步长稳态 $S\approx\eta cI/2$，从而前节平均高阶漂移与 $\nabla\operatorname{tr}H$ 联系起来。这解释课程为何特意提“某种标签噪声”，而不是声称任意 mini-batch SGD 都有该正则项。
+
+## 平坦性不是参数化不变的绝对质量
+
+改变参数坐标会改变 Hessian 的数值尺度。相同函数用不同尺度表示，曲率可以变大或变小。曲率还要与噪声协方差、允许扰动度量以及函数输出敏感性一起讨论。平坦性可能提供有用线索，但“平坦一定泛化好、尖锐一定泛化差”不是本章定理。
+
+L18 中权重层梯度为反向信号与前向激活的外积，$\nabla_W\ell=\delta h^\top$，其 Frobenius 范数平方为 $\|\delta\|^2\|h\|^2$。因此约束 Jacobian 范数会同时联系前向表示和反向敏感性，衔接第 6、7 章。
+
+**自检。**零曲率方向有噪声时为何不能使用稳态公式？$C\propto H$ 和 $C\propto I$ 会产生相同参数涨落吗？

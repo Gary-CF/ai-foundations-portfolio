@@ -1,0 +1,70 @@
+# LLM 策略优化：PPO、GR-REINFORCE 与 GRPO {#sec-llm-optimization}
+
+**学习层级：A。** 必须掌握组内优势、采样策略与参考策略的区别。材料：CS285 L14；具体 reduction 和命名按 [2026 HW4](https://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw4.pdf) 对齐。
+
+## 为什么同一 prompt 要采多条回答
+
+难 prompt 和易 prompt 的奖励水平不同。把所有回答混在一起减总均值，会把题目难度与回答相对质量混淆。同一 prompt 采 G 个回答，奖励为 $r_1,\ldots,r_G$，定义
+
+$$\bar r=\frac1G\sum_jr_j,\quad
+\sigma_r=\sqrt{\frac1G\sum_j(r_j-\bar r)^2},\quad
+A_j=\frac{r_j-\bar r}{\sigma_r+\varepsilon}.$$
+
+$A_j$ 是回答级标量，再广播到该回答的 completion tokens。这里是总体型组内标准差，代码库的默认无偏样本标准差不一定等同。G=1 或全组奖励相同会给出零中心化优势，不能期待它提供质量区分。
+
+**例子。** 奖励 $(0,0,1,1)$，均值 0.5、标准差 0.5，忽略稳定项时优势为 $(-1,-1,1,1)$。换成 $(0,0,0,0)$ 后优势全零，增加优化轮数也不会凭空产生成功信号。
+
+## 组内 baseline 的统计细节
+
+含当前样本的均值与当前动作相关。对独立同分布的 G 条轨迹、暂不做标准差归一化，令 $g_i=\nabla\log\pi(y_i)$，可推得
+
+$$\mathbb E[g_i(r_i-\bar r)]=(1-1/G)\mathbb E[g_ir_i].$$
+
+因为交叉样本项中 $\mathbb E g_i=0$。用不含自己的 leave-one-out baseline 可移除这一缩放；加入随机标准差后又不只是固定缩放。因此组相对优势是实用估计设计，不应直接宣称与原始 REINFORCE 完全无偏等价。
+
+## 课程的 GR-REINFORCE
+
+它使用组归一化优势、参考 KL 和每回答 token 平均。对 N 条 completion，
+
+$$L_{\rm GRR}=-\frac1N\sum_i A_i\frac1{T_i}\sum_{t=1}^{T_i}\log\pi_\theta(y_{i,t}\mid s_{i,t})
++\beta\widehat{\rm KL}.$$
+
+按作业约定，rollout batch 用一次 optimizer step 后重新采样。这是课程指定的训练版本，不是所有文献中 REINFORCE 的唯一标准定义；组标准化与变长 token 平均会改变原始序列期望奖励估计的性质。
+
+## GRPO 的 token 级代理
+
+保存 old log-prob，令 $\rho_{i,t}=\exp(\ell_{\theta,i,t}-\ell_{{\rm old},i,t})$，则
+
+$$L_{\rm GRPO}=-\frac1N\sum_i\frac1{T_i}\sum_t
+\min\{\rho_{i,t}A_i,\operatorname{clip}(\rho_{i,t},1-\epsilon,1+\epsilon)A_i\}
++\beta\widehat{\rm KL}.$$
+
+优势和 old 概率在多轮更新中保持固定。GRPO 省去显式价值 baseline，但仍有估计偏差、长度效应和分布偏移；“不训练 Critic”不意味着不需要任何统计估计。PPO 可用 token value + GAE，适合更细的逐步信用；二者谁好需看任务和预算。
+
+## 非负采样 KL：值的无偏不等于梯度自动正确
+
+在固定上下文令 $\Delta=\log\pi_{\rm ref}(a)-\log\pi_\theta(a)$，构造
+
+$$\widehat k=e^\Delta-\Delta-1\geq0.$$
+
+若 $a\sim\pi_\theta$ 且支持一致，$\mathbb E e^\Delta=1$，所以 $\mathbb E\widehat k=D_{\rm KL}(\pi_\theta\|\pi_{\rm ref})$。非负性来自 $x-\log x-1\geq0$。
+
+但若样本来自旧策略，该无偏等式一般不成立；即便样本在采样时来自当前策略，把离散样本冻结后只对 $\widehat k$ 反传，也不自动得到完整 KL 目标梯度，因为目标采样分布本身依赖参数。正式笔记区分**KL 数值估计、固定 rollout 上的正则 surrogate、精确 KL 梯度**。小步更新可有用，但不是恒等式。
+
+## 从 batch 到 loss 的检查
+
+```text
+按 prompt 分组生成 G 条 completion
+解析并计算每条奖励；核对奖励失败的原因
+只在同 prompt 内计算 mean/std 和 advantage
+存储 old log-prob；用冻结 reference 计算 ref log-prob
+正确 shift token；构建 completion mask（排除 padding/prompt）
+按规定顺序先做回答内 token reduction，再做 batch reduction
+更新；记录 KL、clip fraction、熵、长度和全零优势组比例
+```
+
+监测任务正确率与训练 reward 是否同步；序列长度是否漂移；有效 token 数、优势标准差、组内成功率分布是否异常。只看平均 reward 会遮住“全易题成功、难题完全无信号”的情况。
+
+## 自测
+
+**题：** ref log-prob 能用作 PPO ratio 分母吗？答：除非 ref 恰好是当前 rollout 的采样策略，否则不能。**题：** 非负 $\widehat k$ 是否保证实际 KL 永远小？答：不保证，它只是每个采样 token 的正则量，仍需监测分布变化。

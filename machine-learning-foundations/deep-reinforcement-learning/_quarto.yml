@@ -1,0 +1,93 @@
+project:
+  type: book
+  output-dir: _book
+  post-render:
+    - python3 scripts/localize_html_math.py
+  resources:
+    - source-ledger.json
+    - source-ledger.csv
+book:
+  title: "深度强化学习笔记"
+  subtitle: "从 Bellman 方程到离线 RL 与语言模型策略优化"
+  output-file: deep-reinforcement-learning
+  search: true
+  sidebar:
+    style: docked
+    collapse-level: 1
+  chapters:
+    - index.qmd
+    - part: "决策问题与经典基础"
+      chapters:
+        - chapters/01-problem-setup.qmd
+        - chapters/02-bellman-dp.qmd
+        - chapters/03-mc-td.qmd
+        - chapters/04-multistep-is.qmd
+    - part: "从表格到深度价值学习"
+      chapters:
+        - chapters/05-function-approximation.qmd
+        - chapters/06-dqn.qmd
+    - part: "直接优化策略"
+      chapters:
+        - chapters/07-policy-gradient.qmd
+        - chapters/08-actor-critic.qmd
+        - chapters/09-trpo-ppo.qmd
+    - part: "正则化、推断与连续控制"
+      chapters:
+        - chapters/10-maxent-inference.qmd
+        - chapters/11-continuous-sac.qmd
+    - part: "示范、模型与固定数据"
+      chapters:
+        - chapters/12-imitation.qmd
+        - chapters/13-model-based.qmd
+        - chapters/14-offline.qmd
+        - chapters/15-flow-offline-online.qmd
+    - part: "奖励学习与语言模型"
+      chapters:
+        - chapters/16-reward-learning.qmd
+        - chapters/17-llm-formulation.qmd
+        - chapters/18-llm-optimization.qmd
+    - part: "探索、泛化、理论与实验"
+      chapters:
+        - chapters/19-exploration.qmd
+        - chapters/20-multitask-hierarchy.qmd
+        - chapters/21-theory.qmd
+        - chapters/22-experiments.qmd
+    - references.qmd
+  appendices:
+    - appendices/A-notation-math.qmd
+    - appendices/B-algorithm-toolbox.qmd
+    - appendices/C-source-coverage.qmd
+    - appendices/D-corrections.qmd
+lang: zh
+number-sections: true
+number-depth: 2
+toc: true
+toc-depth: 2
+bibliography: references.bib
+nocite: '@*'
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    html-math-method: katex
+    code-copy: true
+  pdf:
+    documentclass: ctexbook
+    pdf-engine: xelatex
+    classoption: [UTF8, oneside, openany, fontset=fandol]
+    babel-lang: english
+    papersize: a4
+    fontsize: 11pt
+    geometry: [top=25mm, bottom=25mm, left=23mm, right=23mm]
+    colorlinks: true
+    linkcolor: black
+    citecolor: black
+    toc-depth: 1
+    keep-tex: true
+    include-in-header:
+      - text: |
+          \usepackage{fvextra}
+          \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+          \setlength{\emergencystretch}{3em}
+          \ctexset{chapter={format=\Large\bfseries,beforeskip=12pt,afterskip=24pt}}
+          \addto\captionsenglish{\renewcommand{\appendixname}{附录}}

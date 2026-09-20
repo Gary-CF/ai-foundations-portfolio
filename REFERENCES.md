@@ -43,3 +43,15 @@
 待补事项是来源完整性限制，不能用公开视频链接推定转载授权；许可状态另见 [许可范围说明](LICENSE-SCOPE.md)。
 
 链接核验：2026-09-19，Tropp、Bandit Algorithms、MIT OCW、Price 论文和 Durrett 教材页可读取。两个 Bilibili 链接来自原材料登记，本次网页读取分别返回 412 和不可访问，未确认视频当前可播放或转载授权。
+
+## 机器学习基础笔记
+
+下列为已接入笔记内的来源入口；本次仓库接入检查未重新联网核验全部外部链接，也未重做全文数学审稿。
+
+| 笔记 | 来源与校订入口 |
+|---|---|
+| 经典统计学习 | [整理记录](machine-learning-foundations/classical-statistical-learning/整理记录.md)及各章来源说明 |
+| 深度学习与进阶统计学习 | [材料覆盖](machine-learning-foundations/deep-learning-statistical-learning-toolbox/appendices/B-source-coverage.qmd)、[校对边界](machine-learning-foundations/deep-learning-statistical-learning-toolbox/appendices/C-corrections.qmd)；CS229M 二十讲与花书指定七章 |
+| 深度强化学习 | [材料覆盖](machine-learning-foundations/deep-reinforcement-learning/appendices/C-source-coverage.qmd)、[参考文献](machine-learning-foundations/deep-reinforcement-learning/references.qmd)；CS285 Spring 2026 与白板推导 |
+
+深度学习公开来源台账保留定位信息，转录摘录只留本地 `_draft/`；强化学习的 JSON/CSV 来源台账为文件标识、课程链接和哈希，可继续作为公开来源索引。

@@ -1,0 +1,64 @@
+# 连续动作：DDPG、TD3 与 SAC {#sec-sac}
+
+**学习层级：A/B。** SAC 三组更新与数据流必须掌握；DDPG/TD3 作为比较。材料：CS285 L8、L13、Section 4；[SAC 原论文](https://arxiv.org/abs/1801.01290)、[TD3](https://arxiv.org/abs/1802.09477)。
+
+## 连续动作中的 max 如何计算
+
+DQN 可以遍历有限动作。连续动作的 $\max_aQ(s,a)$ 是一个新的优化问题，若每次 backup 都内层求解，代价很大。Actor 将状态映射到动作，用学习近似这一选择过程。
+
+确定性策略 $a=\mu_\theta(s)$ 的 DDPG Critic 目标为 $y=r+\gamma mQ_{\bar\phi}(s',\mu_{\bar\theta}(s'))$。Actor 在 replay 状态上最大化 Q，路径梯度为
+
+$$\mathbb E_{s\sim\mathcal D}\left[
+\nabla_aQ_\phi(s,a)|_{a=\mu_\theta(s)}\nabla_\theta\mu_\theta(s)\right].$$
+
+这是实际使用的 replay 分布代理更新；精确确定性策略梯度定理还需明确其占用分布，不能把任意 replay 均值直接等同于起点目标梯度。
+
+## TD3 的三个修改
+
+TD3 用双 Critic 的最小值构造目标，给目标动作加入裁剪噪声进行平滑，并让 Actor/目标网络较低频率更新。目标可写为
+
+$$\widetilde a'=\operatorname{clip}(\mu_{\bar\theta}(s')+\operatorname{clip}(\epsilon,-c,c)),\qquad
+y=r+\gamma m\min_iQ_{\bar\phi_i}(s',\widetilde a').$$
+
+动作外层 clip 对齐环境范围。平滑针对狭窄尖峰，双 Q 针对过估计，延迟更新减少 Actor 追逐瞬时不准 Critic。最小值也会带来低估，不能视为免费改进。
+
+## SAC：随机策略与 soft 价值
+
+采样 $\epsilon\sim\mathcal N(0,I)$，令 $a=f_\theta(s,\epsilon)$。SAC 用两个 Critic 和可重参数化随机 Actor。冻结目标计算：
+
+$$a'\sim\pi_\theta(\cdot\mid s'),\quad
+y=r+\gamma m\left[\min_iQ_{\bar\phi_i}(s',a')-\alpha\log\pi_\theta(a'\mid s')\right].$$
+
+最小化 $L_{Q_i}=\mathbb E_{\mathcal D}(Q_{\phi_i}(s,a)-\operatorname{sg}(y))^2$。Actor 最小化
+
+$$L_\pi=\mathbb E_{s\sim\mathcal D,\epsilon}
+\left[\alpha\log\pi_\theta(f_\theta(s,\epsilon)\mid s)-\min_iQ_{\phi_i}(s,f_\theta(s,\epsilon))\right].$$
+
+更新 Actor 时冻结 Critic 参数，但保留 Q 对 a 的导数。更新 Critic 时则整个 y 停止梯度。SAC 的状态来自 replay，不是标准 on-policy score-function 更新。
+
+## 有界动作的密度不能忘
+
+若 $u\sim\mathcal N(\mu,\sigma^2)$、$a=\tanh u$，变换公式给出
+
+$$\log\pi(a\mid s)=\log\mathcal N(u;\mu,\sigma^2)
+-\sum_j\log(1-\tanh^2u_j).$$
+
+若再乘动作尺度，还需减去尺度 Jacobian 的对数。临近边界直接计算 $\log(1-a^2)$ 可能不稳定，可用基于 u 的稳定等价式；例如 $\log(1-\tanh^2u)=2(\log2-u-\operatorname{softplus}(-2u))$。
+
+忽略密度修正会改变熵与 Actor 梯度。虽然采样动作仍落在合法范围，算法已不再优化写出的目标。
+
+## 自动温度的方向
+
+设期望目标熵为 $H_*$，固定策略时对偶温度损失可写为
+
+$$L_\alpha=\alpha\,\mathbb E[-\log\pi(a\mid s)-H_*],\qquad\alpha>0.$$
+
+若当前熵低于目标，导数为负，梯度下降增大 $\alpha$，增强熵奖励；若熵过高则降低。通常参数化 $\alpha=e^\eta$ 保证正值，并冻结 log-prob。以 eta 直接写线性代理损失的实现，梯度尺度不同，应说明约定。连续分布的目标微分熵可以为负。
+
+## 一轮 SAC 与数值核对
+
+交互并存 replay → 抽 batch → 更新两个 Q → 更新 Actor → 可选更新温度 → Polyak 更新目标 Q。取 $r=1,\gamma=0.9,m=1,\min Q'=2,\alpha=0.2,\log\pi'=-0.5$，则 $y=1+0.9(2+0.1)=2.89$；终止时仍为 1。
+
+**比较工具箱：** PPO 依赖新 rollout 和受控复用；SAC 大量复用 replay，但要维护双 Q、目标网络和正确连续密度。不能脱离环境、数据预算和实现质量宣称某个方法总更好。
+
+**自测：** 若 Actor loss 的 Q 项全部 detach，会发生什么？答：策略只能受到熵项等剩余梯度推动，失去沿 Q 改善动作的主要信号。

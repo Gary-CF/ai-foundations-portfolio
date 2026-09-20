@@ -1,0 +1,65 @@
+# 算法速查与实现工具箱 {#sec-toolbox}
+
+每个公式都要与正文条件一起使用。这里的 r 表示已采集的一步奖励，m 是 bootstrap mask，目标 y 在 Critic 更新中停止梯度。
+
+## 目标值对照
+
+| 方法 | 一步目标 y | 使用条件 |
+|---|---|---|
+| TD(0) | $r+\gamma mV(s')$ | 固定策略预测 |
+| SARSA | $r+\gamma mQ(s',a')$ | $a'$ 按目标策略采样 |
+| Expected SARSA | $r+\gamma m\mathbb E_{a'\sim\pi}Q(s',a')$ | 目标策略明确 |
+| Q-learning | $r+\gamma m\max_{a'}Q(s',a')$ | 表格或近似控制 |
+| DQN | $r+\gamma m\max_{a'}Q_{\bar\theta}(s',a')$ | 冻结目标网络 |
+| Double DQN | $r+\gamma mQ_{\bar\theta}(s',a^*)$ | 选择/估值分开 |
+| SAC | $r+\gamma m[\min Q_{\rm target}(s',a')-\alpha\log\pi(a'\mid s')]$ | 随机动作与密度一致 |
+| IQL | $r+\gamma mV(s')$ | 数据内 expectile V |
+
+Double DQN 行中 $a^*=\arg\max_a Q_\theta(s',a)$。
+
+FQL 的 2026 HW5 版本使用双 Q 均值与一步 Actor，不套用本表 SAC 目标。
+
+## 策略改进的对象
+
+| 家族 | 主要策略目标 | 数据复用要点 |
+|---|---|---|
+| REINFORCE | $\log\pi\times$ 回报/优势 | 标准版本使用当前策略样本 |
+| PPO | clipped ratio × 优势 | old log-prob 与优势固定 |
+| DDPG/TD3 | 连续 Actor 最大化 Q | replay 状态上的代理目标 |
+| SAC | 最大化 Q 与动作熵 | Q 对动作的梯度必须保留 |
+| BC | 最大化示范动作似然 | 仅拟合数据，不直接优化奖励 |
+| IQL Actor | 优势加权动作似然 | 权重冻结，注意指数溢出 |
+| FQL Actor | 最大化 Q 与行为蒸馏 | teacher flow 不经蒸馏反传 |
+| GRPO | token clipped ratio × 组优势 | 区分 old 与 reference |
+
+## 六个必须会解释的式子
+
+1. Bellman：$Q^\pi=r+\gamma P V^\pi$，当前奖励加后续价值。
+2. TD residual：$\delta_t=R_{t+1}+\gamma m_tV_{t+1}-V_t$，一步预测误差。
+3. GAE：$\widehat A_t=\delta_t+\gamma\lambda c_t\widehat A_{t+1}$，多步 residual 混合。
+4. 动作比：$\rho=\exp(\ell_\theta-\ell_{\rm old})$，不自动修正状态占用。
+5. Soft value：$V=\alpha\log\sum_a\exp(Q_a/\alpha)$，有限动作的熵正则最大值。
+6. 误差递推：$e_{k+1}\leq\gamma e_k+\epsilon_k$，单步误差会随有效时域放大。
+
+## 通用 tensor 与梯度检查
+
+| 对象 | 期望形状示例 | 检查 |
+|---|---|---|
+| 离散动作 Q | B × A | gather 后为 B，不和 B × 1 意外广播 |
+| 连续动作 log-prob | B | 已对动作维求和并加 Jacobian 修正 |
+| Token log-prob | B × T | logits/token 已 shift |
+| Completion mask | B × T | prompt/padding 排除，EOS 约定一致 |
+| Advantage | B 或 B × T | 在 Actor loss 中冻结 |
+| Return target | B 或 B × T | 不随本轮 Critic 更新反向变化 |
+
+## 三种不要混淆的“停止”
+
+真正终止意味着任务未来价值为零；rollout 截断意味着暂时没有后续样本；停止梯度意味着当前优化不沿某个计算路径传播。这三件事没有一一对应关系。
+
+## 学习层级
+
+A：问题建模、Bellman、MC/TD、PG、GAE、PPO、SAC 数据流、offline 风险、LLM mask/ratio。
+
+B：TRPO 几何、控制即推断、IQL/CQL、模型规划、FQL、技能与后继表示。
+
+C：完整复杂度最优界、复杂生成模型证明、完整 Meta-RL 理论、未纳入主线的大型世界模型和多智能体系统。C 级不代表不重要，只表示本轮先保留可继续阅读的接口。

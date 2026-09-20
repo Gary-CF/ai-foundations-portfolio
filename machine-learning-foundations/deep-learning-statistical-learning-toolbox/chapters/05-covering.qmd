@@ -1,0 +1,67 @@
+# 覆盖数、链式逼近与 Dudley 方法 {#sec-05-covering}
+
+**来源：**CS229M L8 末尾、L9、L10；下文统一使用经验 $L_2$ 归一化。
+
+## 覆盖的是样本上的输出，而不一定是参数
+
+对固定样本 $S$，令 $Q=\{(f(x_1),\ldots,f(x_n)):f\in\mathcal F\}\subset\mathbb R^n$，度量为 $d_n(q,q')=\|q-q'\|_2/\sqrt n$。$N(a,Q,d_n)$ 是半径 $a$ 球覆盖 $Q$ 所需的最少数量。
+
+即使两套参数差很大，只要它们在样本上的输出相同，对经验复杂度就是同一点。参数空间覆盖可能花钱区分了很多函数上无意义的差异。
+
+## 单尺度逼近
+
+取覆盖中心 $q'$，有
+
+$$\frac1n\varepsilon^\top q\le\frac1n\varepsilon^\top q'+\frac1n\|\varepsilon\|_2\|q-q'\|_2\le\frac1n\varepsilon^\top q'+a.$$
+
+若中心输出范数至多 $M\sqrt n$，Massart 引理给出 $\widehat{\mathfrak R}_S\le a+M\sqrt{2\log N(a)/n}$。这把所有中心都按大尺度 $M$ 处理，没有利用“细网格中相邻中心差很小”。
+
+## Chaining：把大跳跃拆成越来越小的跳跃
+
+设 $\mathcal F$ 含零函数，输出半径至多 $M$。取 $a_j=2^{-j}M$ 的覆盖，记 $\pi_j(q)$ 为最近中心，$\pi_0(q)=0$。对有限层数 $J$，恒等式
+
+$$q=\sum_{j=1}^{J}[\pi_j(q)-\pi_{j-1}(q)]+[q-\pi_J(q)]$$
+
+让每层只支付对应尺度的复杂度。第 $j$ 层增量的经验范数至多 $a_j+a_{j-1}\le3a_{j-1}$；增量候选数至多 $N(a_j)N(a_{j-1})$。对每层用 Massart，再对余项用 Cauchy–Schwarz，得到
+
+$$\widehat{\mathfrak R}_S\le a_J+\frac C{\sqrt n}\sum_{j=1}^{J}a_{j-1}\sqrt{\log N(a_j)}.$$
+
+将几何尺度和转成积分，得到一个常用的截断 Dudley 形式（常数可随覆盖中心约定略变）：
+
+$$\boxed{\widehat{\mathfrak R}_S\le\inf_{0<a\le M}\left[4a+\frac{12}{\sqrt n}\int_a^M\sqrt{\log N(u,\mathcal F,d_n)}\,du\right].}$$
+
+若不含零函数，先围绕一个固定函数平移，并用相应半径/直径；Rademacher 期望中的固定平移贡献为零。有限截断 $a>0$ 很重要：积分在零处可能发散，但不代表真实复杂度发散。
+
+## 看熵增长就知道哪里困难
+
+若 $\log N(u)\le A/u^p$，则被积函数为 $\sqrt A\,u^{-p/2}$。
+
+| 情形 | 积分特征 | 典型结果（省略尺度常数） |
+|---|---|---|
+| $p<2$ | 零端可积 | $\sqrt{A/n}$ 乘半径因子 |
+| $p=2$ | 对数发散 | 选正截断，约 $\sqrt{A/n}\log n$ |
+| $p>2$ | 小尺度主导 | 平衡截断，约 $(A/n)^{1/p}$ |
+
+这解释为何课上反复追求 $u^{-2}$ 熵界。不能把它代进从零开始的积分后直接丢掉发散问题。
+
+## Maurey 稀疏化：为何有些覆盖只付 $u^{-2}$
+
+**补充证明。**假设 $q$ 属于有限原子集 $\{a_1,\ldots,a_M\}$ 的凸包，原子在 Hilbert 范数下不超过 $R$。把 $q$ 看成某个随机原子 $A$ 的期望。取 $s$ 次独立采样，$\bar A=s^{-1}\sum_jA_j$，则
+
+$$\mathbb E\|\bar A-q\|^2=\frac1s\mathbb E\|A-q\|^2\le\frac{R^2}s.$$
+
+故至少有一个平均近似误差不超过 $R/\sqrt s$。所有平均的数量至多 $M^s$，取 $s\ge R^2/u^2$ 得 $\log N(u)\lesssim(R^2/u^2)\log M$。负系数可加入正负原子；范数预算通过整体缩放进入 $R$。这也是有限坐标线性类熵界的基本来源。
+
+## 逐层误差怎样分配最省
+
+第 $i$ 层误差 $u_i$，后续层 Lipschitz 常数乘积 $a_i$，总输出误差至多 $\sum_i a_i u_i$。若各层熵代价为 $b_i^2/u_i^2$，则需解
+
+$$\min_{u_i>0}\sum_i\frac{b_i^2}{u_i^2}\quad\text{s.t. }\sum_i a_iu_i\le u.$$
+
+Lagrange 一阶条件 $-2b_i^2/u_i^3+\nu a_i=0$，故 $u_i=c(b_i^2/a_i)^{1/3}$。由约束解 $c$ 并代回：
+
+$$\min=\frac{\left(\sum_i(a_ib_i)^{2/3}\right)^3}{u^2}.$$
+
+课程里看似神秘的 $2/3$ 与 $3/2$ 次幂，来自这个误差预算最优化，而不是任意选择的参数。
+
+**自检。**单尺度覆盖与 chaining 差在哪里？若采用未归一化欧氏度量，哪些 $\sqrt n$ 因子需要搬动？

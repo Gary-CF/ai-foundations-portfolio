@@ -1,0 +1,63 @@
+# 风险、经验风险最小化与渐近分析 {#sec-01-risk}
+
+**来源：**CS229M L1、L2 前半段；花书 §8.1。本章补全渐近展开中的条件与正负号。
+
+## 为什么要最小化经验风险
+
+总体目标是 $R(f)=\mathbb E[\ell(f(X),Y)]$，但分布未知，只能计算 $\widehat R(f)=n^{-1}\sum_i\ell(f(X_i),Y_i)$。经验风险最小化（ERM）选择 $\widehat f\in\arg\min_{f\in\mathcal H}\widehat R(f)$。
+
+定义 $f_{\mathcal H}^*\in\arg\min_{f\in\mathcal H}R(f)$，$R^*$ 为所有可测预测规则的最优风险。实际算法返回 $\widetilde f$，满足 $\widehat R(\widetilde f)\le\inf_{f\in\mathcal H}\widehat R(f)+\epsilon_{\rm opt}$。令 $\Delta_S=\sup_{f\in\mathcal H}|R(f)-\widehat R(f)|$，插入并减去经验风险：
+
+$$\begin{aligned}
+R(\widetilde f)-R^*
+&=[R(\widetilde f)-\widehat R(\widetilde f)]
++[\widehat R(\widetilde f)-\widehat R(f_{\mathcal H}^*)]\\
+&\quad+[\widehat R(f_{\mathcal H}^*)-R(f_{\mathcal H}^*)]
++[R(f_{\mathcal H}^*)-R^*]\\
+&\le2\Delta_S+\epsilon_{\rm opt}+\epsilon_{\rm app}.
+\end{aligned}$$
+
+近似误差由模型类限制产生；统计项来自有限数据；优化项来自没把训练目标充分优化。增大网络可能减小第一项，却改变统计复杂度和优化难度，所以“越大越好”不能由这条分解直接推出。
+
+## 固定模型与训练后选择的模型
+
+对一个提前固定的 $f$，大数定律说明 $\widehat R(f)\to R(f)$。但 $\widehat f$ 是看到样本后选择的，不能把固定 $f$ 的结论直接代入随机的 $\widehat f$。一致收敛要求同一个事件上**所有**候选模型都满足误差界；这样事后选任何一个仍在事件内。
+
+训练算法的偏置也可能使它只访问模型类的特殊区域。因此对整个巨大模型类的一致收敛失败，并不等于算法一定不能泛化；它只说明这条证明路径不够细。
+
+## 参数估计的渐近正态性
+
+设 $\theta^*\in\mathbb R^p$ 是总体风险的内点极小值，$p$ 固定。作如下标准条件：$\widehat\theta\to_p\theta^*$；局部二阶光滑；经验 Hessian 在所需邻域一致收敛到连续的总体 Hessian；$H=\nabla^2R(\theta^*)$ 正定；单样本梯度二阶矩有限，且允许交换微分与期望。近似 ERM 的一阶残差若存在，要求为 $o_p(n^{-1/2})$。
+
+令 $g_i=\nabla_\theta\ell(\theta^*;Z_i)$，$\mathbb Eg_i=0$，$V=\mathbb E[g_ig_i^\top]$。用积分形式展开经验梯度：
+
+$$0=\nabla\widehat R(\theta^*)+\left[\int_0^1\nabla^2\widehat R(\theta^*+s(\widehat\theta-\theta^*))\,ds\right](\widehat\theta-\theta^*).$$
+
+括号内趋于 $H$，因 $H$ 可逆，连续映射定理保证逆也趋于 $H^{-1}$。因此
+
+$$\sqrt n(\widehat\theta-\theta^*)=-H^{-1}\frac1{\sqrt n}\sum_i g_i+o_p(1)
+\Rightarrow N(0,H^{-1}VH^{-1}).$$
+
+负号来自把经验梯度移项。它虽不改变零均值高斯的协方差，却不能在中间等式里省略。
+
+对总体风险作二阶展开，因 $\nabla R(\theta^*)=0$，一阶项消失：
+
+$$n[R(\widehat\theta)-R(\theta^*)]\Rightarrow\frac12 Z^\top H Z,
+\qquad Z\sim N(0,H^{-1}VH^{-1}).$$
+
+故参数误差典型尺度为 $n^{-1/2}$，风险差为 $n^{-1}$。**分布收敛不自动推出期望收敛**；若另有一致可积性等条件，才可写
+
+$$\mathbb E[R(\widehat\theta)-R(\theta^*)]=\frac1{2n}\operatorname{tr}(VH^{-1})+o(n^{-1}).$$
+
+## 正确设定的似然模型与 Fisher 信息
+
+若数据确来自 $p_{\theta^*}$，损失为 $-\log p_\theta(Z)$，且支持集和微分积分交换条件适当，由 $\int p_\theta(z)dz=1$ 求导两次：
+
+$$\mathbb E[s_\theta]=0,\qquad
+-\mathbb E[\nabla^2\log p_\theta]=\mathbb E[s_\theta s_\theta^\top]=I(\theta),$$
+
+其中 $s_\theta=\nabla\log p_\theta$。于是 $H=V=I(\theta^*)$，渐近协方差为 $I^{-1}$；$n$ 倍风险差趋于 $\chi_p^2/2$，在期望收敛条件下其均值主项为 $p/(2n)$。模型错设时一般仍是 sandwich 矩阵 $H^{-1}VH^{-1}$，不能强行约掉。
+
+这套结果以固定维度和局部可识别性为基础。过参数化网络常有对称性与奇异 Hessian，不能直接套用。唯一极小点也不保证 Hessian 可逆：$f(x)=x^4$ 在零点唯一最小，但二阶导为零。这是对课堂转录中相关口头表述的必要修正。
+
+**自检。**为什么参数误差是一阶尺度、风险差是二阶尺度？若将 $p$ 随 $n$ 增大，上述证明哪一步需要重新检查？

@@ -1,0 +1,137 @@
+# 提升方法与集成学习 {#sec-boosting-ensembles}
+
+本章为**补充整理**：依据最初提纲，重点补写二分类 AdaBoost 的加权误差、样本重加权，以及它与前向分步加法模型、指数损失的关系。
+
+## 为什么组合多个模型
+
+若多个模型犯错的方式不同，组合预测可能比单个模型更稳定。Bagging 对重采样数据训练多个模型，再平均或投票；随机森林还在树的划分中随机选择候选特征。Boosting 则顺序构造模型，让后续步骤关注当前尚未解决的错误。
+
+这里不展开整个集成方法谱系，主线是二分类 AdaBoost。设标签 $y_i\in\{-1,+1\}$，弱分类器 $h_t(x)\in\{-1,+1\}$。
+
+## AdaBoost 的迭代
+
+初始化样本权重 $D_1(i)=1/N$。第 $t$ 轮在当前权重下训练弱分类器，并计算加权错误率
+
+$$
+\epsilon_t=\sum_iD_t(i)\mathbf1\{h_t(x_i)\ne y_i\}.
+$$
+
+当 $0<\epsilon_t<1/2$ 时，设置
+
+$$
+\alpha_t=\frac12\log\frac{1-\epsilon_t}{\epsilon_t}.
+$$
+
+然后更新并归一化：
+
+$$
+D_{t+1}(i)=\frac{D_t(i)\exp[-\alpha_ty_ih_t(x_i)]}{Z_t},
+\qquad
+Z_t=\sum_iD_t(i)\exp[-\alpha_ty_ih_t(x_i)].
+$$
+
+正确分类点的未归一化权重乘以 $e^{-\alpha_t}$，错误点乘以 $e^{\alpha_t}$，从而增加后者的相对重要性。最终输出
+
+$$
+F_T(x)=\sum_{t=1}^T\alpha_th_t(x),
+\qquad\hat y(x)=\operatorname{sign}F_T(x).
+$$
+
+弱学习条件针对每一轮的**当前加权分布**，不是只要求在初始数据上优于随机猜测。
+
+## 从指数损失推导权重
+
+### 前向分步加法建模
+
+假设已有 $F_{t-1}$，本轮只增加 $\alpha h$，不重新优化以前所有弱模型：
+
+$$
+F_t(x)=F_{t-1}(x)+\alpha h(x).
+$$
+
+最小化指数损失
+
+$$
+\mathcal E(F_t)=\sum_i\exp[-y_iF_t(x_i)]
+=\sum_i e^{-y_iF_{t-1}(x_i)}e^{-\alpha y_ih(x_i)}.
+$$
+
+将前一项归一化，就得到本轮权重
+
+$$
+D_t(i)=\frac{e^{-y_iF_{t-1}(x_i)}}{\sum_j e^{-y_jF_{t-1}(x_j)}}.
+$$
+
+因此“当前难分类的点更重”不是独立添加的规则，而是指数损失的直接结果。
+
+### 固定弱分类器，求最优系数
+
+正确点上 $y_ih(x_i)=1$，错误点上等于 $-1$，所以需要最小化
+
+$$
+Z(\alpha)=(1-\epsilon)e^{-\alpha}+\epsilon e^{\alpha}.
+$$
+
+求导并令其为零：
+
+$$
+-(1-\epsilon)e^{-\alpha}+\epsilon e^{\alpha}=0
+\quad\Longrightarrow\quad
+ e^{2\alpha}=\frac{1-\epsilon}{\epsilon}.
+$$
+
+于是得到 $\alpha=\tfrac12\log[(1-\epsilon)/\epsilon]$。代回可得
+
+$$
+Z_t=2\sqrt{\epsilon_t(1-\epsilon_t)}.
+$$
+
+固定 $\alpha>0$ 时，$Z(\alpha)=e^{-\alpha}+\epsilon(e^\alpha-e^{-\alpha})$ 随 $\epsilon$ 递增，因此选择加权错误率小的弱分类器与这个目标一致。
+
+### 一个数值例子
+
+若当前加权错误率为 $\epsilon_t=1/4$，则 $\alpha_t=\tfrac12\log3$。错误点相对正确点的权重倍率变为
+
+$$
+\frac{e^{\alpha_t}}{e^{-\alpha_t}}=e^{2\alpha_t}=3.
+$$
+
+不是把所有权重简单加上一个常数，而是通过乘法改变相对重心。
+
+## 训练误差为何可以下降
+
+若 $y_iF_T(x_i)\le0$，指数损失至少为 1，所以
+
+$$
+\frac1N\sum_i\mathbf1\{y_iF_T(x_i)\le0\}
+\le\frac1N\sum_i e^{-y_iF_T(x_i)}.
+$$
+
+由每轮归一化递推及 $D_1(i)=1/N$，
+
+$$
+D_{T+1}(i)=\frac{e^{-y_iF_T(x_i)}}{N\prod_{t=1}^TZ_t}.
+$$
+
+两边对 $i$ 求和得到
+
+$$
+\frac1N\sum_i e^{-y_iF_T(x_i)}=\prod_{t=1}^TZ_t.
+$$
+
+若每轮 $\epsilon_t\le1/2-\gamma$，$\gamma>0$，则
+
+$$
+Z_t\le\sqrt{1-4\gamma^2}\le e^{-2\gamma^2},
+\qquad\text{训练错误率}\le e^{-2T\gamma^2}.
+$$
+
+这是训练集上的界，不能直接当作测试误差保证。
+
+## 边界情况与理解范围
+
+$\epsilon_t=0$ 时系数公式趋于无穷，可结束迭代或做数值截断；$\epsilon_t=1/2$ 时 $\alpha_t=0$，本轮没有改进；若大于 $1/2$，应重新寻找弱分类器，二分类下也可检查翻转输出是否有效。
+
+指数损失对持续误分类点施加很大权重，因此噪声标签和异常值可能带来问题。轮数、基学习器复杂度等仍需要验证。
+
+本章的核心对应是：**弱分类器 → 加权误差 → 系数 → 样本重加权 → 加法模型**。AdaBoost 可以视为指数损失下的前向分步加法建模；梯度提升进一步推广这种“逐步添加函数”的思路，本书仅作联系说明。

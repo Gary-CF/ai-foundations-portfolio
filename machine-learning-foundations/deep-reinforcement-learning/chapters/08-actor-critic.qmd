@@ -1,0 +1,62 @@
+# Actor–Critic、优势估计与 GAE {#sec-ac}
+
+**学习层级：A。** 核心是估计器、数据和梯度路径；“Actor–Critic”是一类结构。材料：CS285 L6、L21；白板 baseline 与 Actor–Critic。
+
+## Critic 帮 Actor 判断动作相对好坏
+
+REINFORCE 用真实回报，方差可能很大。Critic 学 $V_\phi$ 或 $Q_\phi$，Actor 用这些估计构造策略梯度。学习价值引入逼近误差，但允许更短反馈、更多样本复用。Actor 的目标是提高回报，Critic 的目标是改善价值估计，两者不是同一个损失。
+
+若 $V=V^\pi$，一步 TD residual 条件期望为
+
+$$\mathbb E[\delta_t\mid s_t,a_t]
+=r(s_t,a_t)+\gamma\mathbb E V^\pi(S_{t+1})-V^\pi(s_t)
+=A^\pi(s_t,a_t).$$
+
+当 V 不准确时，一步优势一般有偏；偏差依赖下一状态价值误差与当前基线误差的组合。
+
+## 从 n-step 优势推到 GAE
+
+先写
+
+$$\widehat A_t^{(n)}=G_t^{(n)}-V(S_t).$$
+
+把每个 $\delta_{t+l}=R_{t+l+1}+\gamma V(S_{t+l+1})-V(S_{t+l})$ 乘以 $\gamma^l$ 并相加，中间价值望远镜消去：
+
+$$\widehat A_t^{(n)}=\sum_{l=0}^{n-1}\gamma^l\delta_{t+l}.$$
+
+对 n-step 优势按 $\lambda$ 权重混合，交换求和，得到
+
+$$\widehat A_t^{\rm GAE}=\sum_{l\geq0}(\gamma\lambda)^l\delta_{t+l}.$$
+
+有限 rollout 从后向前递推 $\widehat A_t=\delta_t+\gamma\lambda c_t\widehat A_{t+1}$，$c_t$ 表示是否继续连接到同一轨迹的下一条 residual。$\lambda=0$ 只用一步 residual；$\lambda=1$ 在正确边界处理下回到 MC/完整多步目标减 baseline。
+
+## 两种 mask 不应混为一谈
+
+计算 $\delta_t$ 时用 bootstrap mask $m_t$：真正终止为 0，允许延续的时间截断为 1。GAE 递推则不能穿过 reset 边界，因此连接 mask $c_t$ 在终止和截断重置处都为 0。
+
+```text
+next_adv = 0
+从 rollout 末尾向前:
+    delta = reward + gamma * bootstrap_mask * V(final_next_obs) - V(obs)
+    adv = delta + gamma * lambda * continuation_mask * next_adv
+    return_target = adv + V(obs)
+    next_adv = adv
+```
+
+若 rollout 在未终止处结束，最后一个 residual 可以 bootstrap，但不能凭空加入未采集的 residual。$\widehat R_t=\widehat A_t+V_{\rm old}(s_t)$ 可作为价值回归目标，整个 target 应被冻结。
+
+## 数值例子
+
+仍用两步轨迹 $(0,3)$，$\gamma=0.9$，$V(s_0)=1,V(s_1)=2$。则 $\delta_0=0.8$，$\delta_1=1$。$\lambda=0$ 时优势为 0.8；$\lambda=1$ 时为 1.7，等于 $2.7-1$；$\lambda=0.5$ 时为 1.25。不同 $\lambda$ 在短期价值误差和长程奖励噪声之间取舍。
+
+## 联合损失与实现角色
+
+常见形式是 $L=L_\pi+c_VL_V-c_H\mathcal H$，但应先分别理解：Actor 用停止梯度的优势；Critic 拟合停止梯度的回报目标；熵项鼓励动作分布不过早塌缩。共享表示时三条梯度可能互相影响，需检查尺度。
+
+优势标准化在实践中常见，会改变 batch 的尺度；有限样本随机分母也会改变估计性质。不要把“标准化让训练稳定”升级为严格不改变梯度的定理。
+
+Off-policy Actor–Critic 可以用 replay，但通常换了评价/改进结构或引入概率修正；不是把 on-policy GAE 随手放入旧数据缓冲区。SAC 见 @sec-sac。
+
+## 自测
+
+**题：** Critic 的 MSE 越小，Actor 一定越好吗？**答：** 未必；关键是相关状态动作的优势是否正确，价值尺度、覆盖与策略更新都影响结果。**题：** $\lambda=1$ 能否保证任意截断下完全无偏？**答：** 不能，未观察尾部若用不准确价值 bootstrap，仍有偏差。

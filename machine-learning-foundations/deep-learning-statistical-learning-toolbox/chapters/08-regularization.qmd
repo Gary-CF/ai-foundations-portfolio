@@ -1,0 +1,57 @@
+# 显式正则化、数据先验与模型组合 {#sec-08-regularization}
+
+**来源：**花书 §7.1–7.14。早停的线性精确计算见第 13 章，训练噪声动力学见第 15 章。
+
+## 范数惩罚、约束与欠定问题
+
+目标 $J(\theta)+\lambda\Omega(\theta)$ 中，$\lambda\ge0$ 调整拟合与偏好。若 $\theta_\lambda$ 是全局最优，则它也是约束 $\Omega(\theta)\le\Omega(\theta_\lambda)$ 下的最优，否则存在约束内更低 $J$ 与全局最优矛盾。反向“每个约束最优都对应某个惩罚系数”需要凸性、强对偶等条件，非凸情况不能无条件宣称等价。
+
+局部二次目标 $J(w)=\tfrac12(w-w^*)^\top H(w-w^*)$ 加 $\lambda\|w\|^2/2$，得到 $w_\lambda=(H+\lambda I)^{-1}Hw^*$。在 $H$ 特征值 $h_j$ 方向缩为 $h_j/(h_j+\lambda)$：平坦方向更强收缩。
+
+$\ell_1$ 惩罚的稀疏机制用标量问题看得最清楚：
+
+$$\min_w\frac12(w-z)^2+\lambda|w|,
+\qquad w^*=\operatorname{sign}(z)(|z|-\lambda)_+.$$
+
+对 $w>0$ 和 $w<0$ 分别令导数为零；在 $w=0$ 用次梯度 $[-1,1]$，恰在 $|z|\le\lambda$ 可平衡。$\ell_2$ 平滑收缩一般不制造精确零点。
+
+欠定最小二乘 $X^\top X$ 奇异时，$\lambda I$ 使岭回归系统可逆；PCA 本身可通过 SVD 求解，不应读作“PCA 必须求这个逆”。
+
+## 数据增强、噪声与标签平滑
+
+增强变换 $T$ 隐含标签保持先验：训练 $\mathbb E_T\ell(f(TX),Y)$ 鼓励对这些变化稳定。若变换会改变标签，这个先验就错误。增强样本共享原始样本，不应直接当成新增同数量独立观测来套样本复杂度。
+
+对线性平方损失、输入加独立零均值噪声 $\xi$，$\operatorname{Cov}\xi=\Sigma$，有精确恒等式
+
+$$\mathbb E_\xi\frac12[w^\top(x+\xi)-y]^2
+=\frac12(w^\top x-y)^2+\frac12w^\top\Sigma w.$$
+
+因为交叉项均值为零。一般非线性网络只在局部小噪声展开下近似对应 Jacobian/曲率惩罚，不能一概等同 weight decay。
+
+标签平滑将 one-hot 目标换成 $(1-\alpha)y+\alpha u$，交叉熵梯度相应变为 $p-[(1-\alpha)y+\alpha u]$，避免对单一类别施加无限置信的目标。随机标签扰动与固定标签平滑的动力学不相同。
+
+## 半监督、多任务与参数共享
+
+半监督同时用 $P(X)$ 与少量联合样本，但 $P(X)$ 本身不决定 $P(Y\mid X)$；需要聚类、流形或一致性等关联假设。多任务共享表示 $h_\theta$、各有输出头，以 $\sum_t\alpha_t\widehat R_t$ 训练；相关任务提供互补约束，不相关任务可能负迁移。
+
+软参数绑定用 $\|\theta_a-\theta_b\|^2$ 惩罚，硬共享直接令两者是同一个变量。卷积跨位置共享核，RNN 跨时间共享转移，减少自由度并引入对应结构假设。稀疏**参数**与稀疏**激活表示**要区分：$\|w\|_1$ 与 $\sum_i\|h(x_i)\|_1$ 不是同一目标。
+
+## 早停与模型选择
+
+训练损失继续下降但验证表现变差时，保存验证最优参数，并用 patience 避免单次波动触发停止。停止时间是超参数选择的一部分，因此验证集不能再当作未使用测试集。
+
+早停既节约优化成本，又限制训练路径。第 13 章给出平方损失下的精确谱滤波，并说明它与岭回归仅有联系，通常不完全等价。
+
+## 集成与 dropout
+
+若 $M$ 个预测误差方差均为 $v$，两两协方差为 $c$，平均误差方差为 $v/M+(M-1)c/M$。集成收益来自不完全相关；复制同一个模型不降低方差。Bagging 用 bootstrap 重采样训练模型，深网络也可用初始化或数据顺序制造多样性。
+
+Inverted dropout 用 $\widetilde h_j=m_jh_j/p$，$m_j\sim\operatorname{Bernoulli}(p)$，故 $\mathbb E\widetilde h_j=h_j$，$\operatorname{Var}\widetilde h_j=(1-p)h_j^2/p$。训练在不同子网络上共享参数，测试常关闭 mask。均值缩放只保证这一层的期望；非线性后 $\mathbb Ef(\widetilde h)\ne f(\mathbb E\widetilde h)$，所以“精确平均全部子模型”通常不成立。
+
+## 对抗训练与切向方法
+
+对抗目标为 $\min_\theta\mathbb E\max_{\|r\|\le\epsilon}\ell(f_\theta(x+r),y)$。线性化内层损失为 $r^\top\nabla_x\ell$，其最大值为 $\epsilon\|\nabla_x\ell\|_*$；$\ell_\infty$ 球的最大化方向是 $\epsilon\operatorname{sign}(\nabla_x\ell)$。这是局部近似，不保证找到非线性最坏攻击。
+
+若 $T_a(x)$ 表示已知标签保持变换，切向量 $v=\partial_aT_a(x)|_{a=0}$，希望 $f(T_a(x))$ 不变，就惩罚 $\|J_f(x)v\|^2$。Tangent distance 在邻域的切平面之间比较距离，tangent prop 直接罚切向导数，manifold tangent classifier 用学习到的流形切向量提供这些方向。三者共享不变性动机，但算法不同。
+
+**自检。**为何给输入加噪声只在线性平方损失中有上述精确等价？范数约束与正则化系数的双向等价需要什么条件？

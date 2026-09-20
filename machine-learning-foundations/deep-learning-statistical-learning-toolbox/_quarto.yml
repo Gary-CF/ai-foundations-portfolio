@@ -1,0 +1,84 @@
+project:
+  type: book
+  output-dir: _book
+  resources:
+  - source-ledger.json
+  render:
+  - index.qmd
+  - chapters/*.qmd
+  - appendices/*.qmd
+book:
+  title: 深度学习与进阶统计学习工具箱
+  output-file: deep-learning-statistical-learning-toolbox
+  chapters:
+  - index.qmd
+  - chapters/00-foundations.qmd
+  - part: 统计学习与泛化基础
+    chapters:
+    - chapters/01-risk.qmd
+    - chapters/02-concentration.qmd
+    - chapters/03-rademacher.qmd
+    - chapters/04-margin-kernel.qmd
+    - chapters/05-covering.qmd
+  - part: 神经网络、正则化与训练
+    chapters:
+    - chapters/06-networks.qmd
+    - chapters/07-network-generalization.qmd
+    - chapters/08-regularization.qmd
+    - chapters/09-training.qmd
+  - part: 非凸优化与可分析模型
+    chapters:
+    - chapters/10-nonconvex.qmd
+    - chapters/11-factorization.qmd
+    - chapters/12-ntk.qmd
+  - part: 隐式偏置与优化噪声
+    chapters:
+    - chapters/13-implicit-regression.qmd
+    - chapters/14-classification-bias.qmd
+    - chapters/15-noise.qmd
+  - part: 序列、表示学习与实验方法
+    chapters:
+    - chapters/16-sequences.qmd
+    - chapters/17-representation-moments.qmd
+    - chapters/18-spectral.qmd
+    - chapters/19-methodology.qmd
+  appendices:
+  - appendices/A-math-reference.qmd
+  - appendices/B-source-coverage.qmd
+  - appendices/C-corrections.qmd
+  - appendices/D-validation.qmd
+  search: true
+  sidebar:
+    style: docked
+    collapse-level: 1
+lang: zh
+number-sections: true
+number-depth: 2
+toc: true
+toc-depth: 2
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    html-math-method: katex
+    code-copy: true
+  pdf:
+    documentclass: ctexbook
+    classoption:
+    - UTF8
+    - oneside
+    - openany
+    - fontset=fandol
+    pdf-engine: xelatex
+    papersize: a4
+    fontsize: 11pt
+    geometry:
+    - top=25mm
+    - bottom=25mm
+    - left=23mm
+    - right=23mm
+    colorlinks: true
+    toc-depth: 1
+    keep-tex: false
+    lang: en
+    toc-title: 目录

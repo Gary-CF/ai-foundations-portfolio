@@ -1,0 +1,57 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "经典统计学习笔记"
+  subtitle: "Classical Statistical Learning Notes"
+  output-file: classical-statistical-learning
+  chapters:
+    - index.qmd
+    - part: "几何与优化"
+      chapters:
+        - chapters/01-linear-models.qmd
+        - chapters/02-svm-kernels.qmd
+        - chapters/03-pca.qmd
+    - part: "树模型与集成学习"
+      chapters:
+        - chapters/04-decision-trees.qmd
+        - chapters/05-boosting-ensembles.qmd
+    - part: "概率建模与推断"
+      chapters:
+        - chapters/06-exponential-family-maxent.qmd
+        - chapters/07-em-gmm.qmd
+        - chapters/08-probabilistic-graphical-models.qmd
+        - chapters/09-hmm.qmd
+        - chapters/10-crf.qmd
+  appendices:
+    - appendices/a-mcmc.qmd
+
+lang: zh
+number-sections: true
+toc: true
+toc-depth: 2
+
+format:
+  html:
+    theme: cosmo
+    html-math-method: mathjax
+    code-copy: true
+  pdf:
+    documentclass: ctexbook
+    pdf-engine: xelatex
+    # 中文排版交给 ctex；避免旧版 babel 的 chinese-hans 目录兼容问题。
+    babel-lang: english
+    include-in-header:
+      - text: |
+          \addto\captionsenglish{\renewcommand{\appendixname}{附录}}
+    classoption:
+      - fontset=fandol
+      - openany
+      - oneside
+    papersize: a4
+    fontsize: 11pt
+    geometry:
+      - margin=25mm
+    colorlinks: true
+

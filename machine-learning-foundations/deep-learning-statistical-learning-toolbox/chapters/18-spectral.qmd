@@ -1,0 +1,99 @@
+# 谱聚类：期望结构、随机扰动与图切割 {#sec-18-spectral}
+
+**来源：**CS229M L19 后半、L20。补充展开扰动界、网格集中和 Cheeger 证明的核心链条。
+
+## 平衡随机块模型
+
+$n$ 个结点等分两组，用 $s\in\{\pm1\}^n$ 表示组别，$\mathbf1^\top s=0$。组内边概率 $p$、组间 $q$，$p>q$，无自环，无向独立边。令 $\alpha=(p+q)/2,\beta=(p-q)/2$，则
+
+$$\mathbb EA=\alpha\mathbf1\mathbf1^\top+\beta ss^\top-pI.$$
+
+$-pI$ 修正零对角；省略它会改变特征值，但不改变特征向量。背景方向 $\mathbf1$ 的特征值为 $n\alpha-p$；群落方向 $s$ 为 $n\beta-p$；其余方向为 $-p$。因此第二个代数最大特征向量携带分组信息。
+
+若减去已知背景并加回对角修正，$B=A-\alpha\mathbf1\mathbf1^\top+pI=\lambda uu^\top+E$，$u=s/\sqrt n$，$\lambda=n\beta$，$E=A-\mathbb EA$。实际未知 $p,q$ 时需要估计或使用归一化图方法，不能把真值背景当作已知输入而不说明。
+
+## 一个可直接证明的特征向量扰动界
+
+设 $B=\lambda uu^\top+E$，$\|u\|=1$，$\lambda>0$，$\|E\|\le\lambda/2$。$\widehat u$ 为最大特征向量，$\widehat\lambda\ge u^\top Bu\ge\lambda-\|E\|$。将特征方程投影到 $u^\perp$：
+
+$$\widehat\lambda P_{u^\perp}\widehat u=P_{u^\perp}E\widehat u,$$
+
+所以 $\sin\angle(\widehat u,u)\le\|E\|/(\lambda-\|E\|)\le2\|E\|/\lambda$。选整体符号后，$\|\widehat u-u\|^2\le2\sin^2\angle$。
+
+真实每个坐标幅度为 $1/\sqrt n$；若按符号分组错误，该坐标平方误差至少 $1/n$。故误分比例至多 $\|\widehat u-u\|^2$，量级为 $O(\|E\|^2/\lambda^2)$。这给弱恢复，不自动给零误分或逐坐标精确恢复。
+
+## 为什么控制谱范数又回到一致收敛
+
+对称矩阵 $E$ 有 $\|E\|=\sup_{\|v\|=1}|v^\top Ev|$。固定 $v$，
+
+$$v^\top Ev=2\sum_{i<j}v_iv_j(A_{ij}-\mathbb EA_{ij}).$$
+
+各项独立、区间长度为 $2|v_iv_j|$，长度平方和 $4\sum_{i<j}v_i^2v_j^2\le2$。Hoeffding 给固定方向尾部 $2e^{-t^2}$ 的有效保守界。
+
+取单位球的 $1/4$ 网格 $N$，$|N|\le9^n$。若 $v$ 是最大化方向、$v'$ 为近邻，则
+
+$$|v^\top Ev-v'^\top Ev'|\le2\|v-v'\|\|E\|\le\frac12\|E\|,$$
+
+故 $\|E\|\le2\max_{v'\in N}|v'^\top Ev'|$。Union bound 得概率至少 $1-\delta$ 时
+
+$$\|E\|\le2\sqrt{n\log9+\log(2/\delta)}.$$
+
+这个粗界为 $O(\sqrt n)$，适合展示稠密图分析。稀疏图中更精细结果需利用方差、度数与可能的正则化，不能用此界宣称达到稀疏恢复最优阈值。
+
+## 一般图：先统一矩阵定义
+
+对非负对称权重 $A$，度数 $d_i=\sum_jA_{ij}>0$，$D=\operatorname{diag}(d_i)$：
+
+$$L=D-A,\quad\mathcal L=I-D^{-1/2}AD^{-1/2},\quad P=D^{-1}A.$$
+
+$L$ 是未归一化 Laplacian，$\mathcal L$ 是对称归一化版本，$P$ 是随机游走转移。它们不是同一矩阵。孤立点须单独处理，不能除以零。
+
+$\mathcal L D^{1/2}\mathbf1=0$。任意 $v$ 的能量为
+
+$$v^\top\mathcal Lv=\sum_{i<j}A_{ij}\left(\frac{v_i}{\sqrt{d_i}}-\frac{v_j}{\sqrt{d_j}}\right)^2.$$
+
+因此低特征值对应相邻结点取值相近的变化模式。连通分量数等于零特征值重数；连通图的第二小特征向量反映最容易分开的方向。
+
+## Cheeger：谱值如何控制切割
+
+定义 $\operatorname{vol}(S)=\sum_{i\in S}d_i$，$\operatorname{cut}(S,\bar S)=\sum_{i\in S,j\notin S}A_{ij}$，
+
+$$\phi(S)=\frac{\operatorname{cut}(S,\bar S)}{\min(\operatorname{vol}S,\operatorname{vol}\bar S)},\qquad\phi(G)=\min_S\phi(S).$$
+
+对连通图，记 $\lambda_2$ 为 $\mathcal L$ 第二小特征值，则
+
+$$\frac{\lambda_2}{2}\le\phi(G)\le\sqrt{2\lambda_2}.$$
+
+**下界。**对某切割取 $f=1_S-\operatorname{vol}(S)/\operatorname{vol}(V)$，满足 $\sum_i d_if_i=0$。Rayleigh 商为 $\operatorname{cut}(S,\bar S)\operatorname{vol}(V)/(\operatorname{vol}S\operatorname{vol}\bar S)\le2\phi(S)$。由变分定义 $\lambda_2\le R(f)$，再对切割最小化。
+
+**上界的核心推导。**令广义特征函数 $f=D^{-1/2}v_2$，$Lf=\lambda_2Df$。取其按度数加权的中位数 $m$。若 $m\le0$，取 $g=(f-m)_+$；若 $m\ge0$，取 $g=(m-f)_+$。选择非零的一侧，其支撑体积至多全图一半。
+
+以 $m\le0$ 为例，截断单调性给
+
+$$\sum_{i<j}A_{ij}(g_i-g_j)^2
+\le g^\top Lf=\lambda_2\sum_i d_ig_if_i
+\le\lambda_2\sum_i d_ig_i^2.$$
+
+最后用 $f_i=g_i+m$ 且 $m\le0$。另一侧对 $-f$ 同理。
+
+对阈值集合 $S_t=\{i:g_i^2>t\}$，积分恒等式（逐边、逐点计算）给
+
+$$\int_0^\infty\operatorname{cut}(S_t,\bar S_t)dt=\sum_{i<j}A_{ij}|g_i^2-g_j^2|,
+\quad\int_0^\infty\operatorname{vol}(S_t)dt=\sum_id_ig_i^2.$$
+
+于是至少一个阈值的 conductance 不大于两个积分之比。分子用 Cauchy–Schwarz：
+
+$$\sum_{i<j}A_{ij}|g_i-g_j||g_i+g_j|
+\le\sqrt{\Bigl[\sum_{i<j}A_{ij}(g_i-g_j)^2\Bigr]\Bigl[2\sum_id_ig_i^2\Bigr]}.$$
+
+除以分母，得至多 $\sqrt{2\lambda_2}$。因此实际算法按 $v_{2,i}/\sqrt{d_i}$ 排序，扫描所有相邻阈值，选 conductance 最小的切割；不是固定在零处切一刀就有同样保证。
+
+## 谱嵌入与参数化表示
+
+多簇时取若干最小 Laplacian 特征向量，把每个结点对应的行作为表示，再做聚类。必须说明是否包括平凡零特征向量、是否行归一化和图如何构造。图相似度若不反映语义，特征分解不会自动创造正确语义。
+
+L20 后段还把谱表示与参数化低秩近似联系起来。对对称归一化邻接矩阵 $\bar A$，目标 $\|FF^\top-\bar A\|_F^2$ 展开为 $\|FF^\top\|_F^2-2\operatorname{tr}(F^\top\bar AF)+\text{常数}$：第二项鼓励相似点内积大，第一项防止全部表示无限放大或塌成同一种无区分相似性。最优 PSD 秩约束近似保留最大的正特征值并取平方根缩放；负特征值不能直接开实平方根。
+
+用 $F_i=f_\theta(x_i)$ 限制表示后，得到可对新样本求值的参数化模型，但优化变成新的问题，不能直接宣称任意网络训练等价于精确谱分解。
+
+**自检。**谱恢复为什么要把扰动与特征间隙比较？Cheeger 的扫描阈值为什么作用在度数归一化后的坐标？

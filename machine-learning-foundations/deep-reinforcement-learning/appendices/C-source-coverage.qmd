@@ -1,0 +1,85 @@
+# 材料覆盖与来源定位 {#sec-sources}
+
+本书不是把转录稿逐句拼接，而是按 22 章重新编写。下表保留每份上传稿的独立入口；完整文件名与 SHA-256 在项目根目录的 source-ledger 文件中。哈希只证明本轮使用了哪份文件，不证明原稿无误。
+
+## 白板材料：28 份
+
+| 视频/分 P | 主题 | 正文章节 |
+|---|---|---|
+| [BV1RA411q7wt / 1](https://www.bilibili.com/video/BV1RA411q7wt/?p=1) | 马尔可夫链、回报与问题入口 | 1–2 |
+| [BV1RA411q7wt / 2](https://www.bilibili.com/video/BV1RA411q7wt/?p=2) | MDP 与环境动态 | 1–2 |
+| [BV1RA411q7wt / 3](https://www.bilibili.com/video/BV1RA411q7wt/?p=3) | 策略与价值函数 | 2 |
+| [BV1RA411q7wt / 4](https://www.bilibili.com/video/BV1RA411q7wt/?p=4) | Bellman 期望方程 | 2 |
+| [BV1RA411q7wt / 5](https://www.bilibili.com/video/BV1RA411q7wt/?p=5) | Bellman 最优方程 | 2 |
+| [BV1nV411k7ve / 1](https://www.bilibili.com/video/BV1nV411k7ve/?p=1) | 动态规划概览、矩阵策略评估 | 2 |
+| [BV1nV411k7ve / 2](https://www.bilibili.com/video/BV1nV411k7ve/?p=2) | 迭代策略评估 | 2 |
+| [BV1nV411k7ve / 3](https://www.bilibili.com/video/BV1nV411k7ve/?p=3) | 策略改进定理 | 2 |
+| [BV1nV411k7ve / 4](https://www.bilibili.com/video/BV1nV411k7ve/?p=4) | 贪心改进与策略迭代 | 2 |
+| [BV1nV411k7ve / 5](https://www.bilibili.com/video/BV1nV411k7ve/?p=5) | 价值迭代与广义策略迭代 | 2 |
+| [BV1rF411J7Mw / 1](https://www.bilibili.com/video/BV1rF411J7Mw/?p=1) | MC 前情回顾 | 2–3 |
+| [BV1vm4y1Z7Ce / 1](https://www.bilibili.com/video/BV1vm4y1Z7Ce/?p=1) | MC 策略评估 | 3 |
+| [BV1N5411o7QD / 1](https://www.bilibili.com/video/BV1N5411o7QD/?p=1) | Exploring Starts MC 控制 | 3 |
+| [BV1bS4y1C75M / 1](https://www.bilibili.com/video/BV1bS4y1C75M/?p=1) | On-policy 与 off-policy | 3–4 |
+| [BV1EZ4y1R7r4 / 1](https://www.bilibili.com/video/BV1EZ4y1R7r4/?p=1) | 异策略 MC 评估 | 4 |
+| [BV1sS4y1C7tR / 1](https://www.bilibili.com/video/BV1sS4y1C7tR/?p=1) | 异策略 MC 评估与控制 | 3–4 |
+| [BV1wS4y1F7zn / 1](https://www.bilibili.com/video/BV1wS4y1F7zn/?p=1) | TD 策略评估 | 3 |
+| [BV1BS4y1r7cm / 1](https://www.bilibili.com/video/BV1BS4y1r7cm/?p=1) | SARSA | 3 |
+| [BV1cZ4y1C7Ma / 1](https://www.bilibili.com/video/BV1cZ4y1C7Ma/?p=1) | Q-learning | 3、6 |
+| [BV15L411T7LM / 1](https://www.bilibili.com/video/BV15L411T7LM/?p=1) | Expected SARSA | 3 |
+| [BV1MS4y1r7ta / 1](https://www.bilibili.com/video/BV1MS4y1r7ta/?p=1) | 策略近似 | 7 |
+| [BV18u411Q76q / 1](https://www.bilibili.com/video/BV18u411Q76q/?p=1) | 策略梯度定理 | 7 |
+| [BV1xb4y1W7Ye / 1](https://www.bilibili.com/video/BV1xb4y1W7Ye/?p=1) | REINFORCE | 7 |
+| [BV1RF411x7oS / 1](https://www.bilibili.com/video/BV1RF411x7oS/?p=1) | REINFORCE baseline 与 Actor–Critic | 7–8 |
+| [BV1yT4y1U78Z / 1](https://www.bilibili.com/video/BV1yT4y1U78Z/?p=1) | Dyna Architecture | 13 |
+| [BV1ar4y1p7ES / 1](https://www.bilibili.com/video/BV1ar4y1p7ES/?p=1) | 规划算力聚焦 | 13 |
+| [BV1cY4y1i785 / 1](https://www.bilibili.com/video/BV1cY4y1i785/?p=1) | 决策时规划 | 13 |
+| [BV1s5411D7JT / 1](https://www.bilibili.com/video/BV1s5411D7JT/?p=1) | MCTS | 13 |
+
+## CS285 转录：L1–19
+
+官网的简写题名与视频标题可能不同，依据讲次和 Spring 2026 标识对齐。L9 视频题名强调 Off-Policy Policy Gradient，官网归为 Advanced Policy Gradients Part 1。
+
+| 讲次 | 主题 | 正文章节 |
+|---|---|---|
+| [L1](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-1.pdf) | 课程概览 | 1 |
+| [L2](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-2.pdf) | 行为克隆 | 12 |
+| [L3](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-3.pdf) | 行为克隆续、策略表示 | 12、15 |
+| [L4](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-4.pdf) | RL 基础 | 1–2 |
+| [L5](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-5.pdf) | 策略梯度 | 7 |
+| [L6](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-6.pdf) | Actor–Critic | 8 |
+| [L7](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-7.pdf) | 基于价值的 RL | 5–6 |
+| [L8](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-8.pdf) | Q-learning 实践 | 6、11 |
+| [L9](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-9.pdf) | 异策略策略梯度 / 高级 PG（一） | 4、9 |
+| [L10](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-10.pdf) | 高级 PG（二） | 9 |
+| [L11](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-11.pdf) | 变分推断 | 10、数学附录 |
+| [L12](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-12.pdf) | RL 中的变分推断 | 10、13 |
+| [L13](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-13.pdf) | 控制即推断 | 10–11、16 |
+| [L14](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-14.pdf) | 序列与 LLM RL | 16–18 |
+| [L15](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-15.pdf) | 模型式 RL 基础 | 13 |
+| [L16](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-16.pdf) | 模型式 RL 算法 | 13 |
+| [L17](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-17.pdf) | 离线 RL 基础 | 14 |
+| [L18](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-18.pdf) | 离线 RL 算法 | 14–15 |
+| [L19](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-19.pdf) | 探索 | 19 |
+
+## 官方补充：L20–25
+
+| 讲次 | 补充主题 | 正文章节 |
+|---|---|---|
+| [L20](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-20.pdf) | RL Theory | 21 |
+| [L21](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-21.pdf) | Midterm Review 1 | 跨章复习 |
+| [L22](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-22.pdf) | Midterm Review 2 | 跨章复习 |
+| [L23](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-23.pdf) | Exploration and Skill Learning | 19 |
+| [L24](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-24.pdf) | Multi-Task and Hierarchical RL | 20 |
+| [L25](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-25.pdf) | Challenges and Open Problems | 22 |
+
+## 复习讲义的回访入口
+
+L21 的 BC、PG、AC 对照第 12、7–9 章；L22 的价值、推断、模型、离线、探索与理论对照第 5–6、10–11、13–15、19、21 章。复习课用于检查章节之间的关系，不重复生成两章正文。
+
+## 自行补充的桥梁
+
+n-step/$\lambda$-return 的统一记法、IS 支持条件、半梯度/双采样说明、误差递推小证明、手算例子和实验脚本属于补充解释。DDPG/TD3、DPO 与复杂理论的深度按 A/B/C 边界处理。原提纲和上一轮补读稿保存在 docs 中，以便追溯本轮结构变化。
+
+## 可核验程度
+
+上传稿引用的原始截图没有随附。本书重新排写数学公式并绘制示意图；没有把画面描述当作已经亲见的板书。正文按数学定义修正明显矛盾，涉及课堂具体措辞的判断仍以原音视频复核为准。未收录原始转录全文和课程 PDF，避免把含失效图片路径的中间材料混入阅读版本。

@@ -1,0 +1,204 @@
+# 指数族与最大熵 {#sec-exponential-family-maxent}
+
+<!-- 来源：6.Exponentialfamily.md、cheatsheet.md；配分函数通式取自 22.PartitionFunction.md 的主线部分。 -->
+
+高斯、Bernoulli、Poisson 等看似不同的分布，常能写成同一种结构。统一表示的价值在于：归一化、矩、似然估计和凸性都可由一个函数处理。
+
+## 指数族的统一形式
+
+写成
+
+$$
+p(x\mid\eta)=h(x)\exp\{\eta^\top T(x)-A(\eta)\}.
+$$
+
+$\eta$ 是自然参数，$T(x)$ 是充分统计量，$h(x)$ 是基准因子，$A(\eta)$ 是对数配分函数。为避免与类别概率及特征映射混淆，本章用 $T$ 代替原稿的 $\phi$。
+
+归一化要求
+
+$$
+A(\eta)=\log\int h(x)e^{\eta^\top T(x)}\,dx,
+$$
+
+离散情形把积分换成求和。自然参数空间是使积分有限的参数集合；讨论导数时通常取其内部，并要求可交换积分与求导。
+
+“充分”是相对于给定参数族而言：统计量保留了样本中用于推断该参数的全部信息，不代表保留了样本的所有细节。对独立同分布样本，联合似然中与参数相关的数据项只通过 $\sum_iT(x_i)$ 出现。
+
+常见指数族包括高斯、Bernoulli、二项、Poisson、Beta、Dirichlet、Gamma 等；具体表示取决于哪些量被视为未知参数及支持集是否固定。
+
+## 两个例子
+
+### Bernoulli：自然参数就是对数几率
+
+**补充例子。** 对 $x\in\{0,1\}$，
+
+$$
+p(x\mid\pi)=\pi^x(1-\pi)^{1-x}
+=\exp\left[x\log\frac\pi{1-\pi}+\log(1-\pi)\right].
+$$
+
+因此 $T(x)=x$、$h(x)=1$、$\eta=\log[\pi/(1-\pi)]$，$A(\eta)=\log(1+e^\eta)$。让自然参数等于 $w^\top x+b$，就回到了逻辑回归的对数几率结构。
+
+### 一维高斯：均值和方差都未知
+
+展开平方项：
+
+$$
+\log p(x\mid\mu,\sigma^2)
+=\frac\mu{\sigma^2}x-\frac1{2\sigma^2}x^2
+-\frac{\mu^2}{2\sigma^2}-\frac12\log(2\pi\sigma^2).
+$$
+
+取 $h(x)=1$、$T(x)=(x,x^2)^\top$，则
+
+$$
+\eta_1=\frac\mu{\sigma^2},\qquad\eta_2=-\frac1{2\sigma^2}<0,
+$$
+
+$$
+A(\eta)=-\frac{\eta_1^2}{4\eta_2}+\frac12\log\left(-\frac\pi{\eta_2}\right).
+$$
+
+一个样本的充分统计量是 $x,x^2$；对样本集是 $\sum_i x_i,\sum_i x_i^2$，可据此计算经验均值和方差。
+
+## 对数配分函数的导数
+
+从 $e^{A(\eta)}=\int h(x)e^{\eta^\top T(x)}dx$ 出发，对 $\eta$ 求导：
+
+$$
+e^{A(\eta)}\nabla A(\eta)
+=\int h(x)e^{\eta^\top T(x)}T(x)dx.
+$$
+
+两边除以 $e^A$：
+
+$$
+\nabla A(\eta)=\int p(x\mid\eta)T(x)dx=\mathbb E_\eta[T(x)].
+$$
+
+再求导，利用 $\nabla_\eta p=p(T-\nabla A)$：
+
+$$
+\begin{aligned}
+\nabla^2A(\eta)
+&=\int p(x\mid\eta)T(x)[T(x)-\mathbb E T(x)]^\top dx\\
+&=\mathbb E[TT^\top]-\mathbb E[T]\mathbb E[T]^\top\\
+&=\operatorname{Cov}_\eta(T).
+\end{aligned}
+$$
+
+对任意向量 $v$，$v^\top\nabla^2Av=\operatorname{Var}(v^\top T)\ge0$，所以 $A$ 为凸函数。协方差是半正定，不一定正定，因此不能无条件宣称严格凸。
+
+## MLE 就是矩匹配
+
+样本 $x_1,\ldots,x_N$ 独立同分布，对数似然为
+
+$$
+\ell(\eta)=\eta^\top\sum_iT(x_i)-NA(\eta)+\sum_i\log h(x_i).
+$$
+
+梯度和 Hessian 分别为
+
+$$
+\nabla\ell=\sum_iT(x_i)-N\mathbb E_\eta T(x),
+\qquad\nabla^2\ell=-N\operatorname{Cov}_\eta(T)\preceq0.
+$$
+
+若有限的内部最优解存在，它满足
+
+$$
+\mathbb E_{\hat\eta}T(x)=\frac1N\sum_iT(x_i).
+$$
+
+也就是模型期望与经验统计量匹配。边界数据可能导致有限 MLE 不存在，不能只凭驻点公式保证解的存在。
+
+## 共轭先验与广义线性模型
+
+原稿指出指数族便于寻找共轭先验。一个典型形式为
+
+$$
+p(\eta\mid\chi,\nu)\propto\exp\{\eta^\top\chi-\nu A(\eta)\}.
+$$
+
+在先验可归一化等条件下，乘以 $N$ 个样本的似然后，参数更新为
+
+$$
+\chi\leftarrow\chi+\sum_iT(x_i),\qquad\nu\leftarrow\nu+N.
+$$
+
+例如二项/Bernoulli 似然与 Beta 先验共轭。共轭性是选定似然和先验之间的关系，不表示任意先验都会保持同族。
+
+广义线性模型让响应的条件分布属于指数族，并以链接函数连接条件均值和线性预测量：$g(\mathbb E[y\mid x])=w^\top x+b$。采用典范链接时自然参数就是这个线性量。这样能统一线性回归、逻辑回归等模型。
+
+## 最大熵：只使用已知约束
+
+### 有限支持上，只有归一化约束
+
+设随机变量有 $K$ 个可能值，最大化
+
+$$
+H(p)=-\sum_{k=1}^Kp_k\log p_k,
+\quad p_k\ge0,\quad\sum_kp_k=1.
+$$
+
+等价于最小化 $\sum_kp_k\log p_k$。构造
+
+$$
+\mathcal L=\sum_kp_k\log p_k+\lambda_0(1-\sum_kp_k).
+$$
+
+对每个 $p_k$ 分别求偏导：$\log p_k+1-\lambda_0=0$，所以各 $p_k$ 相等，再由归一化得到 $p_k=1/K$。
+
+“均匀时熵最大”需要限定支持集等条件；在无界连续空间，只有归一化约束通常不存在熵最大的分布。
+
+### 加入经验矩约束
+
+从经验分布 $\hat p$ 得到特征期望 $\Delta_j=\mathbb E_{\hat p}[f_j(x)]$。只要求模型满足这些已知信息：
+
+$$
+\sum_xp(x)f(x)=\Delta,\qquad\sum_xp(x)=1.
+$$
+
+支持集上的求和不是“对训练样本编号求和”；二者在原稿中需要区分。拉格朗日函数为
+
+$$
+\mathcal L(p,\lambda_0,\lambda)
+=\sum_xp(x)\log p(x)+\lambda_0(1-\sum_xp(x))
++\lambda^\top\left[\Delta-\sum_xp(x)f(x)\right].
+$$
+
+对一个具体的 $p(x)$ 求导，得到
+
+$$
+\log p(x)+1-\lambda_0-\lambda^\top f(x)=0.
+$$
+
+这里不需要、也不能用“总和为零所以每项为零”论证；每个概率分量本来就是独立求偏导的变量。解得
+
+$$
+p(x)=e^{\lambda^\top f(x)+\lambda_0-1}
+=\frac{e^{\lambda^\top f(x)}}{\sum_{x'}e^{\lambda^\top f(x')}}.
+$$
+
+于是自然得到指数族形式。若有一般基准测度 $h$，可用相对熵版本得到 $p\propto h\exp(\lambda^\top f)$。最大熵是在指定支持和矩约束下保持其余部分尽量不偏向，不等于所有指数族都是“无信息先验”。
+
+## 配分函数与学习的共同结构
+
+对一般模型 $p(x\mid\theta)=\tilde p(x\mid\theta)/Z(\theta)$，在可交换求导与积分时，
+
+$$
+\begin{aligned}
+\nabla_\theta\log Z(\theta)
+&=\frac1Z\int\nabla_\theta\tilde p(x\mid\theta)dx\\
+&=\int p(x\mid\theta)\nabla_\theta\log\tilde p(x\mid\theta)dx.
+\end{aligned}
+$$
+
+所以平均对数似然的梯度是
+
+$$
+\frac1N\sum_i\nabla\log\tilde p(x_i\mid\theta)
+-\mathbb E_{p_\theta}[\nabla\log\tilde p(x\mid\theta)].
+$$
+
+即“数据项减模型期望项”。CRF 中会再次出现这个结构；若模型期望难以精确计算，可考虑采样或其他近似。本书不在此展开 RBM 与对比散度。

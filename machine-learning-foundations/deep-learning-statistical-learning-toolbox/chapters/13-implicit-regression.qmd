@@ -1,0 +1,357 @@
+# 回归中的隐式偏置：优化器、初始化与参数化 {#sec-13-implicit-regression}
+
+
+**位置：**第 13 章，衔接第 12 章。
+
+**材料关系：**对应 CS229M 第 14 讲的线性化训练分析和隐式正则化讨论，以及第 15 讲开头对零初始化线性回归的回顾。花书第 4.5、7.3、7.8 节提供最小二乘、欠定问题和早停的背景。本章的推导经过独立重写，使用统一的 $1/(2n)$ 损失归一化，不逐字沿用转录公式。
+
+## 要解释的现象
+
+假设我们只有一条训练约束：
+
+$$w_1+w_2=1.$$
+
+$(1,0)$、$(0,1)$、$(1/2,1/2)$ 都能把训练误差降到零。仅仅指定“最小化训练误差”，并没有指定最终选哪一个解。
+
+但训练过程还指定了初始化和更新方法。这些额外选择会影响最后停在哪里。本章将严格证明：**在线性最小二乘问题中，用合适的固定步长从零初始化做普通梯度下降，最终得到所有最小二乘解中欧氏范数最小的那个。**
+
+这里的损失本身是凸的。它的作用是提供一个可精确计算的基准，帮助理解后续非凸模型中的隐式偏置；不能把它当作一般非凸网络结论的证明。
+
+## 设定、维度与目标
+
+有 $n$ 个样本，每个输入 $x_i\in\mathbb R^d$，标签 $y_i\in\mathbb R$。记
+
+$$
+X=\begin{bmatrix}x_1^\top\\\vdots\\x_n^\top\end{bmatrix}\in\mathbb R^{n\times d},
+\qquad y\in\mathbb R^n,\qquad w\in\mathbb R^d.
+$$
+
+预测向量是 $Xw$，损失为
+
+$$L(w)=\frac1{2n}\|Xw-y\|_2^2.$$
+
+记 $r=\operatorname{rank}(X)$，先假设 $r\ge1$。当 $d>n$ 时，参数多于样本，但这本身不保证任意标签都可拟合；若 $X$ 满行秩，才能保证对任意 $y$ 都有 $Xw=y$ 的解。
+
+需要区分三个问题：
+
+1. 训练损失是否到达最小值？
+2. 在所有最小化解中，算法选择哪一个？
+3. 所选解在新样本上表现如何？
+
+前两个是本章能直接回答的问题，第三个还需要数据分布、目标函数和噪声等统计假设。
+
+## 第一步：计算梯度，识别算法能移动的方向
+
+把损失展开：
+
+$$L(w)=\frac1{2n}\left(w^\top X^\top Xw-2y^\top Xw+y^\top y\right).$$
+
+因为 $X^\top X$ 是对称矩阵，
+
+$$\nabla L(w)=\frac1nX^\top(Xw-y),\qquad \nabla^2L(w)=\frac1nX^\top X.$$
+
+普通梯度下降为
+
+$$w_{t+1}=w_t-\frac\eta nX^\top(Xw_t-y). \tag{1}$$
+
+每次更新量都是 $X^\top$ 乘上某个向量，因此必定位于
+
+$$\operatorname{range}(X^\top),$$
+
+也就是 $X$ 的行空间。另一方面，线性代数给出正交分解
+
+$$\mathbb R^d=\operatorname{range}(X^\top)\oplus\ker(X).$$
+
+如果 $z\in\ker(X)$，则 $X(w+z)=Xw$。训练数据完全看不到这个方向的参数变化。
+
+将 $w_t$ 分解成行空间分量和零空间分量。由式 (1)，每次更新只改变前者，故
+
+$$P_{\ker(X)}w_t=P_{\ker(X)}w_0\quad\text{对所有 }t\text{ 成立}. \tag{2}$$
+
+这已经揭示选择机制的一半：**算法不会主动清除初始化中训练数据不可见的分量。**
+
+## 第二步：用 SVD 把矩阵递推变成标量递推
+
+取紧致奇异值分解
+
+$$X=U_r\Sigma_rV_r^\top,$$
+
+其中 $U_r\in\mathbb R^{n\times r}$、$V_r\in\mathbb R^{d\times r}$ 的列正交，
+
+$$\Sigma_r=\operatorname{diag}(\sigma_1,\ldots,\sigma_r),\qquad
+\sigma_1\ge\cdots\ge\sigma_r>0.$$
+
+行空间由 $v_1,\ldots,v_r$ 张成。令
+
+$$a_{j,t}=v_j^\top w_t,\qquad b_j=u_j^\top y.$$
+
+把式 (1) 左乘 $v_j^\top$，并使用
+
+$$v_j^\top X^\top Xw_t=\sigma_j^2a_{j,t},
+\qquad v_j^\top X^\top y=\sigma_jb_j,$$
+
+得到
+
+$$a_{j,t+1}=\left(1-\frac{\eta\sigma_j^2}{n}\right)a_{j,t}
++\frac{\eta\sigma_j}{n}b_j. \tag{3}$$
+
+这一递推的固定点是 $a_j^*=b_j/\sigma_j$。从两边减去固定点：
+
+$$a_{j,t+1}-a_j^*
+=\left(1-\frac{\eta\sigma_j^2}{n}\right)(a_{j,t}-a_j^*).$$
+
+所以
+
+$$a_{j,t}-a_j^*
+=\left(1-\frac{\eta\sigma_j^2}{n}\right)^t(a_{j,0}-a_j^*). \tag{4}$$
+
+每个坐标都收敛，需要所有收缩因子的绝对值严格小于 1：
+
+$$\left|1-\frac{\eta\sigma_j^2}{n}\right|<1.$$
+
+整理即 $0<\eta<2n/\sigma_j^2$。同时满足所有方向的充分且精确的统一范围是
+
+$$\boxed{0<\eta<\frac{2n}{\sigma_1^2}.} \tag{5}$$
+
+严格小于不可随意改为小于等于：在上端点，最大奇异值方向的因子为 $-1$，一般会持续振荡。
+
+## 第三步：得到极限，证明最小范数性质
+
+由式 (2) 和式 (4)，
+
+$$w_\infty
+=\sum_{j=1}^r\frac{u_j^\top y}{\sigma_j}v_j+P_{\ker(X)}w_0
+=X^\dagger y+P_{\ker(X)}w_0. \tag{6}$$
+
+这里 $X^\dagger=V_r\Sigma_r^{-1}U_r^\top$ 是 Moore–Penrose 伪逆。
+
+为什么 $X^\dagger y$ 是最小二乘解？观察
+
+$$XX^\dagger y=U_rU_r^\top y=P_{\operatorname{range}(X)}y.$$
+
+$Xw$ 只能落在 $X$ 的列空间中。在这个空间内，距离 $y$ 最近的点正是其正交投影。因而所有最小二乘解满足
+
+$$w=X^\dagger y+z,\qquad z\in\ker(X).$$
+
+又因为 $X^\dagger y$ 位于行空间，与 $z$ 正交，所以
+
+$$\|w\|_2^2=\|X^\dagger y\|_2^2+\|z\|_2^2.$$
+
+取 $z=0$ 时范数唯一最小。若 $w_0=0$，式 (6) 恰好给出这一解：
+
+$$\boxed{w_\infty=X^\dagger y.}$$
+
+**定理。**对固定矩阵 $X$、平方损失 $L(w)=\|Xw-y\|^2/(2n)$，若普通全批量梯度下降使用式 (5) 的固定步长，则任意初始化都收敛到式 (6)。零初始化收敛到最小欧氏范数的最小二乘解；若标签可插值，则它也是最小范数插值解。
+
+如果 $X=0$，所有梯度均为零，迭代停留在初始化；零初始化仍是最小范数最小二乘解，但不能使用包含 $\sigma_1$ 的步长表达式。
+
+一般初始化还有一个更精确的解释：式 (6) 是所有最小二乘解中**距离 $w_0$ 最近**的那个，因为它保留了 $w_0$ 的零空间分量。它通常不是距离原点最近的解。
+
+## 两个初始化，两个训练误差同为零的答案
+
+取 $X=[1\;1]$、$y=1$、$n=1$。此时 $\sigma_1^2=2$，允许 $0<\eta<1$。
+
+从 $w_0=(0,0)$ 出发，两坐标每次获得相同更新，因此始终相等。最终满足两坐标之和为 1，故
+
+$$w_\infty=(1/2,1/2).$$
+
+若从 $w_0=(2,-2)$ 出发，它完全位于零空间。该分量被保留，最终
+
+$$w_\infty=(1/2,1/2)+(2,-2)=(5/2,-3/2).$$
+
+两个解在训练输入 $(1,1)$ 上输出均为 1，但在新输入 $(1,-1)$ 上，输出分别为 0 和 4。这说明：相同训练拟合并不决定相同预测函数。
+
+这里并没有证明第一个解一定具有更好的泛化误差。若真实目标在训练数据不可见方向上恰有非零分量，最小范数解也可能漏掉它。
+
+## 切换到输出空间：为何 NTK 分析会出现核矩阵
+
+定义残差 $e_t=Xw_t-y\in\mathbb R^n$。由式 (1)，
+
+$$
+\begin{aligned}
+e_{t+1}
+&=Xw_{t+1}-y\\
+&=X\left(w_t-\frac\eta nX^\top e_t\right)-y\\
+&=e_t-\frac\eta nXX^\top e_t\\
+&=(I-\eta K)e_t,
+\end{aligned}
+\qquad K=\frac1nXX^\top. \tag{7}
+$$
+
+参数空间使用 $X^\top X$，输出空间使用 $XX^\top$。二者的非零特征值相同，均为 $\sigma_j^2$；这里 $K$ 额外含 $1/n$。
+
+若 $X$ 满行秩，则 $K$ 正定。在 $0<\eta\le1/\lambda_{\max}(K)$ 下，
+
+$$\|e_t\|_2\le(1-\eta\lambda_{\min}(K))^t\|e_0\|_2. \tag{8}$$
+
+因为将 $e_0$ 展开到 $K$ 的正交特征向量基，每个坐标每轮乘以 $1-\eta\lambda_j$；在这个步长范围内，最慢的方向对应最小特征值。
+
+若只要求更宽的稳定范围 $0<\eta<2/\lambda_{\max}(K)$，正确的统一收缩因子是
+
+$$\rho=\max_j|1-\eta\lambda_j|<1,$$
+
+不能直接沿用式 (8) 的无绝对值表达式。
+
+若 $X$ 不满行秩，$K$ 存在零特征值。残差的零空间分量保持不变：只有可拟合部分收缩。因此，“$K$ 半正定，所以所有残差都收缩到零”是错误的。
+
+## 从线性回归到神经网络的局部线性化
+
+设标量输出网络为 $f_\theta(x)$，初始化为 $\theta_0\in\mathbb R^p$。在初始化附近作一阶展开：
+
+$$f_\theta(x)\approx f_{\theta_0}(x)+\nabla_\theta f_{\theta_0}(x)^\top\Delta\theta,
+\qquad\Delta\theta=\theta-\theta_0.$$
+
+把训练点的梯度按行堆叠：
+
+$$\Phi=\begin{bmatrix}
+\nabla_\theta f_{\theta_0}(x_1)^\top\\
+\vdots\\
+\nabla_\theta f_{\theta_0}(x_n)^\top
+\end{bmatrix}\in\mathbb R^{n\times p}.$$
+
+再定义初始化输出 $f_0=(f_{\theta_0}(x_i))_{i=1}^n$，以及需要拟合的剩余标签 $\widetilde y=y-f_0$。线性化模型的训练问题就是
+
+$$\min_{\Delta\theta}\frac1{2n}\|\Phi\Delta\theta-\widetilde y\|_2^2.$$
+
+现在把前面的 $X$ 替换为 $\Phi$，把 $y$ 替换为 $\widetilde y$。由于初始位移 $\Delta\theta_0=0$，在适当步长下，
+
+$$\Delta\theta_\infty=\Phi^\dagger\widetilde y,$$
+
+而线性化输出残差满足
+
+$$e_{t+1}=(I-\eta K_0)e_t,\qquad K_0=\frac1n\Phi\Phi^\top.$$
+
+$K_0$ 是本章归一化约定下的经验神经切线核矩阵。它衡量不同训练点在参数梯度特征中的相似程度。
+
+这里得到的是**固定线性化模型**的结论。要把它用于真实非线性网络，还必须控制训练轨迹上的 Taylor 余项、Jacobian 变化与核矩阵变化，并证明参数确实留在所需区域。不能用“假设一直在附近”代替对训练轨迹的证明。
+
+还要注意：最小的是位移 $\|\Delta\theta\|_2$，一般不是最终参数 $\|\theta\|_2$。初始化输出也不能未经说明就当作零。
+
+## 早停：按奇异方向学习的速度不同
+
+从零初始化时，式 (4) 给出
+
+$$w_t=\sum_{j=1}^r
+\underbrace{\left[1-\left(1-\frac{\eta\sigma_j^2}{n}\right)^t\right]}_{g_t(\sigma_j^2)}
+\frac{u_j^\top y}{\sigma_j}v_j. \tag{9}$$
+
+如果进一步取 $0<\eta\le n/\sigma_1^2$，则各方向没有振荡，$g_t\in[0,1]$。大奇异值方向学得快，小奇异值方向学得慢。
+
+在小量条件 $t\eta\sigma_j^2/n\ll1$ 下，
+
+$$g_t(\sigma_j^2)\approx\frac{t\eta\sigma_j^2}{n}.$$
+
+最小二乘解中的 $1/\sigma_j$ 会放大小奇异值方向的标签扰动；有限时间的 $g_t$ 抑制了这些尚未充分学习的方向。因此早停具有谱滤波的效果。
+
+为比较显式正则化，考虑岭回归
+
+$$\min_w\frac1{2n}\|Xw-y\|_2^2+\frac\lambda2\|w\|_2^2,\qquad\lambda>0.$$
+
+令梯度为零，得到
+
+$$w_\lambda=(X^\top X+n\lambda I)^{-1}X^\top y
+=\sum_{j=1}^r\underbrace{\frac{\sigma_j^2}{\sigma_j^2+n\lambda}}_{g_\lambda(\sigma_j^2)}
+\frac{u_j^\top y}{\sigma_j}v_j.$$
+
+早停和岭回归都抑制小奇异值方向，但滤波函数不同。一般不存在一个 $\lambda$，让所有方向上的有限步早停解与岭回归解完全相同。只能在明确条件下比较或近似联系二者。
+
+## 本节结论如何使用
+
+| 想判断什么 | 本章能提供什么 | 仍需什么 |
+|---|---|---|
+| 平方损失训练是否收敛 | 奇异值给出的稳定步长与收缩率 | 已知或控制最大奇异值 |
+| 欠定问题选哪个解 | 行空间更新、初始化零空间分量与伪逆公式 | 优化器确为本章的普通 GD |
+| 为什么初始化重要 | 零空间分量被完整保留 | 非线性模型需另作分析 |
+| NTK 为何控制训练 | 固定 Jacobian 特征下的输出残差递推 | 非线性训练中核稳定性的证明 |
+| 早停为何有正则化效应 | 各奇异方向的谱滤波 | 泛化收益仍需统计条件 |
+
+本章不推出 Adam、动量、任意预条件更新都具有相同偏置；也不推出所有神经网络都处于 NTK 区域。后续必须针对算法、参数化和初始化分别分析。
+
+### 自检与简答
+
+**1. 为什么梯度下降无法改变初始化中的零空间分量？**
+
+因为每一步更新都属于 $\operatorname{range}(X^\top)$，它与 $\ker(X)$ 正交。
+
+**2. $d>n$ 是否保证训练误差可以为零？**
+
+不保证。还需 $y\in\operatorname{range}(X)$；满行秩可保证任意标签均可插值。
+
+**3. 损失若写成 $\|Xw-y\|^2/2$，步长如何变？**
+
+梯度不再含 $1/n$，稳定范围变成 $0<\eta<2/\sigma_1^2$。比较不同材料前必须先对齐损失约定。
+
+**4. 同样训练误差为零的两个解，在新数据上一定预测相同吗？**
+
+不一定。本章的二维例子已给出反例。
+
+**5. NTK 线性化得到的最小范数，是原参数还是参数位移？**
+
+这里是从零位移出发得到的最小位移范数，不能未经说明改为最终参数范数。
+
+
+## 非线性参数化：同一个函数类，不同训练几何
+
+**来源：CS229M L15。**考虑 $f_\beta(x)=(\beta\odot\beta)^\top x$，它对输入是线性的，但对训练参数是二次的。假设总体输入协方差为 $I$，目标系数 $\theta^*=\beta^*\odot\beta^*$，取损失归一化为 $R(\beta)=\tfrac14\|\beta^2-\theta^*\|^2$，则
+
+$$\nabla R(\beta)=\beta\odot(\beta^2-\theta^*).$$
+
+各坐标独立。在目标坐标 $\theta_j^*=1$，小正初值按 $\beta_j^+=\beta_j[1+\eta(1-\beta_j^2)]$ 增长；在非目标坐标 $\theta_j^*=0$，按 $\beta_j^+=\beta_j(1-\eta\beta_j^2)$ 缓慢减小。零初始化会完全卡住，所以“小”与“零”不同。
+
+若初始量级为 $\alpha>0$，目标坐标到常数量级需约 $\eta^{-1}\log(1/\alpha)$ 步；非目标坐标仍小，整个向量近似稀疏。经验情形需用受限等距性质控制稀疏方向：
+
+$$ (1-\delta)\|v\|^2\le n^{-1}\|Xv\|^2\le(1+\delta)\|v\|^2\quad\text{对指定稀疏度的 }v.$$
+
+$n<d$ 时 $X^\top X/n$ 不可能在所有方向接近 $I$，但可以在稀疏向量上接近。证明仍需保证经验轨迹不离开近似稀疏区，并控制梯度误差累积；不能只画出总体轨迹就宣布样本恢复定理成立。L15 的精确有限样本时间窗在转录中损坏，本书保留定性机制及上述可核查的总体递推，不伪造其常数。
+
+## 对角网络：初始化如何连续改变隐式正则化
+
+**来源：CS229M L16 前半。补充完整推导。**取 $\theta=u^2-v^2$（逐坐标），初始化 $u_j(0)=v_j(0)=\alpha>0$，训练平方损失 $\mathcal L(\theta)=\|X\theta-y\|^2/(2n)$。记 $g=\nabla_\theta\mathcal L$。对 $(u,v)$ 做梯度流：
+
+$$\dot u_j=-2u_jg_j,\qquad\dot v_j=2v_jg_j.$$
+
+因此 $d(u_jv_j)/dt=0$，恒等 $u_jv_j=\alpha^2$。进而
+
+$$\dot\theta_j=2u_j\dot u_j-2v_j\dot v_j
+=-4(u_j^2+v_j^2)g_j=-4\sqrt{\theta_j^2+4\alpha^4}\,g_j.$$
+
+定义严格凸势函数
+
+$$Q_\alpha(\theta)=\frac14\sum_j\left[\theta_j\operatorname{arsinh}\!\left(\frac{\theta_j}{2\alpha^2}\right)
+-\sqrt{\theta_j^2+4\alpha^4}+2\alpha^2\right].$$
+
+直接求导，$\partial_jQ_\alpha=\tfrac14\operatorname{arsinh}(\theta_j/(2\alpha^2))$，$\partial_{jj}Q_\alpha=1/[4\sqrt{\theta_j^2+4\alpha^4}]$，所以
+
+$$\frac d{dt}\nabla Q_\alpha(\theta(t))=-g(t)=-\frac1nX^\top(X\theta-y).$$
+
+从 $\theta(0)=0$、$\nabla Q_\alpha(0)=0$ 出发，任意时刻 $\nabla Q_\alpha(\theta(t))\in\operatorname{range}(X^\top)$。**若轨迹收敛到插值解** $\theta_\infty$，则它满足 $X\theta_\infty=y$ 且 $\nabla Q_\alpha(\theta_\infty)=X^\top\nu$。这正是凸问题 $\min Q_\alpha(\theta)$ s.t. $X\theta=y$ 的 KKT 条件（乘子的符号可吸收），严格凸性保证唯一最优。
+
+大 $\alpha$、固定 $\theta$ 时，Taylor 展开给 $Q_\alpha(\theta)\approx\|\theta\|^2/(16\alpha^2)$，偏向 $\ell_2$ 几何；小 $\alpha$ 时主要增长项与 $\log(1/\alpha)\|\theta\|_1$ 成比例，体现稀疏偏好。把函数的点态极限进一步变成最优解收敛还需要紧性/极限交换条件；这里不跳过该区别。
+
+这给出非常具体的答案：即使可表示的线性函数类相同，参数化和初始化尺度也能改变算法隐式最小化的复杂度。该推导使用连续梯度流，有限步长并不精确保留 $u_jv_j$ 不变量。
+
+
+## 一个可验算的有限样本稀疏轨迹版本
+
+**补充推导，不冒充 L15 缺损时间窗的逐字复原。**取输入各坐标独立 Rademacher、目标 $\theta^*=e_1$。设 $C=X^\top X/n$，则 $C_{jj}=1$；Hoeffding 加 union bound 给概率至少 $1-\delta_0$ 时
+
+$$\max_{i\ne j}|C_{ij}|\le\delta,
+\qquad n\ge\frac{2}{\delta^2}\log\frac{2d^2}{\delta_0}$$
+
+是一个保守充分规模。经验损失 $\widehat R(\beta)=\tfrac14(\beta^2-e_1)^\top C(\beta^2-e_1)$，梯度为 $\beta\odot C(\beta^2-e_1)$。
+
+写 $\beta=(a,z)$，初始化所有坐标为 $\alpha>0$。信号递推为
+
+$$a^+=a\left[1+\eta(1-a^2)-\eta\sum_{j>1}C_{1j}z_j^2\right],$$
+
+与总体递推的差至多 $\eta\delta\|z\|^2 a$。第 $i>1$ 个坐标的增长因子最多
+
+$$1+\eta\delta\bigl(|a^2-1|+\|z\|^2\bigr),$$
+
+因为其自身的 $-\eta z_i^2$ 项只抑制增长。只要 $a^2\le2$、$\|z\|^2\le1/2$ 且步长足够小保证因子非负，就有 $z_i(t)\le\alpha e^{1.5\eta\delta t}$。若 $t\le\log2/(1.5\eta\delta)$，则 $z_i\le2\alpha$，并在 $4d\alpha^2\le1/2$ 时闭合背景范数假设。
+
+当 $a\le1/2$、$\delta\le1/4$，信号每步增长因子至少 $1+5\eta/8$，因此在 $O(\eta^{-1}\log(1/\alpha))$ 步内到常数量级。之后在小步长下，它接近 $a^2=1$ 的稳定区域；扰动大小为 $O(\delta)$，故足够长但仍在背景受控窗口内，可达 $|a^2-1|=O(\delta)$。
+
+关键兼容条件是 $\delta\log(1/\alpha)$ 足够小，并为后续收敛到 $O(\delta)$ 误差预留 $O(\eta^{-1}\log(1/\delta))$ 步。背景预测系数平方误差满足 $\sum_{j>1}z_j^4\le16d\alpha^4$。于是这一机制给出目标误差的两个来源：信号扰动 $O(\delta^2)$ 与背景残留 $O(d\alpha^4)$。
+
+这里明确展示了样本集中、信号增长、背景稳定和有效时间窗如何衔接。最后稳定区的离散收缩只给出阶数分析，未列出所有最优常数；也不把该简化版本当成任意稀疏度或任意输入分布的定理。

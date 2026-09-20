@@ -1,0 +1,55 @@
+# 间隔、核方法与函数空间 {#sec-04-margin-kernel}
+
+**来源：**CS229M L6、L8，衔接 L13–L14。
+
+## 把 0–1 损失换成可分析的上界
+
+二分类 $y\in\{-1,1\}$，实值打分 $f(x)$，有符号间隔 $m=yf(x)$。保守地将 $m\le0$ 视作错误。0–1 损失不连续，不能直接用 Lipschitz 收缩引理。对提前固定的 $\gamma>0$ 定义 ramp loss：
+
+$$\phi_\gamma(m)=\begin{cases}1&m\le0,\\1-m/\gamma&0<m<\gamma,\\0&m\ge\gamma.\end{cases}$$
+
+它在 $[0,1]$ 内、是 $1/\gamma$-Lipschitz，且 $1\{m\le0\}\le\phi_\gamma(m)\le1\{m<\gamma\}$。于是
+
+$$R_{01}(f)\le\frac1n\sum_i\phi_\gamma(y_if(x_i))+
+\frac2\gamma\widehat{\mathfrak R}_{S_X}(\mathcal H)+3\sqrt{\frac{\log(2/\delta)}{2n}}.$$
+
+固定样本标签后 $\varepsilon_i y_i$ 仍是独立 Rademacher 符号，所以引入 $y_i$ 不改变复杂度。经验 ramp loss 也可以进一步上界为小间隔样本比例。
+
+若读完样本再挑 $\gamma$，需用可数网格与 union bound 分配失败概率，或者引用同时对 $\gamma$ 成立的版本。不能把“对任意固定 $\gamma$”误读为“同一事件对所有 $\gamma$”。
+
+## 为什么必须归一化
+
+把 $f$ 乘以 $c>0$ 不改变分类，间隔与复杂度同时乘以 $c$。界中有用的是二者的比值。线性模型中 $yf(x)/\|w\|_2$ 是几何间隔，且在 $\|x\|_2\le C$ 时，复杂度项约为 $BC/(\gamma\sqrt n)$。
+
+硬间隔 SVM 的两种形式等价：
+
+$$\max_{\|w\|_2=1}\min_i y_iw^\top x_i
+\quad\Longleftrightarrow\quad
+\min_w\frac12\|w\|_2^2\ \text{s.t. }y_iw^\top x_i\ge1.$$
+
+在线性可分时，若最优单位间隔为 $\gamma_*>0$，第二个问题最优解的范数为 $1/\gamma_*$。证明只需把单位方向放大到最小约束刚好等于 1，并反向归一化。非可分时需软间隔或其他损失，不能继续套硬约束结论。
+
+## 核是特征内积的计算入口
+
+设 Hilbert 特征空间映射 $\varphi(x)$，$k(x,x')=\langle\varphi(x),\varphi(x')\rangle$。Gram 矩阵 $K_{ij}=k(x_i,x_j)$ 半正定，因为 $a^\top Ka=\|\sum_i a_i\varphi(x_i)\|^2\ge0$。
+
+如果目标仅通过训练点预测依赖 $w$，并加上严格递增的范数惩罚，把 $w=w_\parallel+w_\perp$ 分解到训练特征张成空间及其正交补。$w_\perp$ 不影响任一训练预测，却增大范数，因此可取最优解 $w=\sum_i\alpha_i\varphi(x_i)$。这就是表示定理的基本几何。
+
+岭回归
+
+$$\min_w\frac1{2n}\sum_i(\langle w,\varphi(x_i)\rangle-y_i)^2+\frac\lambda2\|w\|^2$$
+
+的一个系数表示是 $\alpha=(K+n\lambda I)^{-1}y$，预测为 $f(x)=k_x^\top\alpha$。$\lambda>0$ 保证矩阵可逆；$\lambda=0$ 时要考虑伪逆及可插值性。
+
+## 无限维为什么不自动导致无限复杂度
+
+对 $\|w\|\le B$ 的 RKHS 球，完全沿用第 3 章：
+
+$$\widehat{\mathfrak R}_S\le\frac Bn\sqrt{\sum_i\|\varphi(x_i)\|^2}
+=\frac Bn\sqrt{\operatorname{tr}K}.$$
+
+若 $k(x,x)\le C^2$，仍是 $BC/\sqrt n$。控制的是函数在选定几何中的大小，不是坐标数。
+
+核方法通常在训练中固定特征映射；神经网络可以改变特征。NTK 是用初始化时的参数梯度定义特征的局部模型，它与“网络全部训练行为”等价需要另外证明。
+
+**自检。**把所有权重乘十为什么不会凭空改善归一化间隔界？核矩阵奇异时，训练预测唯一是否意味着参数表示唯一？

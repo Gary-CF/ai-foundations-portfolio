@@ -1,0 +1,222 @@
+# EM 算法与高斯混合模型 {#sec-em-gmm}
+
+<!-- 来源：8.EM.md、9.GMM.md、cheatsheet.md；VI 仅用于解释 EM 与近似后验的边界。 -->
+
+隐变量模型的困难在于：看得见 $X$，却不知道产生它的 $Z$。观测似然 $p(X\mid\theta)=\int p(X,Z\mid\theta)dZ$ 把不同解释混在一起，取对数后往往难以直接优化。EM 通过“先估计隐变量分布，再更新参数”逐步提升观测似然。
+
+## E 步与 M 步
+
+令第 $r$ 轮参数为 $\theta^{(r)}$，定义
+
+$$
+Q(\theta\mid\theta^{(r)})
+=\mathbb E_{Z\mid X,\theta^{(r)}}[\log p(X,Z\mid\theta)].
+$$
+
+E 步用旧参数计算后验，并由它构造关于新参数的函数 $Q$。M 步为
+
+$$
+\theta^{(r+1)}\in\arg\max_\theta Q(\theta\mid\theta^{(r)}).
+$$
+
+期望中的后验在 M 步固定。$Q$ 是函数值，$\arg\max$ 是使它最大化的参数，两者不能直接写成等号。EM 不限于混合模型，只要完整数据结构使这两步可处理即可。
+
+## 单调性的第一种证明：$Q-H$ 分解
+
+用旧后验 $q_r(Z)=p(Z\mid X,\theta^{(r)})$ 对恒等式
+
+$$
+\log p(X\mid\theta)=\log p(X,Z\mid\theta)-\log p(Z\mid X,\theta)
+$$
+
+求期望，定义
+
+$$
+H(\theta\mid\theta^{(r)})
+=\mathbb E_{q_r}\log p(Z\mid X,\theta).
+$$
+
+则 $\ell(\theta)=Q(\theta\mid\theta^{(r)})-H(\theta\mid\theta^{(r)})$。这里 $H$ 沿用原稿记号，并不是带负号的 Shannon 熵。
+
+M 步保证 $Q(\theta^{(r+1)}\mid\theta^{(r)})\ge Q(\theta^{(r)}\mid\theta^{(r)})$。另一方面，
+
+$$
+\begin{aligned}
+&H(\theta^{(r+1)}\mid\theta^{(r)})-H(\theta^{(r)}\mid\theta^{(r)})\\
+&=\int q_r(Z)\log\frac{p(Z\mid X,\theta^{(r+1)})}{q_r(Z)}dZ\\
+&=-\operatorname{KL}\big(q_r\,\|\,p(Z\mid X,\theta^{(r+1)})\big)\le0.
+\end{aligned}
+$$
+
+两项相减，所以
+
+$$
+\ell(\theta^{(r+1)})\ge\ell(\theta^{(r)}).
+$$
+
+准确结论是似然**不下降**，不保证每次严格上升，更不保证到达全局最优。
+
+## 第二种理解：ELBO 与 KL
+
+对任意合适的分布 $q(Z)$，定义证据下界
+
+$$
+\mathcal F(q,\theta)=\mathbb E_q[\log p(X,Z\mid\theta)]+H(q),
+\qquad H(q)=-\mathbb E_q\log q(Z).
+$$
+
+代数分解得到
+
+$$
+\log p(X\mid\theta)
+=\mathcal F(q,\theta)+\operatorname{KL}\big(q\,\|\,p(Z\mid X,\theta)\big).
+$$
+
+KL 非负，因此 $\mathcal F$ 是下界；当 $q$ 等于真实后验时取等号。KL 的方向是近似分布在前、后验在后。
+
+### Jensen 推导保留原稿的另一条路线
+
+$$
+\begin{aligned}
+\log p(X\mid\theta)
+&=\log\int q(Z)\frac{p(X,Z\mid\theta)}{q(Z)}dZ\\
+&\ge\int q(Z)\log\frac{p(X,Z\mid\theta)}{q(Z)}dZ
+=\mathcal F(q,\theta).
+\end{aligned}
+$$
+
+在适当支持条件下，等号要求 $p(X,Z\mid\theta)/q(Z)$ 为常数。积分归一化可知该常数为 $p(X\mid\theta)$，于是 $q(Z)=p(Z\mid X,\theta)$。
+
+EM 的 E 步在旧参数处把下界拉紧；M 步固定这个 $q_r$，抬高下界：
+
+$$
+\ell(\theta^{(r+1)})\ge\mathcal F(q_r,\theta^{(r+1)})
+\ge\mathcal F(q_r,\theta^{(r)})=\ell(\theta^{(r)}).
+$$
+
+M 步完成后，旧的 $q_r$ 通常不再等于新参数的后验，所以不能说每一步都联合求得了全局最大的 ELBO。
+
+## GMM：用多个高斯解释多峰数据
+
+高斯混合模型为
+
+$$
+p(x\mid\theta)=\sum_{k=1}^K\pi_k\mathcal N(x\mid\mu_k,\Sigma_k),
+\quad\pi_k\ge0,\quad\sum_k\pi_k=1.
+$$
+
+引入类别隐变量 $z_i\in\{1,\ldots,K\}$：先按 $\pi$ 选择分量，再从该分量的高斯分布生成 $x_i$。联合分布为
+
+$$
+p(x_i,z_i=k\mid\theta)=\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k).
+$$
+
+参数是 $\theta=\{\pi_k,\mu_k,\Sigma_k\}_{k=1}^K$。$(X,Z)$ 称为完整数据，不是“完整参数”。
+
+观测对数似然
+
+$$
+\ell(\theta)=\sum_i\log\left[\sum_k\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)\right]
+$$
+
+包含对数内部的求和，参数相互耦合，通常没有一次代入即可得到的闭式 MLE。EM 是一种常用优化方式，并非唯一方式。
+
+## GMM 的 E 步：责任度
+
+根据贝叶斯公式，
+
+$$
+r_{ik}=P(z_i=k\mid x_i,\theta^{(r)})
+=\frac{\pi_k^{(r)}\mathcal N(x_i\mid\mu_k^{(r)},\Sigma_k^{(r)})}
+{\sum_l\pi_l^{(r)}\mathcal N(x_i\mid\mu_l^{(r)},\Sigma_l^{(r)})}.
+$$
+
+每个样本对不同分量的责任度相加为 1。它表达的是软归属，而不是把样本立即硬分给一个类别。
+
+### 为什么对整个隐变量向量的求和可拆开
+
+条件于数据和参数，$p(Z\mid X,\theta^{(r)})=\prod_i p(z_i\mid x_i,\theta^{(r)})$。完整对数似然是样本项之和，所以
+
+$$
+Q=\sum_Z\left[\sum_i\log p(x_i,z_i\mid\theta)\right]
+\prod_jp(z_j\mid x_j,\theta^{(r)}).
+$$
+
+固定第 $i$ 项时，其他隐变量的分布求和均等于 1，留下
+
+$$
+Q(\theta\mid\theta^{(r)})
+=\sum_i\sum_k r_{ik}\left[\log\pi_k+\log\mathcal N(x_i\mid\mu_k,\Sigma_k)\right].
+$$
+
+这是原稿长求和推导的关键，不需要枚举全部 $K^N$ 种隐变量配置。
+
+## GMM 的 M 步：加权估计
+
+定义有效样本数 $N_k=\sum_i r_{ik}$。
+
+### 混合权重
+
+最大化 $\sum_kN_k\log\pi_k$，约束 $\sum_k\pi_k=1$。拉格朗日函数为
+
+$$
+\mathcal L=\sum_kN_k\log\pi_k+\lambda(\sum_k\pi_k-1).
+$$
+
+驻点条件为 $N_k/\pi_k+\lambda=0$。先乘以 $\pi_k$，再对 $k$ 求和：
+
+$$
+\sum_kN_k+\lambda\sum_k\pi_k=N+\lambda=0.
+$$
+
+因此 $\pi_k^{(r+1)}=N_k/N$。原稿中这一步漏写了乘以 $\pi_k$，不能直接把带 $1/\pi_k$ 的式子相加得到结论。
+
+### 均值与协方差（补充原稿略去的求导）
+
+固定责任度，对均值相关的部分最大化，等价于最小化
+
+$$
+\sum_i r_{ik}(x_i-\mu_k)^\top\Sigma_k^{-1}(x_i-\mu_k).
+$$
+
+其梯度为 $-2\Sigma_k^{-1}\sum_i r_{ik}(x_i-\mu_k)$，所以
+
+$$
+\mu_k^{(r+1)}=\frac1{N_k}\sum_i r_{ik}x_i.
+$$
+
+令 $R_k=\sum_i r_{ik}(x_i-\mu_k^{(r+1)})(x_i-\mu_k^{(r+1)})^\top$，协方差部分为
+
+$$
+-\frac{N_k}{2}\log|\Sigma_k|-\frac12\operatorname{tr}(\Sigma_k^{-1}R_k).
+$$
+
+像 GDA 一样对精度矩阵求导，可得
+
+$$
+\Sigma_k^{(r+1)}=\frac{R_k}{N_k}.
+$$
+
+这些公式要求 $N_k>0$，并需处理数值退化与正定性。
+
+## 初始化、停止与局限
+
+选初始权重、均值和正定协方差，重复 E/M 两步，检查观测对数似然的变化。计算责任度时可在对数域用 log-sum-exp 避免下溢。
+
+不同初始化可能收敛到不同驻点。无约束 GMM 的似然还可能因某分量协方差塌缩而无界，因此“似然不下降”本身不保证得到有意义的模型。协方差下界、正则化、合理初始化等是必要的实际考虑。分量标签可以交换，参数表示也因此不唯一。
+
+## 广义 EM 与近似后验：少量衔接
+
+原稿把几种推广放在“广义 EM”名下，这里区分：
+
+- **GEM（广义 EM）**：仍使用精确 E 步，M 步只需增加 $Q$，不必完全最大化，仍可得到似然不下降。
+- **变分 EM**：把 $q$ 限制在某分布族中，交替优化 ELBO；保证的是相应下界的改进，不能照搬精确 EM 的似然单调性。
+- **MCEM**：用采样近似 E 步期望，有限采样误差也会影响单调性。
+
+平均场 $q(Z)=\prod_jq_j(Z_j)$ 的坐标更新可写为
+
+$$
+q_j^*(Z_j)\propto\exp\{\mathbb E_{q_{-j}}\log p(X,Z\mid\theta)\}.
+$$
+
+必须归一化后才能成为概率分布。VI、随机变分梯度与重参数化不在本书主线中展开；MCMC 见附录 @sec-mcmc。

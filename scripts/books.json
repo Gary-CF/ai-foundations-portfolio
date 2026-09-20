@@ -1,0 +1,45 @@
+[
+  {
+    "id": "convex-optimization-toolbox",
+    "path": "mathematical-foundations/convex-optimization-toolbox",
+    "output": "convex-optimization-toolbox.pdf",
+    "destination": "pdfs/convex-optimization-toolbox.pdf"
+  },
+  {
+    "id": "advanced-optimization-toolbox",
+    "path": "mathematical-foundations/advanced-optimization-toolbox",
+    "output": "advanced-optimization-toolbox.pdf",
+    "destination": "pdfs/advanced-optimization-toolbox.pdf"
+  },
+  {
+    "id": "stochastic-processes-toolbox",
+    "path": "mathematical-foundations/stochastic-processes-toolbox",
+    "output": "stochastic-processes-toolbox.pdf",
+    "destination": "pdfs/stochastic-processes-toolbox.pdf"
+  },
+  {
+    "id": "probability-statistics",
+    "path": "mathematical-foundations/probability-statistics",
+    "output": "probability-statistics-notes.pdf",
+    "destination": "pdfs/probability-statistics-notes.pdf",
+    "legacy_destination": "mathematical-foundations/probability-statistics/probability-statistics-notes.pdf"
+  },
+  {
+    "id": "classical-statistical-learning",
+    "path": "machine-learning-foundations/classical-statistical-learning",
+    "output": "classical-statistical-learning.pdf",
+    "destination": "pdfs/classical-statistical-learning.pdf"
+  },
+  {
+    "id": "deep-learning-statistical-learning-toolbox",
+    "path": "machine-learning-foundations/deep-learning-statistical-learning-toolbox",
+    "output": "deep-learning-statistical-learning-toolbox.pdf",
+    "destination": "pdfs/deep-learning-statistical-learning-toolbox.pdf"
+  },
+  {
+    "id": "deep-reinforcement-learning",
+    "path": "machine-learning-foundations/deep-reinforcement-learning",
+    "output": "deep-reinforcement-learning.pdf",
+    "destination": "pdfs/deep-reinforcement-learning.pdf"
+  }
+]

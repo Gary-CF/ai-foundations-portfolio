@@ -1,0 +1,48 @@
+# 0　使用约定与最小前置知识 {#sec-foundations .unnumbered}
+
+这份工具箱以你上传的 CS229M 第 1–20 讲转录和花书第 4、6、7、8、10、11、15 章为边界。正文按知识依赖重组；附录保留来源索引和校对记录。这里的“完整”指选定范围的主体内容都有实质讲解，并不意味着复制原书全部文字、复现每个课堂插话，或证明课程本身仅引用的全部研究定理。
+
+**阅读标记。**“推导”可逐行验算；“引用结论”明确写出使用条件，但不冒充全文证明；“启发式”说明机制而非一般定理；“校对说明”指出原转录的不确定处。本书新增的标准推导用于补足逻辑，不能反向归为老师原话。
+
+## 0.1 符号与随机性 {.unnumbered}
+
+| 符号 | 固定含义 |
+|---|---|
+| $S=(Z_1,\ldots,Z_n)$，$Z_i=(X_i,Y_i)$ | 独立同分布训练样本，除非另有说明 |
+| $P$、$P_n$ | 总体分布与经验平均算子 |
+| $R(f)=P\ell_f$、$\widehat R_S(f)=P_n\ell_f$ | 总体风险与经验风险 |
+| $d$、$p$、$m$、$k$ | 输入维度、参数数目、隐藏层宽度、网络深度；聚类章局部重定义 $k$ |
+| $\delta\in(0,1)$ | 失败概率；层扰动另记为 $\xi_i$ |
+| $\eta$、$\lambda$ | 学习率、正则化强度 |
+| $\beta$ | 光滑常数，避免与风险函数混淆 |
+| $\sigma_i$、$\varepsilon_i$ | 奇异值、Rademacher 随机符号，分别使用 |
+
+先固定样本，再对随机符号取期望，得到的是**经验**复杂度；再对样本取期望，才得到总体复杂度。条件于历史的无偏随机梯度，与无条件平均为零不是同一个条件。
+
+$O(\cdot)$ 隐藏常数，$\widetilde O(\cdot)$ 还隐藏对数项。隐藏哪个量的依赖必须说明；不能把 $d^2/n^2$ 当成“与维度无关的高阶小量”。$O_p(a_n)$ 表示除以 $a_n$ 后依概率有界，并非确定性上界。
+
+## 0.2 范数、投影与导数 {.unnumbered}
+
+向量对偶范数定义为 $\|z\|_*=\sup_{\|x\|\le1}z^\top x$，于是 $|z^\top x|\le\|z\|_*\|x\|$。最常用配对为 $\ell_2/\ell_2$ 与 $\ell_1/\ell_\infty$。
+
+矩阵谱范数 $\|A\|_{\rm op}=\sup_{\|x\|_2=1}\|Ax\|_2=\sigma_{\max}(A)$；Frobenius 范数 $\|A\|_F^2=\sum_{ij}A_{ij}^2=\sum_j\sigma_j^2$。逐元素范数 $\|A\|_{1,1}=\sum_{ij}|A_{ij}|$ 与诱导算子范数不是同一概念。后文 $\|A^\top\|_{2,1}$ 明确定义为其列欧氏范数之和，不能误读为 $2\to1$ 算子范数。
+
+对 $f:\mathbb R^p\to\mathbb R$，$\nabla f\in\mathbb R^p$，$\nabla^2 f\in\mathbb R^{p\times p}$。对 $F:\mathbb R^p\to\mathbb R^n$，Jacobian $J\in\mathbb R^{n\times p}$，链式法则为 $\nabla_\theta \ell(F(\theta))=J^\top\nabla_F\ell$。检查维度通常可以发现遗漏的转置。
+
+若 $X=U_r\Sigma_rV_r^\top$，则 $X^\dagger=V_r\Sigma_r^{-1}U_r^\top$。$XX^\dagger$ 投影到列空间，$X^\dagger X$ 投影到行空间。$\mathbb R^d=\operatorname{range}(X^\top)\oplus\ker X$ 是第 13 章的核心几何。
+
+## 0.3 两条反复使用的展开 {.unnumbered}
+
+若梯度是 $\beta$-Lipschitz，则
+
+$$f(x+h)\le f(x)+\nabla f(x)^\top h+\frac\beta2\|h\|^2.$$
+
+若 Hessian 是 $\rho$-Lipschitz，则
+
+$$\left|f(x+h)-f(x)-\nabla f(x)^\top h-\frac12h^\top\nabla^2f(x)h\right|\le\frac\rho6\|h\|^3.$$
+
+前式来自沿线段积分梯度，后式再积分 Hessian 的变化。这些是有条件的余项控制，而不是“高阶项总能忽略”。
+
+## 0.4 如何使用本书 {.unnumbered}
+
+第一次依次读第 1–5 章，再读第 6–15 章。第 16–19 章保留独立入口。每章结尾的问题用于主动回忆，不是考试题库。查公式时先查假设与归一化，再把它代入自己的问题。尤其不要把总体风险、训练风险、参数误差和预测误差混为一个“误差”。

@@ -1,0 +1,73 @@
+# 策略梯度与 REINFORCE {#sec-pg}
+
+**学习层级：A。** 必须能推导 likelihood-ratio 梯度并说明 baseline 条件。材料：CS285 L5、L9；白板策略近似、策略梯度定理、REINFORCE。
+
+## 直接改变动作概率
+
+Q-learning 先评价再贪心。策略梯度直接让获得较好结果的动作更可能发生，适合随机策略与连续动作。困难在于环境通常不可微，不能把最终回报沿整个真实世界反向传播。
+
+先考虑固定有限时域、未折扣目标 $J(\theta)=\mathbb E_{\tau\sim p_\theta}[R(\tau)]$。在可交换微分与积分且支持条件合适时，
+
+$$
+\begin{aligned}
+\nabla J&=\int R(\tau)\nabla p_\theta(\tau)\,d\tau\\
+&=\mathbb E_{p_\theta}[R(\tau)\nabla\log p_\theta(\tau)]\\
+&=\mathbb E\left[R(\tau)\sum_t\nabla\log\pi_\theta(A_t\mid S_t)\right].
+\end{aligned}
+$$
+
+环境概率没有消失，它仍决定采样分布；只是它不依赖 $\theta$，因此对数导数为零。我们不需要显式知道该概率。
+
+## 因果性：过去奖励不用给未来动作记功
+
+给定到时刻 t 的历史，动作分布的 score 期望为
+
+$$\mathbb E_{A_t\sim\pi_\theta}[\nabla\log\pi_\theta(A_t\mid S_t)]
+=\nabla\sum_a\pi_\theta(a\mid S_t)=0.$$
+
+所以将 $R(\tau)$ 中时刻 t 之前的奖励乘以这个 score，条件期望为零。可将完整轨迹回报换成 reward-to-go，减少无关噪声。
+
+若目标是起点折扣回报 $J=\mathbb E\sum_t\gamma^tR_{t+1}$，且 $G_t$ 从 t 重新计折扣，精确表达是
+
+$$\nabla J=\mathbb E\sum_t\gamma^t\nabla\log\pi_\theta(A_t\mid S_t)G_t.$$
+
+外部 $\gamma^t$ 不能在严格推导中无声丢掉。许多实践实现按采样时间均匀平均，需要说明其采样/目标约定。
+
+## 从回报到 Q：策略梯度定理
+
+对 $G_t$ 再条件于 $(S_t,A_t)$，其条件均值是 $Q^\pi(S_t,A_t)$。定义归一化折扣状态占用
+
+$$d_\gamma^\pi(s)=(1-\gamma)\sum_{t\geq0}\gamma^tP_\pi(S_t=s),$$
+
+则无限时域折扣版本为
+
+$$\nabla J=\frac1{1-\gamma}\mathbb E_{s\sim d_\gamma^\pi,a\sim\pi}\left[\nabla\log\pi_\theta(a\mid s)Q^\pi(s,a)\right].$$
+
+状态分布虽依赖策略，定理已把该影响吸收到 Q 中，不是简单假设状态分布不变。归一化与未归一化占用的公式相差常数，必须保持一致。
+
+## Baseline 为什么不改变期望
+
+只依赖状态的 $b(s)$ 满足
+
+$$\mathbb E_{a\sim\pi}[\nabla\log\pi(a\mid s)b(s)]
+=b(s)\nabla\sum_a\pi(a\mid s)=0.$$
+
+于是可以用 $G_t-b(S_t)$。若 $b=V^\pi$，条件均值就是优势。baseline 需要在 score 梯度中视为常数；共享网络时不能让 Actor 损失经 baseline 分支偷偷更新价值参数。
+
+准确 V 是常用选择，却不总是最小化梯度方差的唯一最优 baseline；最优形式还涉及 score 的平方范数。更重要的是，使用含当前样本回报的样本均值作为 baseline 会引入相关性，不能直接套用“与当前动作无关”的证明，组内基线见 @sec-llm-optimization。
+
+## 手算两动作 bandit
+
+设动作 1 概率 $p=\sigma(\theta)$，动作 0 概率 $1-p$，奖励分别为 1、0。真实目标 $J=p$，故 $\nabla_\theta J=p(1-p)$。score 为 $A-p$，REINFORCE 估计 $(A-p)R$：
+
+$$\mathbb E[(A-p)R]=p(1-p).$$
+
+取 $p=1/2$，真实梯度为 $1/4$。若 baseline 为 $1/2$，两个动作产生的估计都为 $1/4$，在这个特殊例子中方差恰好为零。一般任务不会如此理想。
+
+## 从公式到训练
+
+最小化 $L_\pi=-N^{-1}\sum\log\pi_\theta(a_t\mid s_t)\operatorname{sg}(\widehat A_t)$，注意与最大化回报的符号相反。连续动作常用对角高斯，离散动作用 categorical；多维高斯 log-prob 要在动作维求和，不能保留向量再意外广播。
+
+标准 REINFORCE 用当前策略采样并进行对应的 on-policy 更新。把同一批样本任意训练许多轮，策略已改变，就不再是原推导中的当前策略样本估计，需考虑 @sec-ppo 的代理目标。
+
+**自测：** baseline 为何不能随意用 $Q(s,a)$？因为它依赖当前动作，score 加权期望通常不为零；直接减去会改变梯度。必须另有补偿结构才可能成立。

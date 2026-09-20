@@ -1,0 +1,55 @@
+# 语言生成的 RL 建模与后训练 {#sec-llm}
+
+**学习层级：A。** 必须能把 token、前缀、整条回答和三种策略对应起来。材料：CS285 L14、HW4。
+
+## 一次生成也能是决策过程
+
+给定 prompt x，状态是当前前缀 $s_t=(x,y_{<t})$，动作是下一个 token $a_t=y_t$。在纯文本生成中，转移就是把 token 接到前缀后面；随机性主要来自策略采样。遇到工具调用、多轮用户输入时，环境还包含外部反馈，不再只是字符串拼接。
+
+策略的序列概率分解为
+
+$$\pi_\theta(y\mid x)=\prod_{t=1}^{T}\pi_\theta(y_t\mid x,y_{<t}),\qquad
+\log\pi_\theta(y\mid x)=\sum_{t=1}^{T}\log\pi_\theta(y_t\mid x,y_{<t}).$$
+
+也可以把完整回答当作 contextual bandit 的一个动作。两种视角在适当目标下相容，但动作空间、信用分配和估计方式不同。不能将 token 平均 log-prob 直接称为整条序列 log-prob。
+
+## SFT、RLHF 与可验证奖励
+
+SFT 用示范回答最大化条件似然，类似行为克隆。RLHF 利用人类偏好训练奖励，再优化策略；可验证奖励直接使用判题器、格式规则或执行结果。结果奖励评价最终结果，过程奖励对中间步骤给信号，后者也可能错误或被利用。
+
+对终局奖励 $R(x,y)$、$\gamma=1$ 的有限生成，未加其他逐步奖励时每个 token 的 reward-to-go 都是同一个最终分数。它不意味着每个 token 的真实贡献相同，而是这种估计器尚未精细分配信用。
+
+## 三种策略必须分开
+
+| 记号 | 职责 | 是否变化 |
+|---|---|---|
+| $\pi_\theta$ | 正在训练、计算梯度 | 每次优化变化 |
+| $\pi_{\rm old}$ | 生成当前 rollout 的行为策略 | 当前复用周期固定 |
+| $\pi_{\rm ref}$ | 定义参考偏离成本 | 通常整个阶段固定 |
+
+PPO ratio 的分母是 old，KL 正则的参照是 ref。old 与 ref 在第一轮可能相同，之后不必相同。把两者混成一个 frozen model 会改变算法。
+
+## KL 正则与序列分解
+
+一种序列目标为
+
+$$\mathbb E_{x,y\sim\pi_\theta}[R(x,y)]
+-\beta\mathbb E_xD_{\rm KL}(\pi_\theta(\cdot\mid x)\|\pi_{\rm ref}(\cdot\mid x)).$$
+
+当两策略在完整序列空间上有合适支持和终止定义时，链式法则将序列 KL 写成当前策略前缀分布上的 token KL 之和。给每个采样 token 加 $-\beta\log(\pi_\theta/\pi_{\rm ref})$ 的奖励塑形、以及在 surrogate loss 外直接加入采样 KL 项，是需要分别定义的实现，不能重复加罚却仍按单项公式解释。
+
+## Mask、移位和长度
+
+语言模型在位置 t 的 logits 预测下一个 token。teacher forcing 计算 log-prob 时，应对 logits 与目标 token 做正确 shift。只对 completion 位置计算 RL 损失；prompt 与 padding 的 mask 为 0，EOS 若作为实际采样动作则通常包含在 completion 内。
+
+变长 batch 至少有两种 reduction：先每条回答取 token 平均再对回答平均；或将所有有效 token 总和除以 token 总数。后者给长回答更大样本权重。序列 log-prob 的求和又是另一种量。哪一种合适取决于目标与实现，不能互换而声称只差固定常数。
+
+截断达到 max length 时应记录是否生成 EOS。判题器可能把未完成回答判错，训练也可能受长度规则影响；不要默默将截断当作自然结束。温度、top-p 等采样设置会改变实际行为分布，概率比计算必须考虑是否与记录的采样概率一致。
+
+## 一个最小检查
+
+两条回答长度为 2 和 4，所有 token log-prob 均为 $-1$。序列 log-prob 分别为 $-2,-4$；各自 token 平均均为 $-1$。如果把后者放入普通序列 REINFORCE，它对不同长度使用了不同缩放，已改变估计器。
+
+## 自测
+
+**题：** 用生成时的 logits 直接保存 log-prob 足够吗？答：要确认采样温度、截断词表及模型模式与概率定义一致，并保存对应 token/mask。**题：** 奖励为正确答案时是否就没有 reward hacking？答：仍可能利用解析器、格式漏洞或测试覆盖缺口；奖励函数正确性也是实验的一部分。

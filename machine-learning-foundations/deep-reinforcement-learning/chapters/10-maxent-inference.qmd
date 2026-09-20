@@ -1,0 +1,68 @@
+# 最大熵 RL 与控制即推断 {#sec-maxent}
+
+**学习层级：A/B。** 掌握熵正则和 soft Bellman；变分推断的角色达到能解释 ELBO。材料：CS285 L11–13；一般 VI 基础在附录补齐。
+
+## 为什么不只追求单一最大值
+
+当多个动作价值接近时，过早确定一个动作会失去多样性，也可能对价值误差敏感。最大熵 RL 优化奖励与策略熵的组合：
+
+$$J_\alpha(\pi)=\mathbb E_\pi\sum_{t\geq0}\gamma^t
+\left[R_{t+1}+\alpha\mathcal H(\pi(\cdot\mid S_t))\right].$$
+
+$\alpha>0$ 是温度，控制随机性的代价/收益；它不是环境奖励本身。连续动作使用微分熵，会受单位和坐标变换影响，因此动作缩放与密度修正必须一致。
+
+## 一个状态上的最优随机策略
+
+固定 Q，在有限动作上求 $\max_\pi\sum_a\pi_aQ_a-\alpha\sum_a\pi_a\log\pi_a$，加上概率和为 1 的乘子。逐项求导：
+
+$$Q_a-\alpha(\log\pi_a+1)+\lambda=0
+\quad\Longrightarrow\quad
+\pi^*(a)=\frac{\exp(Q_a/\alpha)}{\sum_b\exp(Q_b/\alpha)}.$$
+
+代回得到最优值
+
+$$V(s)=\alpha\log\sum_a\exp(Q(s,a)/\alpha).$$
+
+另一种更有解释力的写法是
+
+$$\mathbb E_\pi Q+\alpha\mathcal H(\pi)
+=\alpha\log Z-\alpha D_{\rm KL}(\pi\|\pi^*).$$
+
+最大化等价于逼近 softmax 分布。$\alpha\to0$ 时趋向 max；连续动作将和改积分，但需要可积性和明确基准测度。
+
+## Soft Bellman 方程
+
+约定 Q 包含当前环境奖励与未来熵，不额外包含当前动作选择的熵项，则
+
+$$Q^\pi(s,a)=r(s,a)+\gamma\mathbb E_{s'}V^\pi(s'),$$
+$$V^\pi(s)=\mathbb E_{a\sim\pi}[Q^\pi(s,a)-\alpha\log\pi(a\mid s)].$$
+
+最优 V 由上面的 log-sum-exp 给出。不要把普通 Q 的 max backup 与带熵的 Actor 目标随意拼在一起而不说明目标已经改变。
+
+**例子。** $Q=(0,1),\alpha=1$，第二动作概率约 0.731，soft value 为 $\log(1+e)\approx1.313$。它高于最高环境动作值 1，是因为目标含熵奖励，不是凭空发现更多环境回报。
+
+## 从隐变量推断理解优化
+
+对潜变量模型 $p_\theta(x,z)$，引入近似后验 $q_\phi(z\mid x)$：
+
+$$\log p_\theta(x)=
+\underbrace{\mathbb E_q[\log p_\theta(x,z)-\log q_\phi(z\mid x)]}_{\mathcal L\text{，ELBO}}
++D_{\rm KL}(q_\phi(z\mid x)\|p_\theta(z\mid x)).$$
+
+KL 非负，所以 ELBO 是下界。摊销推断让一个网络对不同 x 直接产生 q，避免每个样本单独优化参数。高斯重参数化 $z=\mu_\phi(x)+\sigma_\phi(x)\odot\epsilon$ 把采样随机性移到与参数无关的噪声，便于低方差路径梯度。VI 不是简单地“把真实后验替换成任意高斯而仍完全精确”。
+
+控制即推断加入“最优性”观测，似然与 $\exp(r/\alpha)$ 成比例。严格作为概率需归一化或将奖励平移到满足概率范围；常也把它当非归一化势函数。对高奖励轨迹的后验偏好能够导出 soft 价值和随机策略。
+
+## 随机动力学的关键限制
+
+如果任意优化整个轨迹后验，推断可能偏向那些“环境碰巧更幸运”的转移，仿佛策略能控制环境噪声。实际只能选择动作，不能改真实动力学。受约束的变分分布要保留环境转移，只优化策略因子，才得到合理的最大熵控制目标。
+
+相对参考策略正则则优化 $\mathbb E_\pi Q-\alpha D_{\rm KL}(\pi\|\pi_{\rm ref})$，最优解满足
+
+$$\pi^*(a\mid s)\propto\pi_{\rm ref}(a\mid s)\exp(Q(s,a)/\alpha).$$
+
+这里奖励的是相对参考分布的变化，不等于单独最大化策略熵。该式连接 LLM 后训练中的 KL 约束。
+
+## 自测
+
+**题：** 熵越大是否回报一定越好？**答：** 不一定，熵改变优化目标，也可能降低原任务奖励。**题：** ELBO 变大是否保证真实似然每一步都变大？**答：** 一般不保证，下界间隙也在变；须区分优化代理与原量。

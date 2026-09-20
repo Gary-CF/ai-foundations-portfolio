@@ -24,3 +24,18 @@ _pdf/
 
 # Python bytecode caches
 __pycache__/
+
+# Added books: generated deliverables and local historical copies
+/machine-learning-foundations/*/preview/
+/machine-learning-foundations/*/archive/
+/machine-learning-foundations/*/*.tex
+**/*.quarto_ipynb
+*.aux
+*.log
+*.toc
+*.out
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz

@@ -1,0 +1,53 @@
+# DQN 与离散动作控制 {#sec-dqn}
+
+**学习层级：A。** 必须会写目标和训练循环；变体以机制比较为主。材料：CS285 L7–8、Section 4；白板 Q-learning。
+
+## 从 Q-learning 到批量回归
+
+离散动作网络输出每个动作的 Q 值。收集经验 $(s,a,r,s',m)$，$m=0$ 表示真正终止，其他可继续状态取 1。目标网络参数为 $\bar\theta$，DQN 目标与损失是
+
+$$y=r+\gamma m\max_{a'}Q_{\bar\theta}(s',a'),\qquad
+L_Q=\mathbb E_{\mathcal D}\left[\ell(Q_\theta(s,a)-\operatorname{sg}(y))\right].$$
+
+$\operatorname{sg}$ 表示停止梯度。$\ell$ 可取平方或 Huber 损失；后者对大残差的梯度增长更温和。目标网络可每 C 步硬复制，或用 $\bar\theta\leftarrow(1-\tau)\bar\theta+\tau\theta$ 慢速更新，二者不要混淆系数约定。
+
+## 一轮数据流
+
+```text
+用 epsilon-greedy(Q) 选择动作，与环境交互
+把转移及真正的下一观察写入 replay
+达到最小数据量后采样 minibatch
+用 target Q 计算 y；切断 y 的梯度
+只拟合被执行动作的 Q(s,a)，更新在线 Q
+按预定频率更新 target Q
+单独运行评估策略，记录环境交互数和回报
+```
+
+选择动作时用 online Q，计算 backup 时用 target Q。回放让样本可复用，但历史数据来自旧行为策略；Q-learning 的 off-policy 结构使这一点可行，不意味着任意算法都能无修正地使用 replay。
+
+## 为什么最大化会过估计
+
+若两个动作真实价值都为 0，各自估计存在零均值噪声，则 $\mathbb E[\max(\widehat Q_1,\widehat Q_2)]\geq0$。最优动作选择倾向挑中误差向上的那个。Double DQN 把动作选择与估值分开：
+
+$$a^*=\arg\max_aQ_\theta(s',a),\qquad
+y_{\rm double}=r+\gamma mQ_{\bar\theta}(s',a^*).$$
+
+例如在线 Q 为 $(2,5)$、目标 Q 为 $(4,3)$，DQN 用目标最大值 4，Double DQN 先选第二动作，再用目标值 3。它减轻一种偏差，不保证估值总是无偏；两个网络也并非真正统计独立。
+
+## 终止、时间截断与自动重置
+
+若达到任务的吸收终点，未来回报确实为零，mask 为 0。若仅因采样器的最大步数截断，而原任务还可继续，一般仍需 bootstrap。有限时域任务若时间耗尽就是任务终止，则应为 0，并确保状态或价值含剩余时间。
+
+自动重置环境可能返回下一幕的初始观察。应使用截断/终止前的 final observation 计算需要 bootstrap 的目标，不可跨幕连起来。该错误常使训练表面正常，却学到错误价值。
+
+## 常见变体放在什么位置
+
+Dueling 架构写 $Q(s,a)=V(s)+A(s,a)-|\mathcal A|^{-1}\sum_bA(s,b)$，用中心化固定 V/A 分解的不唯一性。优先回放偏向大 TD 误差样本，会改变采样分布，通常结合权重修正；权重实现和目标分布必须说明。Distributional RL 预测回报分布而非仅均值，不是分布式计算。
+
+大动作空间中遍历 max 很贵，连续动作中通常无法直接枚举，转入 @sec-sac 的 Actor–Critic 路线。
+
+## 小例子与检查清单
+
+取 $r=1,\gamma=0.9,m=1$，前述 Double DQN 目标为 $1+0.9\times3=3.7$；若真正终止则为 1。一次 batch 应核对所取动作索引、目标形状、reward dtype、mask 方向和目标梯度。
+
+**题：** 为什么 Q 值突然上升而评估回报下降值得警惕？**答：** 可能出现过估计反馈或数据外外推，Q 预测不是独立绩效证据。先查目标、终止语义和评估，再考虑加大网络。

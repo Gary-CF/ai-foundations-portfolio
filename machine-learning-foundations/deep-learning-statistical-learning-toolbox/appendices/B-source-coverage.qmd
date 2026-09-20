@@ -1,0 +1,384 @@
+# 材料覆盖与来源定位 {#sec-B-source-coverage}
+
+## 材料盘点
+
+课程 20 讲已按 Lecture 1–20 去重登记。表中时间为对应检索词的首个正文命中，是回到原材料的定位入口，不等于主题正式开始或结束。跨讲续讲内容另列。原始段落台账见 `source-ledger.json`。
+
+### Lecture 1
+
+Stanford CS229M - Lecture 1: Overview, supervised learning, empirical risk minimization
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 监督学习与风险 | [00:00:00–00:00:35](https://www.youtube.com/watch?v=I-tmjGFaaBg&t=0s) | 第 1 章 |
+| ERM | [00:11:21–00:11:49](https://www.youtube.com/watch?v=I-tmjGFaaBg&t=681s) | 第 1 章 |
+| 一致性与渐近分析 | [00:04:37–00:05:12](https://www.youtube.com/watch?v=I-tmjGFaaBg&t=277s) | 第 1 章 |
+| Hessian 与参数展开 | [00:32:44–00:33:04](https://www.youtube.com/watch?v=I-tmjGFaaBg&t=1964s) | 第 1 章 |
+| 中心极限定理 | [00:53:00–00:53:33](https://www.youtube.com/watch?v=I-tmjGFaaBg&t=3180s) | 第 1 章 |
+
+### Lecture 2
+
+Stanford CS229M - Lecture 2:  Asymptotic analysis, uniform convergence, Hoeffding inequality
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 渐近分布与 Fisher 信息 | [00:17:00–00:17:36](https://www.youtube.com/watch?v=Fx3xldCEfsM&t=1020s) | 第 1 章 |
+| 有限样本与渐近限制 | [00:25:50–00:26:22](https://www.youtube.com/watch?v=Fx3xldCEfsM&t=1550s) | 第 1 章 |
+| 一致收敛 | [00:00:47–00:01:19](https://www.youtube.com/watch?v=Fx3xldCEfsM&t=47s) | 第 2 章 |
+| Hoeffding | [00:46:37–00:47:07](https://www.youtube.com/watch?v=Fx3xldCEfsM&t=2797s) | 第 2 章 |
+
+### Lecture 3
+
+Stanford CS229M - Lecture 3: Finite hypothesis class, discretizing infinite hypothesis space
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 有限假设类 | [00:02:22–00:02:47](https://www.youtube.com/watch?v=io-YFfXbIXk&t=142s) | 第 2 章 |
+| Union bound | [00:00:36–00:01:46](https://www.youtube.com/watch?v=io-YFfXbIXk&t=36s) | 第 2 章 |
+| Lipschitz 参数化 | [00:29:57–00:30:51](https://www.youtube.com/watch?v=io-YFfXbIXk&t=1797s) | 第 2 章 |
+| 覆盖与离散化 | [00:25:58–00:26:21](https://www.youtube.com/watch?v=io-YFfXbIXk&t=1558s) | 第 2 章 |
+
+### Lecture 4
+
+Stanford CS229M - Lecture 4: Advanced concentration inequalities
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 次高斯 | [00:18:19–00:18:41](https://www.youtube.com/watch?v=fKM6fcOkXuk&t=1099s) | 第 2 章 |
+| 指数矩 | [00:16:51–00:17:24](https://www.youtube.com/watch?v=fKM6fcOkXuk&t=1011s) | 第 2 章 |
+| 有界差分 | [00:49:27–00:49:56](https://www.youtube.com/watch?v=fKM6fcOkXuk&t=2967s) | 第 2 章 |
+| 位置依赖敏感度 | [01:01:14–01:02:20](https://www.youtube.com/watch?v=fKM6fcOkXuk&t=3674s) | 第 2 章 |
+| 高斯集中与 Poincaré | [00:06:38–00:07:05](https://www.youtube.com/watch?v=fKM6fcOkXuk&t=398s) | 第 2 章 |
+
+### Lecture 5
+
+Stanford CS229M - Lecture 5: Rademacher complexity, empirical Rademacher complexity
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 复杂度定义与随机性 | [00:10:56–00:11:13](https://www.youtube.com/watch?v=tkJd2B98hII&t=656s) | 第 3 章 |
+| Ghost sample | [00:43:21–00:43:51](https://www.youtube.com/watch?v=tkJd2B98hII&t=2601s) | 第 3 章 |
+| 对称化 | [00:42:27–00:43:01](https://www.youtube.com/watch?v=tkJd2B98hII&t=2547s) | 第 3 章 |
+| 高概率界 | [00:09:51–00:10:21](https://www.youtube.com/watch?v=tkJd2B98hII&t=591s) | 第 3 章 |
+| 函数类与损失类 | [00:11:13–00:11:49](https://www.youtube.com/watch?v=tkJd2B98hII&t=673s) | 第 3 章 |
+
+### Lecture 6
+
+Stanford CS229M - Lecture 6: Margin theory and Rademacher complexity for linear models
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 0–1 损失与间隔 | [00:12:21–00:12:59](https://www.youtube.com/watch?v=echF7IWE05c&t=741s) | 第 4 章 |
+| Ramp surrogate | [00:16:03–00:16:25](https://www.youtube.com/watch?v=echF7IWE05c&t=963s) | 第 4 章 |
+| 收缩引理 | [00:26:40–00:26:57](https://www.youtube.com/watch?v=echF7IWE05c&t=1600s) | 第 3 章 |
+| 线性范数界 | [00:00:12–00:00:43](https://www.youtube.com/watch?v=echF7IWE05c&t=12s) | 第 3 章 |
+| 不同范数几何 | [01:07:08–01:07:31](https://www.youtube.com/watch?v=echF7IWE05c&t=4028s) | 第 3 章 |
+
+### Lecture 7
+
+Stanford CS229M - Lecture 7: Challenges in DL theory, generalization bounds for neural nets
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 表达、优化与泛化的挑战 | [00:00:00–00:00:22](https://www.youtube.com/watch?v=kVkMRDZ5fcU&t=0s) | 第 7 章 |
+| 通用逼近 | [00:20:08–00:21:08](https://www.youtube.com/watch?v=kVkMRDZ5fcU&t=1208s) | 第 6 章 |
+| 隐式偏好 | [00:34:49–00:35:37](https://www.youtube.com/watch?v=kVkMRDZ5fcU&t=2089s) | 第 13 章 |
+| 两层网络粗界 | [00:59:12–00:59:31](https://www.youtube.com/watch?v=kVkMRDZ5fcU&t=3552s) | 第 7 章 |
+
+### Lecture 8
+
+Stanford CS229M - Lecture 8: Refined generalization bounds for neural nets, Kernel methods
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 精细两层复杂度 | [00:04:13–00:04:41](https://www.youtube.com/watch?v=gwKfeDRCvSg&t=253s) | 第 7 章 |
+| 路径范数 | [00:15:24–00:15:52](https://www.youtube.com/watch?v=gwKfeDRCvSg&t=924s) | 第 7 章 |
+| 核与固定特征 | [00:00:48–00:01:20](https://www.youtube.com/watch?v=gwKfeDRCvSg&t=48s) | 第 4 章 |
+| 覆盖输出空间 | [00:00:00–00:00:19](https://www.youtube.com/watch?v=gwKfeDRCvSg&t=0s) | 第 5 章 |
+
+### Lecture 9
+
+Stanford CS229M - Lecture 9: Covering number approach, Dudley Theorem
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 有限类 Massart 引理 | [00:01:23–00:01:46](https://www.youtube.com/watch?v=wDfardbL50I&t=83s) | 第 3 章 |
+| 覆盖数 | [00:05:12–00:05:54](https://www.youtube.com/watch?v=wDfardbL50I&t=312s) | 第 5 章 |
+| 链式逼近 | [00:11:40–00:12:34](https://www.youtube.com/watch?v=wDfardbL50I&t=700s) | 第 5 章 |
+| 线性模型熵界 | [01:09:38–01:10:18](https://www.youtube.com/watch?v=wDfardbL50I&t=4178s) | 第 5 章 |
+
+### Lecture 10
+
+Stanford CS229M - Lecture 10: Generalization bounds for deep nets
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 层复合与覆盖 | [00:00:29–00:01:07](https://www.youtube.com/watch?v=P5-VVI1qLxA&t=29s) | 第 7 章 |
+| 覆盖半径与后续放大 | [00:00:29–00:01:07](https://www.youtube.com/watch?v=P5-VVI1qLxA&t=29s) | 第 7 章 |
+| 各层误差预算 | [00:20:03–00:20:27](https://www.youtube.com/watch?v=P5-VVI1qLxA&t=1203s) | 第 5 章 |
+| 深度与范数依赖 | [00:02:52–00:04:07](https://www.youtube.com/watch?v=P5-VVI1qLxA&t=172s) | 第 7 章 |
+
+### Lecture 11
+
+Stanford CS229M - Lecture 11: All-layer margin
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 数据依赖类的陷阱 | [00:12:02–00:12:35](https://www.youtube.com/watch?v=GeXBfyrKfM4&t=722s) | 第 7 章 |
+| 广义间隔 | [00:19:58–00:20:17](https://www.youtube.com/watch?v=GeXBfyrKfM4&t=1198s) | 第 7 章 |
+| 全层扰动定义 | [00:18:29–00:19:09](https://www.youtube.com/watch?v=GeXBfyrKfM4&t=1109s) | 第 7 章 |
+| 复杂度分解 | [00:52:59–00:53:51](https://www.youtube.com/watch?v=GeXBfyrKfM4&t=3179s) | 第 7 章 |
+| 平均逆间隔 | [00:54:41–00:55:44](https://www.youtube.com/watch?v=GeXBfyrKfM4&t=3281s) | 第 7 章 |
+
+### Lecture 12
+
+Stanford CS229M - Lecture 12: Non-convex optimization, Non-convex opt for PCA, matrix complexion
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 非凸驻点与优化难度 | [00:05:04–00:06:18](https://www.youtube.com/watch?v=EVyJkXOd5Xo&t=304s) | 第 10 章 |
+| 严格鞍点 | [00:23:51–00:24:11](https://www.youtube.com/watch?v=EVyJkXOd5Xo&t=1431s) | 第 10 章 |
+| PCA 因子化 | [00:40:50–00:41:45](https://www.youtube.com/watch?v=EVyJkXOd5Xo&t=2450s) | 第 11 章 |
+| 方向 Hessian | [00:50:52–00:51:18](https://www.youtube.com/watch?v=EVyJkXOd5Xo&t=3052s) | 第 11 章 |
+| 矩阵补全及不相干性 | [00:40:50–00:41:45](https://www.youtube.com/watch?v=EVyJkXOd5Xo&t=2450s) | 第 11 章 |
+
+### Lecture 13
+
+Stanford CS229M - Lecture 13: Neural Tangent Kernel
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 参数 Taylor 展开 | [00:08:43–00:09:09](https://www.youtube.com/watch?v=btphvvnad0A&t=523s) | 第 12 章 |
+| Jacobian 特征与伪逆 | [00:33:48–00:34:14](https://www.youtube.com/watch?v=btphvvnad0A&t=2028s) | 第 12 章 |
+| 局部近似误差 | [00:46:22–00:46:56](https://www.youtube.com/watch?v=btphvvnad0A&t=2782s) | 第 12 章 |
+| 初始化尺度 | [00:28:08–00:28:24](https://www.youtube.com/watch?v=btphvvnad0A&t=1688s) | 第 12 章 |
+| 宽度与核区间 | [00:28:08–00:28:24](https://www.youtube.com/watch?v=btphvvnad0A&t=1688s) | 第 12 章 |
+
+### Lecture 14
+
+Stanford CS229M - Lecture 14: Neural Tangent Kernel, Implicit regularization of gradient descent
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 输出残差递推 | [00:10:35–00:11:02](https://www.youtube.com/watch?v=xpT1ymwCk9w&t=635s) | 第 12 章 |
+| 参数移动范围 | [00:00:31–00:00:58](https://www.youtube.com/watch?v=xpT1ymwCk9w&t=31s) | 第 12 章 |
+| 核与特征学习局限 | [00:00:00–00:00:31](https://www.youtube.com/watch?v=xpT1ymwCk9w&t=0s) | 第 12 章 |
+| 最小范数隐式偏置 | [00:00:00–00:00:31](https://www.youtube.com/watch?v=xpT1ymwCk9w&t=0s) | 第 13 章 |
+
+### Lecture 15
+
+Stanford CS229M - Lecture 15: Implicit regularization effect of initialization
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 平方参数化与稀疏真值 | [00:03:25–00:03:48](https://www.youtube.com/watch?v=l-CR_TLihdg&t=205s) | 第 13 章 |
+| 非零小初始化 | [00:00:00–00:00:49](https://www.youtube.com/watch?v=l-CR_TLihdg&t=0s) | 第 13 章 |
+| 受限等距与总体经验比较 | [00:07:30–00:08:19](https://www.youtube.com/watch?v=l-CR_TLihdg&t=450s) | 第 13 章 |
+| 信号和背景坐标 | [00:04:54–00:05:23](https://www.youtube.com/watch?v=l-CR_TLihdg&t=294s) | 第 13 章 |
+| 轨迹耦合误差 | [00:39:23–00:40:23](https://www.youtube.com/watch?v=l-CR_TLihdg&t=2363s) | 第 13 章 |
+
+### Lecture 16
+
+Stanford CS229M - Lecture 16: Implicit regularization in classification problems
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 梯度流 | [00:02:10–00:02:34](https://www.youtube.com/watch?v=mham4hHpo7A&t=130s) | 第 13 章 |
+| 对角网络正负平方 | [00:06:22–00:06:48](https://www.youtube.com/watch?v=mham4hHpo7A&t=382s) | 第 13 章 |
+| 初始化势函数 | [00:16:08–00:16:43](https://www.youtube.com/watch?v=mham4hHpo7A&t=968s) | 第 13 章 |
+| 分类损失与间隔 | [00:00:18–00:00:47](https://www.youtube.com/watch?v=mham4hHpo7A&t=18s) | 第 14 章 |
+
+### Lecture 17
+
+Stanford CS229M - Lecture 17: Implicit regularization effect of the noise
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 优化噪声 | [00:00:00–00:00:08](https://www.youtube.com/watch?v=60GqpISCtCU&t=0s) | 第 15 章 |
+| 二次局部模型 | [00:04:25–00:04:59](https://www.youtube.com/watch?v=60GqpISCtCU&t=265s) | 第 15 章 |
+| 参数协方差 | [00:23:36–00:24:05](https://www.youtube.com/watch?v=60GqpISCtCU&t=1416s) | 第 15 章 |
+| 三阶漂移 | [00:44:41–00:45:06](https://www.youtube.com/watch?v=60GqpISCtCU&t=2681s) | 第 15 章 |
+| 标签噪声和 Hessian 迹 | [01:25:39–01:25:59](https://www.youtube.com/watch?v=60GqpISCtCU&t=5139s) | 第 15 章 |
+
+### Lecture 18
+
+Stanford CS229M - Lecture 18: Unsupervised learning, mixture of Gaussians, moment methods
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| Gauss–Newton Hessian 分解 | [00:03:26–00:03:59](https://www.youtube.com/watch?v=4xDEsLUkdG4&t=206s) | 第 15 章 |
+| 层梯度外积 | [00:02:24–00:02:52](https://www.youtube.com/watch?v=4xDEsLUkdG4&t=144s) | 第 6 章 |
+| 最大间隔证明续篇 | [00:16:40–00:17:31](https://www.youtube.com/watch?v=4xDEsLUkdG4&t=1000s) | 第 14 章 |
+| 高斯混合 | [00:06:56–00:07:27](https://www.youtube.com/watch?v=4xDEsLUkdG4&t=416s) | 第 17 章 |
+| 一二阶矩不可识别 | [00:41:53–00:42:25](https://www.youtube.com/watch?v=4xDEsLUkdG4&t=2513s) | 第 17 章 |
+
+### Lecture 19
+
+Stanford CS229M - Lecture 19: Mixture of Gaussians, spectral clustering
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 三阶矩与噪声修正 | [00:00:20–00:00:43](https://www.youtube.com/watch?v=E6rZeGIKdRY&t=20s) | 第 17 章 |
+| CP 张量分解 | [00:02:16–00:02:43](https://www.youtube.com/watch?v=E6rZeGIKdRY&t=136s) | 第 17 章 |
+| 过完备与鲁棒性 | [00:34:31–00:35:06](https://www.youtube.com/watch?v=E6rZeGIKdRY&t=2071s) | 第 17 章 |
+| 谱聚类与相似度图 | [00:00:20–00:00:43](https://www.youtube.com/watch?v=E6rZeGIKdRY&t=20s) | 第 18 章 |
+| SBM 期望谱 | [00:51:50–00:54:00](https://www.youtube.com/watch?v=E6rZeGIKdRY&t=3110s) | 第 18 章 |
+| 特征向量扰动 | [01:23:59–01:24:21](https://www.youtube.com/watch?v=E6rZeGIKdRY&t=5039s) | 第 18 章 |
+
+### Lecture 20
+
+Stanford CS229M - Lecture 20: Spectral clustering
+
+| 主题 | 定位段 | 本书章节 |
+|---|---|---|
+| 随机矩阵谱集中 | [00:01:14–00:01:44](https://www.youtube.com/watch?v=UYBRLG64oSQ&t=74s) | 第 18 章 |
+| 网格与一致控制 | [00:09:05–00:09:38](https://www.youtube.com/watch?v=UYBRLG64oSQ&t=545s) | 第 18 章 |
+| 图归一化与 Laplacian | [00:33:45–00:34:16](https://www.youtube.com/watch?v=UYBRLG64oSQ&t=2025s) | 第 18 章 |
+| Conductance 与 Cheeger | [00:16:55–00:18:11](https://www.youtube.com/watch?v=UYBRLG64oSQ&t=1015s) | 第 18 章 |
+| 扫描阈值切割 | [00:14:58–00:15:54](https://www.youtube.com/watch?v=UYBRLG64oSQ&t=898s) | 第 18 章 |
+| 谱表示与低秩参数化 | [01:05:22–01:05:43](https://www.youtube.com/watch?v=UYBRLG64oSQ&t=3922s) | 第 18 章 |
+
+## 花书小节覆盖
+
+下表列出指定章节中提取出的编号小节。条目落到现有正文主题；“覆盖”不表示所有历史例子逐字复制或所有引用定理全证明。
+
+| 花书小节 | 原目录标题 | 本书落点 |
+|---|---|---|
+| 4.1 | Ov erﬂo w and Underﬂo w | 9、10、13、附录 A |
+| 4.2 | P o or Conditioning | 9、10、13、附录 A |
+| 4.3 | Gradien t-Based Optimization | 9、10、13、附录 A |
+| 4.3.1 | Bey ond the Gradien t: Jacobian and Hessian Matrices | 9、10、13、附录 A |
+| 4.4 | Constrained Optimization | 9、10、13、附录 A |
+| 4.5 | Example: Linear Least Squares | 13.2–13.5 |
+| 6.1 | Example: Learning X OR | 6 |
+| 6.2 | Gradien t-Based Learning | 6 |
+| 6.2.1 | Cost F unctions | 6 |
+| 6.2.1.1 | Learning Conditional Distributions with Maximum Likelihoo d | 6 |
+| 6.2.1.2 | Learning Conditional Statistics | 6 |
+| 6.2.2 | Output Units | 6 |
+| 6.2.2.1 | Linear Units for Gaussian Output Distributions | 6 |
+| 6.2.2.2 | Sigmoid Units for Bernoulli Output Distributions | 6 |
+| 6.2.2.3 | Softmax Units for Multinoulli Output Distributions | 6 |
+| 6.2.2.4 | Other Output T yp es | 6 |
+| 6.3 | Hidden Units | 6 |
+| 6.3.1 | Rectiﬁed Linear Units and Their Generalizations | 6 |
+| 6.3.2 | Logistic Sigmoid and Hyp erb olic T angent | 6 |
+| 6.3.3 | Other Hidden Units | 6 |
+| 6.4 | Arc hitecture Design | 6 |
+| 6.4.1 | Univ ersal Appro ximation Prop erties and Depth | 6 |
+| 6.4.2 | Other Arc hitectural Considerations | 6 |
+| 6.5 | Bac k-Propagation and Other Diﬀeren tiation | 6.4–6.5、附录 A |
+| 6.5.1 | Computational Graphs | 6.4–6.5、附录 A |
+| 6.5.2 | Chain Rule of Calculus | 6.4–6.5、附录 A |
+| 6.5.3 | Recursiv ely Applying the Chain Rule to Obtain Bac kprop | 6.4–6.5、附录 A |
+| 6.5.4 | Bac k-Propagation Computation in F ully Connected MLP | 6.4–6.5、附录 A |
+| 6.5.5 | Sym b ol-to-Sym b ol Deriv ativ es | 6.4–6.5、附录 A |
+| 6.5.6 | General Bac k-Propagation | 6.4–6.5、附录 A |
+| 6.5.7 | Example: Bac k-Propagation for MLP T raining | 6.4–6.5、附录 A |
+| 6.5.8 | Complications | 6.4–6.5、附录 A |
+| 6.5.9 | Diﬀeren tiation outside the Deep Learning Communit y | 6.4–6.5、附录 A |
+| 6.5.10 | Higher-Order Deriv ativ es | 6.4–6.5、附录 A |
+| 6.6 | Historical Notes | 6 |
+| 7.1 | P arameter Norm P enalties | 8 |
+| 7.1.1 | L2 参数惩罚 | 8 |
+| 7.1.2 | L1 参数惩罚 | 8 |
+| 7.2 | Norm P enalties as Constrained Optimization | 8 |
+| 7.3 | Regularization and Under-Constrained Problems | 8 |
+| 7.4 | Dataset Augmen tation | 8 |
+| 7.5 | Noise Robustness | 8 |
+| 7.5.1 | Injecting Noise at the Output T argets | 8 |
+| 7.6 | Semi-Sup ervised Learning | 8 |
+| 7.7 | Multitask Learning | 8 |
+| 7.8 | Early Stopping | 8.4、13.9 |
+| 7.9 | P arameter T ying and P arameter Sharing | 8 |
+| 7.9.1 | Con v olutional Neural Net works | 8 |
+| 7.10 | Sparse Represen tations | 8 |
+| 7.11 | Bagging and Other Ensem ble Metho ds | 8 |
+| 7.12 | Drop out | 8 |
+| 7.13 | A dversarial T raining | 8 |
+| 7.14 | T angen t Distance, T angen t Prop and Manifold | 8 |
+| 8.1 | Ho w Learning Diﬀers from Pure Optimization | 9、10、15 |
+| 8.1.1 | Empirical Risk Minimization | 9、10、15 |
+| 8.1.2 | Surrogate Loss F unctions and Early Stopping | 9、10、15 |
+| 8.1.3 | Batc h and Minibatch Algorithms | 9、10、15 |
+| 8.2 | Challenges in Neural Net w ork Optimization | 9、10、15 |
+| 8.2.1 | Ill-Conditioning | 9、10、15 |
+| 8.2.2 | Lo cal Minima | 9、10、15 |
+| 8.2.3 | Plateaus, Saddle Poin ts and Other Flat Regions | 9、10、15 |
+| 8.2.4 | Cliﬀs and Explo ding Gradien ts | 9、10、15 |
+| 8.2.5 | Long-T erm Dep endencies | 9、10、15 |
+| 8.2.6 | Inexact Gradien ts | 9、10、15 |
+| 8.2.7 | P o or Corresp ondence b etw een Lo cal and Global Structure | 9、10、15 |
+| 8.2.8 | Theoretical Limits of Optimization | 9、10、15 |
+| 8.3 | Basic Algorithms | 9、10、15 |
+| 8.3.1 | Sto c hastic Gradient Descent | 9、10、15 |
+| 8.3.2 | Momen tum | 9、10、15 |
+| 8.3.3 | Nestero v Momen tum | 9、10、15 |
+| 8.4 | P arameter Initialization Strategies | 9、10、15 |
+| 8.5 | Algorithms with A daptiv e Learning Rates | 9、10、15 |
+| 8.5.1 | A daGrad | 9、10、15 |
+| 8.5.2 | RMSProp | 9、10、15 |
+| 8.5.3 | A dam | 9、10、15 |
+| 8.5.4 | Cho osing the Righ t Optimization Algorithm | 9、10、15 |
+| 8.6 | Appro ximate Second-Order Metho ds | 9.2、9.6 |
+| 8.6.1 | Newton’s Metho d | 9.2、9.6 |
+| 8.6.2 | Conjugate Gradien ts | 9.2、9.6 |
+| 8.6.3 | BF GS | 9.2、9.6 |
+| 8.7 | Optimization Strategies and Meta-Algorithms | 9、10、15 |
+| 8.7.1 | Batc h Normalization | 9、10、15 |
+| 8.7.2 | Co ordinate Descent | 9、10、15 |
+| 8.7.3 | P oly ak A v eraging | 9、10、15 |
+| 8.7.4 | Sup ervised Pretraining | 9、10、15 |
+| 8.7.5 | Designing Mo dels to Aid Optimization | 9、10、15 |
+| 8.7.6 | Con tin uation Metho ds and Curriculum Learnin g | 9、10、15 |
+| 10.1 | Unfolding Computational Graphs | 16 |
+| 10.2 | Recurren t Neural Netw orks | 16 |
+| 10.2.1 | T eac her F orcing and Net w orks with Output Recurrence | 16 |
+| 10.2.2 | Computing the Gradien t in a Recurren t Neural Net w ork | 16 |
+| 10.2.3 | Recurren t Net w orks as Directed Graphical Mo dels | 16 |
+| 10.2.4 | Mo deling Sequences Conditioned on Con text with RNNs | 16 |
+| 10.3 | Bidirectional RNNs | 16 |
+| 10.4 | Enco der-Deco der Sequence-to-Sequence | 16 |
+| 10.5 | Deep Recurren t Netw orks | 16 |
+| 10.6 | Recursiv e Neural Netw orks | 16 |
+| 10.7 | The Challenge of Long-T erm Dep endencies | 16 |
+| 10.8 | Ec ho State Netw orks | 16 |
+| 10.9 | Leaky Units and Other Strategies for Multiple | 16 |
+| 10.9.1 | A dding Skip Connections through Time | 16 |
+| 10.9.2 | Leaky Units and a Sp ectrum of Diﬀeren t Time Scales | 16 |
+| 10.9.3 | Remo ving Connections | 16 |
+| 10.10 | The Long Short-T erm Memory and Other Gated | 16 |
+| 10.10.1 | LSTM | 16 |
+| 10.10.2 | Other Gated RNNs | 16 |
+| 10.11 | Optimization for Long-T erm Dep endencies | 16 |
+| 10.11.1 | Clipping Gradien ts | 16 |
+| 10.11.2 | Regularizing to Encourage Information Flow | 16 |
+| 10.12 | Explicit Memory | 16 |
+| 11.1 | P erformance Metrics | 19 |
+| 11.2 | Default Baseline Mo dels | 19 |
+| 11.3 | Determining Whether to Gather More Data | 19 |
+| 11.4 | Selecting Hyp erparameters | 19 |
+| 11.4.1 | Man ual Hyp erparameter T uning | 19 |
+| 11.4.2 | Automatic Hyp erparameter Optimization Algorithms | 19 |
+| 11.4.3 | Grid Search | 19 |
+| 11.4.4 | Random Search | 19 |
+| 11.4.5 | Mo del-Based Hyp erparameter Optimization | 19 |
+| 11.5 | Debugging Strategies | 19 |
+| 11.6 | Example: Multi-Digit Num b er Recognition | 19 |
+| 15.1 | Greedy La y er-Wise Unsup ervised Pretraining | 17 |
+| 15.1.1 | When and Wh y Do es Unsup ervised Pretraining W ork? | 17 |
+| 15.2 | T ransfer Learning and Domain A daptation | 17 |
+| 15.3 | Semi-Sup ervised Disen tangling of Causal F actors | 17 |
+| 15.4 | Distributed Represen tation | 17 |
+| 15.5 | Exp onen tial Gains from Depth | 17 |
+| 15.6 | Pro viding Clues to Disco v er Underlying Causes | 17 |
+
+## 可核对的辅助来源
+
+- [花书官方目录及完整在线版](https://www.deeplearningbook.org/)：本书限定 7 章。
+- [STATS214 / CS229M 官网](https://web.stanford.edu/class/stats214/)：确认双课程编号，链接往届 scribe notes。
+- [课程作者维护的讲义仓库](https://github.com/tengyuma/cs229m_notes)：用于公式交叉核对；不同学期，不能按课号机械对齐。
+- [全层间隔原论文](https://arxiv.org/html/1910.04284v5)：核对定义、复杂度分解与逆间隔均值版本。
+- [van Handel 的高维概率讲义](https://web.math.princeton.edu/~rvan/APC550.pdf)：L4 所引用的单边有界差分与高斯集中工具。
+
+辅助材料只用于校对或明确标注的补充，不把课程官网“if time permits”的在线学习内容当作上传 20 讲已经讲过。

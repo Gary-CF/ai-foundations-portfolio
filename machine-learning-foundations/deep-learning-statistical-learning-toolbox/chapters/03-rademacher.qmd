@@ -1,0 +1,81 @@
+# Rademacher 复杂度：从随机符号到泛化界 {#sec-03-rademacher}
+
+**来源：**CS229M L5、L6；本章展开对称化和收缩引理的关键步骤。
+
+## 定义与直觉
+
+固定 $S=(z_1,\ldots,z_n)$，让独立符号 $\varepsilon_i$ 等概率取 $\pm1$，定义
+
+$$\widehat{\mathfrak R}_S(\mathcal F)=\mathbb E_\varepsilon\sup_{f\in\mathcal F}\frac1n\sum_i\varepsilon_i f(z_i),
+\quad\mathfrak R_n(\mathcal F)=\mathbb E_S\widehat{\mathfrak R}_S(\mathcal F).$$
+
+先观察随机符号，再在类里选最能对齐它的函数。若类能任意拟合样本上的 $\pm1$，复杂度等于 1；只有一个固定函数的类，其复杂度等于 0。由此可见它不总是 $n^{-1/2}$，课程末尾的口头讨论不能当作无条件下界。
+
+本书采用上式**不含绝对值**的约定。若换成 $\sup|\cdot|$，对非对称类可能不同；不能在证明中途偷偷交换定义。
+
+## 对称化的每一步
+
+令 $S'$ 为独立同分布的 ghost sample。固定 $S$ 时 $Pf=\mathbb E_{S'}P_n'f$，所以
+
+$$\begin{aligned}
+\mathbb E_S\sup_f(Pf-P_nf)
+&=\mathbb E_S\sup_f\mathbb E_{S'}(P_n'f-P_nf)\\
+&\le\mathbb E_{S,S'}\sup_f(P_n'f-P_nf)\\
+&=\mathbb E_{S,S',\varepsilon}\sup_f\frac1n\sum_i\varepsilon_i[f(z_i')-f(z_i)]\\
+&\le\mathbb E\sup_f\frac1n\sum_i\varepsilon_if(z_i')+
+\mathbb E\sup_f\frac1n\sum_i(-\varepsilon_i)f(z_i)\\
+&=2\mathfrak R_n(\mathcal F).
+\end{aligned}$$
+
+第二行是“先知道随机结果再取最好，至少不差于预先选一个”，即 $\sup\mathbb E\le\mathbb E\sup$。第三行因为每一对 $(z_i,z_i')$ 可交换且各对独立：随机换位不改变联合分布。第四行允许两项分别选各自最好的函数，所以是上界而非等式。
+
+## 从期望界到可计算的高概率界
+
+若 $f\in[0,1]$，第 2 章说明 $A(S)=\sup_f(Pf-P_nf)$ 的坐标敏感度为 $1/n$。同样，$\widehat{\mathfrak R}_S$ 的敏感度至多 $1/n$。用两个单边 McDiarmid 事件，各失败概率 $\delta/2$，得对所有 $f$ 同时成立：
+
+$$\boxed{Pf\le P_nf+2\widehat{\mathfrak R}_S(\mathcal F)+3\sqrt{\frac{\log(2/\delta)}{2n}}.}$$
+
+因 $A\le\mathbb EA+a\le2\mathfrak R_n+a$，且 $\mathfrak R_n\le\widehat{\mathfrak R}_S+a$，常数 3 来自一个 $a$ 加两个 $a$。这一版本是总体量的一侧上界；若要双侧保证，对 $-\mathcal F$ 或对应反向差异再作一次处理。
+
+假设类必须在抽样前固定。若先用样本挑出“看起来泛化很好的模型类”，再对它无代价套这条界，就漏掉了选择的统计代价。
+
+## 线性类：$\ell_2$ 约束
+
+设 $f_w(x)=w^\top x$，$\|w\|_2\le B$。固定样本时
+
+$$\widehat{\mathfrak R}_S=\frac Bn\mathbb E_\varepsilon\left\|\sum_i\varepsilon_ix_i\right\|_2
+\le\frac Bn\sqrt{\mathbb E\left\|\sum_i\varepsilon_ix_i\right\|_2^2}
+=\frac Bn\sqrt{\sum_i\|x_i\|_2^2}.$$
+
+第一步是对偶范数，第二步是 Cauchy–Schwarz/Jensen，最后展开平方后交叉项因 $\mathbb E\varepsilon_i\varepsilon_j=0$ 消失。若 $\|x_i\|_2\le C$，上界为 $BC/\sqrt n$。无显式维度不等于不受维度影响：数据范数本身可能随维度增长。
+
+## $\ell_1$ 约束与有限类引理
+
+$\|w\|_1\le B$、$\|x_i\|_\infty\le C$ 时，
+
+$$\widehat{\mathfrak R}_S=\frac Bn\mathbb E\max_{j\le d}\left|\sum_i\varepsilon_i x_{ij}\right|
+\le BC\sqrt{\frac{2\log(2d)}n}.$$
+
+证明最大值界：把正负坐标看成 $2d$ 个向量 $q$，均满足 $\|q\|_2\le C\sqrt n$。对一般有限集合 $Q$，$\|q\|_2\le M\sqrt n$，利用 $\cosh u\le e^{u^2/2}$：
+
+$$\mathbb E\max_{q\in Q}\varepsilon^\top q
+\le\frac1t\log\sum_q\mathbb Ee^{t\varepsilon^\top q}
+\le\frac{\log|Q|}t+\frac{tnM^2}2.$$
+
+取 $t=\sqrt{2\log|Q|/(nM^2)}$ 再除以 $n$，即 Massart 有限类界 $M\sqrt{2\log|Q|/n}$。注意候选是 $\{\pm e_j\}$，数量 **$2d$，不是 $2^d$**；转录在此有明确错误。
+
+## 收缩引理不是把非线性直接搬出上确界
+
+若每个 $\phi_i$ 为 $L$-Lipschitz，则不含绝对值的 Rademacher 约定下
+
+$$\mathbb E\sup_{a\in A}\sum_i\varepsilon_i\phi_i(a_i)
+\le L\mathbb E\sup_{a\in A}\sum_i\varepsilon_i a_i.$$
+
+常数平移的符号均值为零，可先令 $\phi_i(0)=0$。核心是一次只处理一个坐标。固定其他符号，记其贡献为 $c(a)$，最后一位符号取平均得到
+
+$$\frac12\sup_{a,b}\{c(a)+c(b)+\phi(a_n)-\phi(b_n)\}
+\le\frac12\sup_{a,b}\{c(a)+c(b)+L|a_n-b_n|\}.$$
+
+对右侧的最大值可交换 $a,b$，故等于把 $\phi$ 换为 $L$ 倍恒等映射后的符号平均。逐坐标重复即得结论。使用 supremum 不一定取到时，以任意逼近最优的点完成同样论证。
+
+**自检。**为什么这里需要同时对样本和符号取期望？为何只知道激活函数 Lipschitz，还不能直接控制任意深网络而不付出层间放大因子？

@@ -1,0 +1,90 @@
+# 从集中不等式到一致收敛 {#sec-02-concentration}
+
+**来源：**CS229M L2 后半、L3、L4。附录记录 L4 单边有界差分版本的符号核对。
+
+## 指数矩怎样变成尾概率
+
+设中心化随机变量 $X$ 满足 $\mathbb E e^{tX}\le e^{t^2v/2}$，所有 $t\in\mathbb R$ 成立，称其为方差代理 $v$ 的次高斯变量。对 $t>0$，由 Markov 不等式，
+
+$$\Pr(X\ge a)=\Pr(e^{tX}\ge e^{ta})\le e^{-ta}\mathbb Ee^{tX}\le e^{-ta+t^2v/2}.$$
+
+右边对 $t$ 求导，最优 $t=a/v$，得到 $e^{-a^2/(2v)}$。负尾对 $-X$ 应用同一结果，两尾相加：$\Pr(|X|\ge a)\le2e^{-a^2/(2v)}$。
+
+若 $X_i$ 独立、代理为 $v_i$，则乘积分解给出
+
+$$\mathbb E e^{t\sum_iX_i}=\prod_i\mathbb E e^{tX_i}\le e^{t^2\sum_iv_i/2}.$$
+
+独立性用在乘积等式；不能只看每个变量的边缘次高斯性就无条件相加代理。$N(0,\sigma^2)$ 的代理为 $\sigma^2$；中心化有界变量的代理由下节给出。真实方差不大于一个有效代理，但它们不必相等。
+
+## Hoeffding 引理与不等式
+
+若 $a\le X\le b$，令 $K(t)=\log\mathbb Ee^{t(X-\mathbb EX)}$。指数倾斜后的分布仍支持于 $[a,b]$，因此 $K''(t)$ 是该分布的方差，至多 $(b-a)^2/4$。因 $K(0)=K'(0)=0$，积分两次得
+
+$$K(t)\le\frac{t^2(b-a)^2}{8}.$$
+
+将独立样本的中心化变量相加，并对平均数代入，得到
+
+$$\Pr\left(\left|\frac1n\sum_i(X_i-\mathbb EX_i)\right|\ge\epsilon\right)
+\le2\exp\left(-\frac{2n^2\epsilon^2}{\sum_i(b_i-a_i)^2}\right).$$
+
+若每个损失在 $[0,1]$，固定模型的尾界就是 $2e^{-2n\epsilon^2}$。
+
+## 有限类：先控制一个，再控制所有
+
+设固定假设类 $|\mathcal H|=M$。坏事件为“存在某个模型偏差大于 $\epsilon$”，由 union bound：
+
+$$\Pr\left(\sup_{h\in\mathcal H}|R(h)-\widehat R(h)|>\epsilon\right)
+\le\sum_{h\in\mathcal H}2e^{-2n\epsilon^2}=2Me^{-2n\epsilon^2}.$$
+
+不要求不同模型的坏事件独立。令右侧为 $\delta$，得
+
+$$\Delta_S\le\sqrt{\frac{\log(2M/\delta)}{2n}}.$$
+
+第 1 章立刻推出 ERM 的超额风险至多 $2\Delta_S$。若要求超额风险 $\le\epsilon$，充分样本数为 $n\ge2\log(2M/\delta)/\epsilon^2$。
+
+例如 $M=1000,\delta=0.05,n=10000$，风险偏差界约 $0.0230$，ERM 超额风险界约 $0.0460$。它是保守保证，并非实际误差预测。
+
+## 无限参数空间：网格如何补上空隙
+
+设 $\Theta\subset B_2(0,B)\subset\mathbb R^p$，且单样本损失对参数一致 $L$-Lipschitz。取半径 $a$ 的覆盖 $C$。对任意 $\theta$，找 $\theta'\in C$ 使距离 $\le a$，则
+
+$$|R(\theta)-\widehat R(\theta)|\le
+|R(\theta')-\widehat R(\theta')|+2La.$$
+
+一个 $La$ 来自总体风险变化，另一个来自经验风险变化。
+
+**覆盖大小推导。**取球内极大的 $a$-分离集合；极大性保证它也是 $a$-覆盖。其半径 $a/2$ 小球互不相交，均在半径 $B+a/2$ 大球内。比较体积，
+
+$$|C|\le(1+2B/a)^p.$$
+
+因此同一高概率事件上
+
+$$\Delta_S\le2La+\sqrt{\frac{p\log(1+2B/a)+\log(2/\delta)}{2n}}.$$
+
+减小 $a$ 降低离散化误差，却增加网格数量。选 $a$ 为 $n^{-1/2}$ 量级（对齐单位后）给出约 $\widetilde O(\sqrt{p/n})$ 的界。若网络参数化可任意缩放，$B$ 与 $L$ 也会改变，不能只摘出参数数目作解释。
+
+## McDiarmid：函数不是和，也能集中
+
+若独立 $Z_1,\ldots,Z_n$ 的函数 $F$ 在只替换第 $i$ 个坐标时最多变化 $c_i$，则
+
+$$\Pr(F-\mathbb EF\ge t)\le\exp\left(-\frac{2t^2}{\sum_ic_i^2}\right).$$
+
+证明设 $M_i=\mathbb E[F\mid Z_1,\ldots,Z_i]$。则 $M_i-M_{i-1}$ 条件均值为零；固定过去后，它的取值区间长度至多 $c_i$。条件版 Hoeffding 引理给出
+
+$$\mathbb E[e^{s(M_i-M_{i-1})}\mid Z_{1:i-1}]\le e^{s^2c_i^2/8}.$$
+
+用塔式法则逐个消掉条件期望，得 $\mathbb Ee^{s(F-\mathbb EF)}\le e^{s^2\sum c_i^2/8}$，再优化 $s$ 即结论。这里不是假定鞅差独立。
+
+对 $F(S)=\sup_f(Pf-P_nf)$ 且 $f\in[0,1]$，单样本替换最多改变 $1/n$。故一致偏差围绕其均值波动仅为 $O(\sqrt{\log(1/\delta)/n})$；第 3 章只需再控制这个均值。
+
+## 课程中的进阶工具及边界
+
+**高斯 Poincaré（引用结论）。**$G\sim N(0,I_d)$，适当可微且平方可积的 $F$ 满足 $\operatorname{Var}F(G)\le\mathbb E\|\nabla F(G)\|^2$。它给方差，不直接等于指数尾界。
+
+**高斯集中（引用结论）。**若 $F$ 对欧氏距离是全局 $L$-Lipschitz，则 $\Pr(|F(G)-\mathbb EF(G)|\ge t)\le2e^{-t^2/(2L^2)}$。这里控制的是梯度的全局上界，不是其期望。
+
+**位置依赖的有界差分。**定义 $d_i^-F(x)=F(x)-\inf_zF(x_{-i},z)$，$d_i^+F(x)=\sup_zF(x_{-i},z)-F(x)$。令 $V_-=\|\sum_i(d_i^-F)^2\|_\infty$，$V_+=\|\sum_i(d_i^+F)^2\|_\infty$。独立坐标下一个有效版本为上尾 $e^{-t^2/(4V_-)}$、下尾 $e^{-t^2/(4V_+)}$。它把“各坐标先取最坏再相加”改成“同一位置相加后取最坏”，可更精细。此处引用熵方法结论，未假装由上一段鞅证明直接得到。
+
+**补充比较：Bernstein。**独立中心化 $X_i$、$|X_i|\le b$，$v=\sum_i\mathbb EX_i^2$ 时，$\Pr(\sum X_i\ge t)\le e^{-t^2/[2(v+bt/3)]}$。小偏差由真实方差控制、大偏差由范围控制；这是辅助对照，不将它误标为 L4 的唯一主轴。
+
+**自检。**为何 union bound 不要求事件独立？经验风险上确界替换一个样本时为什么仍至多变 $1/n$？

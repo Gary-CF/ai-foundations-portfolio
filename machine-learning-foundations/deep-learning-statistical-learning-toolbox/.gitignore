@@ -1,0 +1,15 @@
+/.quarto/
+/_book/
+/_pdf/
+/.DS_Store
+**/__pycache__/
+*.aux
+*.log
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+/deep-learning-statistical-learning-toolbox.tex
+
+**/*.quarto_ipynb

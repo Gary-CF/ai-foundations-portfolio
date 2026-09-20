@@ -1,0 +1,11 @@
+.quarto/
+_book/
+_pdf/
+preview/
+__pycache__/
+*.pyc
+*.aux
+*.log
+
+/.quarto/
+**/*.quarto_ipynb

@@ -1,0 +1,56 @@
+# 符号与数学工具 {#sec-notation}
+
+本附录作为全书共同约定。局部章节若改变时域、归一化或采样分布，会显式说明。
+
+## 符号表
+
+| 记号 | 含义 | 易混点 |
+|---|---|---|
+| $S_t,A_t,R_{t+1}$ | 当前状态、动作、下一步收到的奖励 | 奖励索引在动作之后 |
+| $G_t$ | 从 t 起重新计折扣的回报 | 与从起点计的 $\gamma^tG_t$ 不同 |
+| $P,r,\rho_0$ | 转移、奖励均值、初始分布 | 环境模型不含策略参数时才可直接消去其 score |
+| $\pi,b$ | 目标策略、行为策略 | 与 online/offline 分类不同 |
+| $V^\pi,Q^\pi,A^\pi$ | 真值、动作真值、优势 | 与参数网络估计不同 |
+| $\theta,\phi,\psi$ | 网络参数，具体角色逐章定义 | 同字母跨章不一定同一网络 |
+| $\bar\theta$ | 慢速目标网络参数 | 不等于数据采样的 old policy |
+| $\operatorname{sg}$ | 停止梯度 | 冻结参数不总等于切断输入梯度 |
+| $m_t,c_t$ | bootstrap mask、轨迹连接 mask | 时间截断可能分别取 1、0 |
+| $d_\gamma^\pi$ | 归一化折扣占用 | 总质量为 1；价值公式有额外系数 |
+| $\alpha,\lambda,\beta$ | 步长/温度/正则等局部参数 | 先看本章定义，不凭字母猜角色 |
+
+## 条件期望与全期望
+
+$\mathbb E[X]=\mathbb E[\mathbb E[X\mid Y]]$ 是 Bellman 分解与策略梯度换回报为 Q 的共同工具。给定状态动作后，未来回报仍是随机变量；它的条件期望在结果出现前就有意义。
+
+线性性允许交换有限求和和期望。无限求和、梯度与积分交换需支配可积性或其他正则条件；有界奖励与折扣常用于保证相关量有限。
+
+## Score-function 与重参数化
+
+Score-function 恒等式为 $\nabla_\theta\mathbb E_{p_\theta}f=\mathbb E[f\nabla\log p_\theta]$，假设 f 本身不显式依赖 $\theta$；若依赖，还需加 $\mathbb E[\nabla f]$。它可处理离散样本，但可能高方差。
+
+重参数化写 $X=g_\theta(\epsilon)$、$\epsilon\sim p(\epsilon)$，得到 $\nabla\mathbb E f(X)=\mathbb E[\nabla_xf\nabla_\theta g]$，要求可微等条件。环境不可微不妨碍 score-function；SAC 对动作和 Critic 可微，因此可用重参数化。
+
+## KL、熵与互信息
+
+离散熵 $H(p)=-\sum_xp(x)\log p(x)$；KL 为 $D_{\rm KL}(p\|q)=\sum_xp(x)\log[p(x)/q(x)]$，要求 q 覆盖 p 的支持，否则可为无穷。KL 不对称，不是距离度量。
+
+互信息 $I(X;Y)=D_{\rm KL}(p(x,y)\|p(x)p(y))=H(X)-H(X\mid Y)$。它度量统计依赖，不自动意味着因果可控；技能/动作由策略干预时还需明确生成过程。
+
+连续分布使用密度，微分熵可为负；在可逆坐标变化下会改变。KL 在一致可逆变换下不变，这也是动作变换要同时修正两侧密度的原因。
+
+## ELBO 的一行展开
+
+将 $p(x,z)=p(z\mid x)p(x)$ 代入，得到
+
+$$\mathbb E_q\log\frac{p(x,z)}{q(z)}
+=\log p(x)-D_{\rm KL}(q(z)\|p(z\mid x)).$$
+
+若 q 的支持与模型不匹配或积分不存在，这种形式也需要额外条件。VAE 常把第一项拆成重建与先验 KL；世界模型则将先验扩为随动作演化的序列结构。
+
+## 几何级数与误差递推
+
+$\sum_{k=0}^{K-1}\gamma^k=(1-\gamma^K)/(1-\gamma)$。若 $e_{k+1}\leq\gamma e_k+\epsilon_k$，逐次代入得到
+
+$$e_K\leq\gamma^Ke_0+\sum_{j=0}^{K-1}\gamma^{K-1-j}\epsilon_j.$$
+
+这是表格迭代误差、模型误差和近似动态规划的常用骨架，使用前要检查收缩系数、范数与单步误差假设。
